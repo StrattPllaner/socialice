@@ -745,19 +745,33 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   display: block; font-size: .78rem; font-weight: 700;
   color: var(--ink-soft); margin-bottom: 8px; letter-spacing: .01em;
 }
-/* Campo de ciudad (texto libre) */
-.ciudad-input {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(255,255,255,.04); border: 1px solid var(--line);
-  border-radius: var(--r-md); padding: 10px 14px; margin-bottom: 10px;
-  transition: border-color .2s ease;
+/* Barra de filtros (botón + chips activos quitables) */
+.filter-bar {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  align-items: center; margin: 14px 0 6px;
 }
-.ciudad-input:focus-within { border-color: var(--violet); }
-.ciudad-input input {
-  flex: 1; border: none; background: none; outline: none;
-  color: var(--ink); font-family: inherit; font-size: .95rem;
+.filter-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: inherit; font-weight: 700; font-size: .9rem; color: var(--ink);
+  background: rgba(255,255,255,.05); border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill); padding: 9px 16px; cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .15s ease;
 }
-.ciudad-input input::placeholder { color: var(--ink-faint); }
+.filter-btn svg { width: 17px; height: 17px; }
+.filter-btn:active { transform: scale(.96); }
+.filter-btn.has { color: #fff; background: var(--grad-party); border-color: transparent; }
+/* Chip de un filtro activo (con ✕ para quitarlo) */
+.f-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: inherit; font-weight: 600; font-size: .84rem; color: var(--ink);
+  background: rgba(139,92,246,.14); border: 1px solid rgba(139,92,246,.35);
+  border-radius: var(--r-pill); padding: 8px 13px; cursor: pointer;
+}
+.f-chip span { color: var(--ink-faint); font-size: .75rem; }
+.f-chip:active { transform: scale(.96); }
+
+/* Chips más chicos dentro del panel de filtros */
+.chips-row.mini .chip { font-size: .8rem; padding: 7px 13px; }
 
 /* ============== "EN VIVO" (amigos en fiesta) ============== */
 .live-dot {
