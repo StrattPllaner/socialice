@@ -1,25 +1,41 @@
 /* =====================================================================
    SOCIALICE · Lógica de la app
    ---------------------------------------------------------------------
-   Aquí va lo que "hace funcionar" la app: cambiar de pantalla, pintar
-   las tarjetas de eventos, el perfil y la navegación inferior.
+   Cambiar de pantalla, pintar eventos, amigos, perfil y nav inferior.
+   La interfaz se adapta al rol: 'organizador' o 'asistente'.
    ===================================================================== */
 
 /* ===================================================================
-   1. NAVEGACIÓN ENTRE PANTALLAS
+   1. NAVEGACIÓN
    =================================================================== */
+
+// Vuelve a dibujar la pantalla que toca (para que siempre esté al día
+// con el rol y los datos actuales).
+function render(nombre) {
+  if (nombre === 'home')    pintarInicio();
+  if (nombre === 'create')  pintarCrear();
+  if (nombre === 'friends') pintarAmigos();
+  if (nombre === 'profile') pintarPerfil();
+}
 
 // Muestra una pantalla por su nombre y oculta las demás.
 function irA(nombre) {
+  render(nombre);
   document.querySelectorAll('.screen').forEach((s) => {
     s.classList.toggle('is-active', s.dataset.name === nombre);
   });
   document.body.dataset.screen = nombre;
-  // Marcamos el botón activo en la nav inferior
+  pintarNav();
   document.querySelectorAll('.nav-btn').forEach((b) => {
     b.classList.toggle('is-active', b.dataset.go === nombre);
   });
   window.scrollTo({ top: 0 });
+}
+
+// Se llama al terminar login/registro: arma la app y entra al Inicio.
+function entrarApp() {
+  pintarNav();
+  irA('home');
 }
 
 // Moverse dentro del splash (bienvenida / rol / login / registro).
@@ -30,34 +46,36 @@ function splashIr(pagina) {
   window.scrollTo({ top: 0 });
 }
 
+// Mostrar/ocultar una contraseña.
+function verPass(id, btn) {
+  const inp = document.getElementById(id);
+  const oculto = inp.type === 'password';
+  inp.type = oculto ? 'text' : 'password';
+  btn.textContent = oculto ? '🙈' : '👁️';
+}
+
 // Guarda el rol elegido y adapta los textos del registro.
 function elegirRol(rol) {
   DATA.usuario.rol = rol;
   const esOrg = rol === 'organizador';
-  // El paso 2 cambia según seas organizador o asistente
-  document.getElementById('reg2Title').textContent =
-    esOrg ? '¿Quién organiza?' : 'Cuéntanos de ti';
-  document.getElementById('reg2NameLabel').textContent =
-    esOrg ? 'Nombre del organizador' : 'Tu nombre';
-  document.getElementById('reg2Name').placeholder =
-    esOrg ? 'Ej: Andrea Eventos' : 'Ej: Andrea Ríos';
+  document.getElementById('reg2Title').textContent = esOrg ? '¿Quién organiza?' : 'Cuéntanos de ti';
+  document.getElementById('reg2NameLabel').textContent = esOrg ? 'Nombre del organizador' : 'Tu nombre';
+  document.getElementById('reg2Name').placeholder = esOrg ? 'Ej: Andrea Eventos' : 'Ej: Andrea Ríos';
   splashIr('reg1');
 }
 
 /* ===================================================================
-   2. PANTALLA DE INICIO (feed de eventos)
+   2. INICIO (feed de eventos)
    =================================================================== */
 
 let categoriaActiva = 'todos';
 
-// Dibuja toda la pantalla de Inicio.
 function pintarInicio() {
   const cont = document.getElementById('screen-home');
   const u = DATA.usuario;
   const destacado = DATA.eventos.find((e) => e.id === DATA.destacadoId);
 
   cont.innerHTML = `
-    <!-- Barra superior con saludo y avatar -->
     <header class="top-bar">
       <div>
         <small>Hola de nuevo</small>
@@ -66,20 +84,24 @@ function pintarInicio() {
       <div class="top-avatar" onclick="irA('profile')">${u.avatar}</div>
     </header>
 
-    <!-- Evento destacado (grande arriba) -->
-    <section class="featured anim-float" style="background:${destacado.grad}">
-      <span class="featured-tag">★ Próxima fiesta</span>
+    <section class="featured" style="background:${destacado.grad}">
+      <span class="featured-tag">✦ Próxima fiesta</span>
       <div class="featured-emoji">${destacado.emoji}</div>
       <h2>${destacado.nombre}</h2>
-      <p class="featured-meta">${destacado.fecha} · ${destacado.lugar}</p>
-      <button class="btn featured-btn">Ver evento</button>
+      <p class="featured-meta">${destacado.fecha}</p>
+      <p class="featured-meta">📍 ${destacado.lugar} · ${destacado.ciudad}</p>
+      <div class="featured-foot">
+        <button class="featured-btn">Ver evento</button>
+        <span class="featured-going">👥 ${destacado.asistentes} van</span>
+      </div>
     </section>
 
-    <!-- Chips de categoría -->
     <div class="chips-row" id="chipsRow"></div>
 
-    <!-- Lista de eventos -->
-    <h3 class="section-title">Próximas fiestas</h3>
+    <div class="row-between">
+      <h3>Próximas fiestas</h3>
+      <span class="see-all">Ver todas</span>
+    </div>
     <div class="event-list" id="eventList"></div>
   `;
 
@@ -87,7 +109,6 @@ function pintarInicio() {
   pintarEventos();
 }
 
-// Dibuja los chips de filtro.
 function pintarChips() {
   const fila = document.getElementById('chipsRow');
   fila.innerHTML = DATA.categorias.map((c) => `
@@ -96,21 +117,19 @@ function pintarChips() {
   `).join('');
 }
 
-// Cambia el filtro activo y vuelve a pintar.
 function filtrar(catId) {
   categoriaActiva = catId;
   pintarChips();
   pintarEventos();
 }
 
-// Dibuja las tarjetas de eventos según el filtro.
 function pintarEventos() {
   const lista = document.getElementById('eventList');
   const eventos = DATA.eventos.filter((e) =>
     categoriaActiva === 'todos' || e.cat.includes(categoriaActiva)
   );
 
-  if (eventos.length === 0) {
+  if (!eventos.length) {
     lista.innerHTML = `<p class="empty">No hay fiestas en esta categoría 🙈</p>`;
     return;
   }
@@ -118,16 +137,16 @@ function pintarEventos() {
   lista.innerHTML = eventos.map((e) => `
     <article class="event-card">
       <div class="event-cover" style="background:${e.grad}">
-        <span>${e.emoji}</span>
+        <span class="event-emoji">${e.emoji}</span>
         <span class="event-price">${e.precio}</span>
       </div>
       <div class="event-body">
         <h3>${e.nombre}</h3>
         <p class="event-meta">${e.fecha}</p>
-        <p class="event-meta">📍 ${e.lugar}</p>
+        <p class="event-meta">📍 ${e.lugar} · ${e.ciudad}</p>
         <div class="event-foot">
           <span class="event-org">por ${e.organizador}</span>
-          <span class="badge">👥 ${e.asistentes}</span>
+          <span class="pill-soft">👥 ${e.asistentes}</span>
         </div>
       </div>
     </article>
@@ -135,7 +154,121 @@ function pintarEventos() {
 }
 
 /* ===================================================================
-   3. PANTALLA DE PERFIL
+   3. CREAR EVENTO (placeholder · solo organizador)
+   =================================================================== */
+
+function pintarCrear() {
+  document.getElementById('screen-create').innerHTML = `
+    <div class="placeholder">
+      <div class="placeholder-emoji anim-float">🎪</div>
+      <h2>Crear evento</h2>
+      <p>Aquí armarás tu fiesta de principio a fin: mapa del lugar, zonas y
+         asientos, flyer de promoción y un muro de publicaciones.</p>
+      <span class="soon-badge">Próximamente</span>
+    </div>
+  `;
+}
+
+/* ===================================================================
+   4. AMIGOS (solo asistente)
+   =================================================================== */
+
+function pintarAmigos() {
+  const cont = document.getElementById('screen-friends');
+  const enVivo = DATA.amigos.filter((a) => a.ahora);
+
+  cont.innerHTML = `
+    <header class="page-head">
+      <h1>Amigos</h1>
+      <p class="page-sub">Mira a dónde va tu gente.</p>
+    </header>
+
+    <div class="search-bar">
+      <span>🔍</span>
+      <input placeholder="Busca por nombre o @usuario">
+    </div>
+
+    ${enVivo.length ? `
+      <div class="row-between">
+        <h3><span class="live-dot"></span> En la fiesta ahora</h3>
+      </div>
+      <div class="live-row">
+        ${enVivo.map((a) => `
+          <div class="live-card">
+            <div class="live-ava" style="background:${a.color}">${a.avatar}
+              <span class="live-ping"></span>
+            </div>
+            <strong>${a.nombre.split(' ')[0]}</strong>
+            <small>${a.ahora}</small>
+          </div>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    <div class="row-between"><h3>Tus amigos</h3><span class="see-all">${DATA.amigos.length}</span></div>
+    <div class="friend-list">
+      ${DATA.amigos.map(tarjetaAmigo).join('')}
+    </div>
+
+    <div class="row-between"><h3>Quizá los conozcas</h3></div>
+    <div class="friend-list">
+      ${DATA.sugerencias.map(tarjetaSugerencia).join('')}
+    </div>
+  `;
+}
+
+// Tarjeta de un amigo: respeta si su perfil es privado.
+function tarjetaAmigo(a) {
+  if (a.privado) {
+    return `
+      <article class="friend-card">
+        <div class="friend-ava" style="background:${a.color}">${a.avatar}</div>
+        <div class="friend-main">
+          <strong>${a.nombre}</strong>
+          <small>${a.usuario}</small>
+          <p class="friend-locked">🔒 Perfil privado · solo amigos ven su actividad</p>
+        </div>
+      </article>`;
+  }
+  const estado = a.ahora
+    ? `<span class="friend-now">🔴 En ${a.ahora} ahora</span>`
+    : (a.fue[0] ? `<span class="friend-was">Última: ${a.fue[0]}</span>` : `<span class="friend-was">Sin fiestas aún</span>`);
+  return `
+    <article class="friend-card">
+      <div class="friend-ava" style="background:${a.color}">${a.avatar}</div>
+      <div class="friend-main">
+        <strong>${a.nombre}</strong>
+        <small>${a.usuario}</small>
+        ${estado}
+        ${a.fotos.length ? `<div class="photo-strip">
+          ${a.fotos.map((f) => `<span class="photo-thumb">${f}</span>`).join('')}
+          <span class="photo-count">${a.fotos.length} fotos</span>
+        </div>` : ''}
+      </div>
+    </article>`;
+}
+
+// Tarjeta de sugerencia con botón "Agregar".
+function tarjetaSugerencia(s) {
+  return `
+    <article class="friend-card">
+      <div class="friend-ava" style="background:${s.color}">${s.avatar}</div>
+      <div class="friend-main">
+        <strong>${s.nombre}</strong>
+        <small>${s.usuario} · ${s.enComun} amigos en común</small>
+      </div>
+      <button class="add-btn" onclick="agregarAmigo(this)">Agregar</button>
+    </article>`;
+}
+
+// Alterna el botón Agregar → Solicitado (visual por ahora).
+function agregarAmigo(btn) {
+  const ok = btn.classList.toggle('is-added');
+  btn.textContent = ok ? 'Solicitado ✓' : 'Agregar';
+}
+
+/* ===================================================================
+   5. PERFIL (distinto para organizador y asistente)
    =================================================================== */
 
 function pintarPerfil() {
@@ -143,65 +276,161 @@ function pintarPerfil() {
   const u = DATA.usuario;
   const esOrg = u.rol === 'organizador';
 
-  // Los eventos creados por este usuario (solo aplica a organizadores)
+  cont.innerHTML = esOrg ? perfilOrganizador(u) : perfilAsistente(u);
+}
+
+// --- Perfil de ORGANIZADOR ---
+function perfilOrganizador(u) {
   const mios = DATA.eventos.filter((e) => e.organizador === u.nombre);
+  return `
+    <header class="page-head row-between">
+      <h1>Perfil</h1>
+      <button class="icon-btn sm" onclick="alert('Ajustes (pendiente)')">⚙️</button>
+    </header>
 
-  cont.innerHTML = `
     <section class="profile-hero">
-      <div class="profile-avatar">${u.avatar}</div>
+      <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
       <h2>${u.nombre}</h2>
-      <p class="profile-user">${u.usuario} · ${esOrg ? '🎪 Organizador' : '🎟️ Asistente'}</p>
+      <p class="profile-user">${u.usuario} · 🎪 Organizador</p>
       <p class="profile-bio">${u.bio}</p>
-
       <div class="profile-stats">
-        ${esOrg ? `<div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>` : ''}
-        <div class="stat"><strong>${u.stats.asistentes.toLocaleString()}</strong><small>${esOrg ? 'asistentes' : 'fiestas'}</small></div>
+        <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
+        <div class="stat"><strong>${kilo(u.stats.asistentes)}</strong><small>asistentes</small></div>
         <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
       </div>
-
-      <button class="btn btn-ghost profile-edit">Editar perfil</button>
+      <div class="profile-actions">
+        <button class="btn full">Editar perfil</button>
+        <button class="icon-btn" onclick="alert('Compartir perfil')">↗</button>
+      </div>
     </section>
 
-    ${esOrg ? `
-      <h3 class="section-title">Mis eventos</h3>
-      <div class="event-list">
-        ${mios.map((e) => `
-          <article class="event-card">
-            <div class="event-cover" style="background:${e.grad}">
-              <span>${e.emoji}</span>
-              <span class="event-price">${e.precio}</span>
+    <div class="row-between"><h3>Mis eventos</h3><span class="see-all">${mios.length}</span></div>
+    <div class="event-list">
+      ${mios.map((e) => `
+        <article class="event-card">
+          <div class="event-cover" style="background:${e.grad}">
+            <span class="event-emoji">${e.emoji}</span>
+            <span class="event-price">${e.precio}</span>
+          </div>
+          <div class="event-body">
+            <h3>${e.nombre}</h3>
+            <p class="event-meta">${e.fecha}</p>
+            <p class="event-meta">📍 ${e.lugar} · ${e.ciudad}</p>
+            <div class="event-foot">
+              <span class="pill-soft">👥 ${e.asistentes} van</span>
+              <span class="see-all">Gestionar</span>
             </div>
-            <div class="event-body">
-              <h3>${e.nombre}</h3>
-              <p class="event-meta">${e.fecha}</p>
-              <p class="event-meta">📍 ${e.lugar}</p>
-            </div>
-          </article>
-        `).join('')}
-      </div>
-    ` : `
-      <div class="card" style="text-align:center">
-        <p>Aún no sigues a ningún organizador.</p>
-        <button class="btn" style="margin-top:14px" onclick="irA('home')">Descubrir fiestas</button>
-      </div>
-    `}
+          </div>
+        </article>
+      `).join('')}
+    </div>
   `;
 }
 
+// --- Perfil de ASISTENTE ---
+function perfilAsistente(u) {
+  // Sus próximas fiestas y su historial (mock a partir de los eventos)
+  const proximas = DATA.eventos.slice(0, 2);
+  const historial = DATA.eventos.slice(2);
+
+  return `
+    <header class="page-head row-between">
+      <h1>Mi perfil</h1>
+      <button class="icon-btn sm" onclick="alert('Ajustes (pendiente)')">⚙️</button>
+    </header>
+
+    <section class="profile-hero">
+      <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
+      <h2>${u.nombre}</h2>
+      <p class="profile-user">${u.usuario} · 🎟️ Asistente</p>
+      <p class="profile-bio">${u.bio}</p>
+      <div class="profile-stats">
+        <div class="stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
+        <div class="stat"><strong>${u.stats.amigos}</strong><small>amigos</small></div>
+        <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
+      </div>
+      <div class="profile-actions">
+        <button class="btn full">Editar perfil</button>
+        <button class="icon-btn" onclick="irA('friends')">👥</button>
+      </div>
+    </section>
+
+    <!-- Privacidad: público o privado -->
+    <div class="privacy-card">
+      <div class="privacy-text">
+        <strong>${u.privado ? '🔒 Perfil privado' : '🌍 Perfil público'}</strong>
+        <small>${u.privado
+          ? 'Solo tus amigos ven a qué fiestas vas.'
+          : 'Cualquiera puede ver a qué fiestas vas.'}</small>
+      </div>
+      <button class="toggle ${u.privado ? '' : 'is-on'}" onclick="alternarPrivacidad()">
+        <span class="toggle-knob"></span>
+      </button>
+    </div>
+
+    <div class="row-between"><h3>Voy a ir</h3><span class="see-all">${proximas.length}</span></div>
+    <div class="mini-list">
+      ${proximas.map((e) => filaFiesta(e, 'voy')).join('')}
+    </div>
+
+    <div class="row-between"><h3>Historial</h3><span class="see-all">Ver todo</span></div>
+    <div class="mini-list">
+      ${historial.map((e) => filaFiesta(e, 'fui')).join('')}
+    </div>
+
+    <div class="row-between"><h3>Mis fotos</h3></div>
+    <div class="photo-grid">
+      ${['🌃','🪩','🥂','💃','✨','🎉'].map((f) => `<div class="photo-cell">${f}</div>`).join('')}
+    </div>
+  `;
+}
+
+// Fila compacta de una fiesta (en el perfil del asistente).
+function filaFiesta(e, modo) {
+  const etq = modo === 'voy'
+    ? `<span class="tag-go">Confirmado</span>`
+    : `<span class="tag-was">Asististe</span>`;
+  return `
+    <div class="mini-card">
+      <div class="mini-cover" style="background:${e.grad}">${e.emoji}</div>
+      <div class="mini-main">
+        <strong>${e.nombre}</strong>
+        <small>${e.fecha} · ${e.ciudad}</small>
+      </div>
+      ${etq}
+    </div>`;
+}
+
+// Cambia público <-> privado y vuelve a pintar el perfil.
+function alternarPrivacidad() {
+  DATA.usuario.privado = !DATA.usuario.privado;
+  pintarPerfil();
+}
+
 /* ===================================================================
-   4. NAVEGACIÓN INFERIOR
+   6. NAVEGACIÓN INFERIOR (cambia según el rol)
    =================================================================== */
 
 function pintarNav() {
   const nav = document.getElementById('bottomNav');
-  // Cada botón lleva a una pantalla (data-go)
-  const items = [
-    { go: 'home',    icono: '🏠', texto: 'Inicio' },
-    { go: 'create',  icono: '➕', texto: 'Crear' },
-    { go: 'profile', icono: '👤', texto: 'Perfil' }
-  ];
+  const esOrg = DATA.usuario.rol === 'organizador';
+
+  // El organizador tiene "Crear"; el asistente tiene "Amigos".
+  const items = esOrg
+    ? [
+        { go: 'home',    icono: '🏠', texto: 'Inicio' },
+        { go: 'create',  icono: '✨', texto: 'Crear'  },
+        { go: 'profile', icono: '👤', texto: 'Perfil' }
+      ]
+    : [
+        { go: 'home',    icono: '🏠', texto: 'Explorar' },
+        { go: 'friends', icono: '👥', texto: 'Amigos'   },
+        { go: 'profile', icono: '👤', texto: 'Perfil'   }
+      ];
+
+  const actual = document.body.dataset.screen;
   nav.innerHTML = items.map((it) => `
-    <button class="nav-btn ${it.go === 'home' ? 'is-active' : ''}"
+    <button class="nav-btn ${it.go === actual ? 'is-active' : ''}"
             data-go="${it.go}" onclick="irA('${it.go}')">
       <span class="nav-icon">${it.icono}</span>
       <span class="nav-text">${it.texto}</span>
@@ -210,20 +439,25 @@ function pintarNav() {
 }
 
 /* ===================================================================
-   5. ARRANQUE
+   7. UTILIDADES Y ARRANQUE
    =================================================================== */
 
+// 1240 -> "1.2k"
+function kilo(n) {
+  return n >= 1000 ? (n / 1000).toFixed(1).replace('.0', '') + 'k' : '' + n;
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  pintarInicio();
-  pintarPerfil();
-  pintarNav();
-  // La pantalla "Crear" es un placeholder por ahora (Sesión 2)
-  document.getElementById('screen-create').innerHTML = `
-    <div class="placeholder">
-      <div class="placeholder-emoji anim-float">🎪</div>
-      <h2>Crear evento</h2>
-      <p>Aquí podrás armar tu fiesta: mapa, asientos, flyer y publicaciones.<br>Lo construimos en el siguiente paso.</p>
-    </div>
-  `;
   console.log('Socialice listo ✨');
+
+  // --- Atajo de desarrollo (solo para pruebas) ---
+  // Permite abrir una pantalla directa, ej: ?screen=home&rol=asistente
+  const p = new URLSearchParams(location.search);
+  if (p.get('rol')) DATA.usuario.rol = p.get('rol');
+  if (p.get('splash')) splashIr(p.get('splash'));
+  if (p.get('screen')) {
+    document.getElementById('screen-splash').classList.remove('is-active');
+    entrarApp();
+    irA(p.get('screen'));
+  }
 });

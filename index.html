@@ -49,124 +49,188 @@
     <section id="screen-splash" class="screen is-active" data-name="splash">
 
       <!-- a) Bienvenida -->
-      <div class="splash-page is-shown" data-page="welcome">
-        <div class="splash-top">
-          <div class="splash-logo anim-glow">S</div>
-          <h1 class="splash-title text-grad">Socialice</h1>
-          <p class="splash-sub">Crea, organiza y promociona<br>tus fiestas desde un solo lugar.</p>
+      <div class="splash-page welcome is-shown" data-page="welcome">
+        <!-- Luces de fondo decorativas (puro adorno visual) -->
+        <div class="welcome-orb orb-1"></div>
+        <div class="welcome-orb orb-2"></div>
+
+        <div class="welcome-center">
+          <div class="brand-logo anim-glow">S</div>
+          <h1 class="brand-name">Socialice</h1>
+          <p class="brand-tag">Donde empiezan las mejores noches.</p>
         </div>
+
         <div class="splash-bottom">
           <button class="btn" onclick="splashIr('rol')">Crear cuenta</button>
           <button class="btn btn-ghost" onclick="splashIr('login')">Ya tengo cuenta</button>
+          <p class="legal">Al continuar aceptas nuestros Términos y Privacidad.</p>
         </div>
       </div>
 
       <!-- a.2) Elegir tipo de cuenta -->
       <div class="splash-page" data-page="rol">
-        <button class="back-btn" onclick="splashIr('welcome')">‹</button>
-        <div class="splash-form-top">
-          <h2>¿Cómo vas a usar Socialice?</h2>
-          <p class="splash-sub">Puedes cambiarlo después.</p>
+        <div class="splash-head">
+          <button class="icon-btn" onclick="splashIr('welcome')">‹</button>
         </div>
-        <!-- Cada tarjeta elige un rol y avanza al registro -->
-        <button class="rol-card" onclick="elegirRol('organizador')">
-          <span class="rol-emoji">🎪</span>
-          <span class="rol-text">
-            <strong>Soy organizador</strong>
-            <small>Quiero crear y promocionar mis fiestas.</small>
-          </span>
-          <span class="rol-arrow">›</span>
-        </button>
-        <button class="rol-card" onclick="elegirRol('asistente')">
-          <span class="rol-emoji">🎟️</span>
-          <span class="rol-text">
-            <strong>Quiero ir a fiestas</strong>
-            <small>Descubrir eventos y seguir a organizadores.</small>
-          </span>
-          <span class="rol-arrow">›</span>
-        </button>
+        <div class="splash-body">
+          <h2 class="splash-h">¿Cómo vas a usar Socialice?</h2>
+          <p class="splash-sub">Puedes cambiarlo cuando quieras.</p>
+
+          <button class="rol-card" onclick="elegirRol('organizador')">
+            <span class="rol-emoji">🎪</span>
+            <span class="rol-text">
+              <strong>Soy organizador</strong>
+              <small>Crea, promociona y llena tus fiestas.</small>
+            </span>
+            <span class="rol-arrow">›</span>
+          </button>
+          <button class="rol-card" onclick="elegirRol('asistente')">
+            <span class="rol-emoji">🎟️</span>
+            <span class="rol-text">
+              <strong>Quiero ir a fiestas</strong>
+              <small>Descubre eventos, junta a tus amigos y revive la noche.</small>
+            </span>
+            <span class="rol-arrow">›</span>
+          </button>
+        </div>
       </div>
 
-      <!-- b) Iniciar sesión -->
+      <!-- b) Iniciar sesión (detallado) -->
       <div class="splash-page" data-page="login">
-        <button class="back-btn" onclick="splashIr('welcome')">‹</button>
-        <div class="splash-form-top">
-          <h2>Hola de nuevo 👋</h2>
-          <p class="splash-sub">Entra para seguir armando la fiesta.</p>
+        <div class="splash-head">
+          <button class="icon-btn" onclick="splashIr('welcome')">‹</button>
         </div>
-        <label class="splash-field-wrap">
-          <span class="splash-label">Correo</span>
-          <input type="email" class="splash-input" placeholder="tu@correo.com" autocomplete="email">
-        </label>
-        <label class="splash-field-wrap">
-          <span class="splash-label">Contraseña</span>
-          <input type="password" class="splash-input" placeholder="••••••••" autocomplete="current-password">
-        </label>
-        <div class="splash-bottom">
-          <button class="btn" onclick="irA('home')">Entrar</button>
+        <div class="splash-body">
+          <div class="brand-logo sm">S</div>
+          <h2 class="splash-h">Bienvenido de nuevo</h2>
+          <p class="splash-sub">Inicia sesión para continuar la fiesta.</p>
+
+          <div class="field">
+            <span class="field-icon">✉️</span>
+            <div class="field-main">
+              <label class="field-label">Correo</label>
+              <input type="email" class="field-input" placeholder="tu@correo.com" autocomplete="email">
+            </div>
+          </div>
+
+          <div class="field">
+            <span class="field-icon">🔒</span>
+            <div class="field-main">
+              <label class="field-label">Contraseña</label>
+              <input type="password" class="field-input" id="loginPass" placeholder="Tu contraseña" autocomplete="current-password">
+            </div>
+            <button class="field-eye" type="button" onclick="verPass('loginPass', this)">👁️</button>
+          </div>
+
+          <button class="link-right" onclick="alert('Te enviaremos un correo para restablecerla (pendiente de conectar).')">¿Olvidaste tu contraseña?</button>
+
+          <button class="btn full" onclick="irA('home')">Entrar</button>
+
+          <div class="divider"><span>o continúa con</span></div>
+          <div class="social-row">
+            <button class="social-btn" onclick="alert('Acceso con Google: lo conectamos con Firebase después.')">
+              <span class="social-g">G</span> Google
+            </button>
+            <button class="social-btn" onclick="alert('Acceso con Apple: lo conectamos después.')">
+               Apple
+            </button>
+          </div>
+        </div>
+        <div class="splash-foot">
+          ¿No tienes cuenta?
+          <button class="link" onclick="splashIr('rol')">Crear cuenta</button>
         </div>
       </div>
 
       <!-- c) Registro · paso 1 de 3 (cuenta) -->
       <div class="splash-page" data-page="reg1">
-        <button class="back-btn" onclick="splashIr('rol')">‹</button>
-        <div class="step-dots"><i class="is-on"></i><i></i><i></i></div>
-        <div class="splash-form-top">
-          <small class="step-count">Paso 1 de 3</small>
-          <h2>Crea tu cuenta</h2>
+        <div class="splash-head">
+          <button class="icon-btn" onclick="splashIr('rol')">‹</button>
+          <div class="step-dots"><i class="is-on"></i><i></i><i></i></div>
         </div>
-        <label class="splash-field-wrap">
-          <span class="splash-label">Correo</span>
-          <input type="email" class="splash-input" placeholder="tu@correo.com" autocomplete="email">
-        </label>
-        <label class="splash-field-wrap">
-          <span class="splash-label">Contraseña</span>
-          <input type="password" class="splash-input" placeholder="Crea una contraseña" autocomplete="new-password">
-        </label>
+        <div class="splash-body">
+          <small class="step-count">Paso 1 de 3</small>
+          <h2 class="splash-h">Crea tu cuenta</h2>
+          <p class="splash-sub">Empecemos por tus datos de acceso.</p>
+
+          <div class="field">
+            <span class="field-icon">✉️</span>
+            <div class="field-main">
+              <label class="field-label">Correo</label>
+              <input type="email" class="field-input" placeholder="tu@correo.com" autocomplete="email">
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon">🔒</span>
+            <div class="field-main">
+              <label class="field-label">Contraseña</label>
+              <input type="password" class="field-input" id="regPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+            </div>
+            <button class="field-eye" type="button" onclick="verPass('regPass', this)">👁️</button>
+          </div>
+        </div>
         <div class="splash-bottom">
-          <button class="btn" onclick="splashIr('reg2')">Continuar</button>
+          <button class="btn full" onclick="splashIr('reg2')">Continuar</button>
         </div>
       </div>
 
       <!-- d) Registro · paso 2 de 3 (perfil) -->
       <div class="splash-page" data-page="reg2">
-        <button class="back-btn" onclick="splashIr('reg1')">‹</button>
-        <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i></i></div>
-        <div class="splash-form-top">
-          <small class="step-count">Paso 2 de 3</small>
-          <h2 id="reg2Title">¿Quién eres?</h2>
+        <div class="splash-head">
+          <button class="icon-btn" onclick="splashIr('reg1')">‹</button>
+          <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i></i></div>
         </div>
-        <label class="splash-field-wrap">
-          <span class="splash-label" id="reg2NameLabel">Nombre</span>
-          <input type="text" class="splash-input" id="reg2Name" placeholder="Ej: Andrea Ríos">
-        </label>
-        <label class="splash-field-wrap">
-          <span class="splash-label">Usuario</span>
-          <input type="text" class="splash-input" placeholder="@tuusuario">
-        </label>
+        <div class="splash-body">
+          <small class="step-count">Paso 2 de 3</small>
+          <h2 class="splash-h" id="reg2Title">¿Quién eres?</h2>
+          <p class="splash-sub">Así te verán los demás en Socialice.</p>
+
+          <div class="field">
+            <span class="field-icon">🙂</span>
+            <div class="field-main">
+              <label class="field-label" id="reg2NameLabel">Nombre</label>
+              <input type="text" class="field-input" id="reg2Name" placeholder="Ej: Andrea Ríos">
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon">@</span>
+            <div class="field-main">
+              <label class="field-label">Usuario</label>
+              <input type="text" class="field-input" placeholder="tuusuario">
+            </div>
+          </div>
+        </div>
         <div class="splash-bottom">
-          <button class="btn" onclick="splashIr('reg3')">Continuar</button>
+          <button class="btn full" onclick="splashIr('reg3')">Continuar</button>
         </div>
       </div>
 
       <!-- e) Registro · paso 3 de 3 (listo) -->
       <div class="splash-page" data-page="reg3">
-        <button class="back-btn" onclick="splashIr('reg2')">‹</button>
-        <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></div>
-        <div class="splash-form-top">
-          <small class="step-count">Paso 3 de 3</small>
-          <h2>Una bio corta</h2>
+        <div class="splash-head">
+          <button class="icon-btn" onclick="splashIr('reg2')">‹</button>
+          <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></div>
         </div>
-        <label class="splash-field-wrap">
-          <span class="splash-label">Bio</span>
-          <input type="text" class="splash-input" id="reg3Bio" placeholder="Cuéntale a la gente quién eres 🎉">
-        </label>
-        <div class="splash-ready">
-          <div class="splash-ready-emoji anim-float">🎉</div>
-          <p class="splash-sub">¡Todo listo! Tu cuenta de organizador está creada.</p>
+        <div class="splash-body">
+          <small class="step-count">Paso 3 de 3</small>
+          <h2 class="splash-h">Una bio corta</h2>
+          <p class="splash-sub">Lo último y entramos a la fiesta.</p>
+
+          <div class="field">
+            <span class="field-icon">✨</span>
+            <div class="field-main">
+              <label class="field-label">Bio</label>
+              <input type="text" class="field-input" id="reg3Bio" placeholder="Cuéntale a la gente quién eres">
+            </div>
+          </div>
+
+          <div class="splash-ready">
+            <div class="splash-ready-emoji anim-float">🎉</div>
+            <p class="splash-sub">¡Todo listo! Tu cuenta ya está creada.</p>
+          </div>
         </div>
         <div class="splash-bottom">
-          <button class="btn" onclick="irA('home')">Empezar</button>
+          <button class="btn full" onclick="irA('home')">Entrar a Socialice</button>
         </div>
       </div>
 
@@ -175,10 +239,13 @@
     <!-- 2) Inicio / feed de eventos  (Paso 3) -->
     <section id="screen-home" class="screen" data-name="home"></section>
 
-    <!-- 3) Crear evento (placeholder por ahora, Sesión 2) -->
+    <!-- 3) Crear evento (solo organizador · placeholder por ahora) -->
     <section id="screen-create" class="screen" data-name="create"></section>
 
-    <!-- 4) Perfil del organizador  (Paso 4) -->
+    <!-- 4) Amigos (solo asistente) -->
+    <section id="screen-friends" class="screen" data-name="friends"></section>
+
+    <!-- 5) Perfil -->
     <section id="screen-profile" class="screen" data-name="profile"></section>
 
     <!-- =========================================================

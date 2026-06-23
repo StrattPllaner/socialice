@@ -230,175 +230,211 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 #screen-splash.is-active { padding-bottom: 0; }
 
 /* ================================================================== */
-/* SPLASH + REGISTRO                                                   */
+/* SPLASH + LOGIN + REGISTRO                                           */
 /* ================================================================== */
 
-/* Cada sub-pantalla ocupa todo el alto y se centra verticalmente.
-   Solo se ve la que tenga .is-shown */
+/* Cada sub-pantalla ocupa todo el alto. Solo se ve la que tenga .is-shown */
 .splash-page {
   display: none;
   min-height: 100dvh;
-  padding: 28px 24px calc(28px + env(safe-area-inset-bottom));
+  padding: calc(14px + env(safe-area-inset-top)) 22px calc(20px + env(safe-area-inset-bottom));
   flex-direction: column;
 }
-.splash-page.is-shown {
-  display: flex;
-  animation: fadeUp .4s ease both;
-}
+.splash-page.is-shown { display: flex; animation: fadeUp .45s cubic-bezier(.2,.7,.2,1) both; }
 
-/* --- Bienvenida --- */
-.splash-top {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 14px;
-}
-.splash-logo {
-  width: 96px;
-  height: 96px;
-  border-radius: 28px;
-  display: grid;
-  place-items: center;
-  font-size: 3.4rem;
-  font-weight: 800;
-  color: #fff;
-  background: var(--grad-party);
-}
-.splash-title { font-size: 2.6rem; }
-.splash-sub { color: var(--ink-soft); font-size: 1.02rem; }
-
-/* Zona de botones, siempre pegada abajo */
-.splash-bottom {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 22px;
-}
-
-/* --- Formularios (login y registro) --- */
-.splash-form-top { margin: 8px 0 22px; }
-.splash-form-top h2 { margin-top: 4px; }
-.step-count { color: var(--violet); font-weight: 700; letter-spacing: .03em; }
-
-/* Campo de texto con etiqueta arriba; el borde brilla al enfocar */
-.splash-field-wrap {
-  display: block;
-  background: var(--bg-soft-2);
-  border: 1px solid var(--line);
-  border-radius: var(--r-md);
-  padding: 10px 16px;
-  margin-bottom: 14px;
-  transition: border-color .2s ease, box-shadow .25s ease;
-}
-.splash-field-wrap:focus-within {
-  border-color: var(--violet);
-  box-shadow: var(--glow-violet);
-}
-.splash-label {
-  display: block;
-  font-size: .78rem;
-  font-weight: 600;
-  color: var(--ink-faint);
-}
-.splash-input {
-  width: 100%;
-  border: none;
-  background: transparent;
-  outline: none;
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 1.05rem;
-  font-weight: 500;
-  padding: 4px 0 2px;
-}
-.splash-input::placeholder { color: var(--ink-faint); }
-
-/* Empuja los botones del formulario hacia abajo */
-.splash-page[data-page="login"] .splash-bottom,
-.splash-page[data-page^="reg"]  .splash-bottom { margin-top: auto; }
-
-/* --- Indicador de pasos (puntitos 1-2-3) --- */
-.step-dots { display: flex; gap: 8px; margin: 6px 0 4px; }
-.step-dots i {
-  height: 6px;
-  width: 26px;
-  border-radius: var(--r-pill);
-  background: var(--line-strong);
-  transition: background .3s ease, box-shadow .3s ease;
-}
-.step-dots i.is-on {
-  background: var(--grad-party);
-  box-shadow: 0 0 12px rgba(139,92,246,.6);
-}
-
-/* --- Tarjetas de elección de rol --- */
-.rol-card {
+/* --- Encabezado: el botón atrás vive AQUÍ, en su propia fila,
+       así nunca tapa el título --- */
+.splash-head {
   display: flex;
   align-items: center;
   gap: 14px;
-  width: 100%;
-  text-align: left;
-  font-family: inherit;
-  color: var(--ink);
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 18px;
-  margin-bottom: 14px;
-  cursor: pointer;
-  transition: border-color .2s ease, box-shadow .25s ease, transform .15s ease;
+  min-height: 44px;
+  margin-bottom: 22px;
 }
-.rol-card:hover  { border-color: var(--violet); box-shadow: var(--glow-violet); }
-.rol-card:active { transform: scale(.98); }
-.rol-emoji {
-  font-size: 2rem;
-  width: 54px;
-  height: 54px;
+
+/* Botón redondo con icono (atrás, ajustes, etc.) */
+.icon-btn {
+  width: 44px; height: 44px;
   flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border-radius: var(--r-md);
-  background: var(--bg-soft-2);
-}
-.rol-text { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-.rol-text strong { font-size: 1.05rem; }
-.rol-text small  { color: var(--ink-soft); line-height: 1.35; }
-.rol-arrow { font-size: 1.6rem; color: var(--ink-faint); }
-
-/* --- Pantalla de "todo listo" del paso 3 --- */
-.splash-ready { text-align: center; margin-top: 26px; }
-.splash-ready-emoji { font-size: 3.4rem; }
-
-/* --- Botón "atrás" (flecha), reutilizable en paneles --- */
-.back-btn {
-  position: absolute;
-  top: 22px;
-  left: 18px;
-  width: 42px;
-  height: 42px;
   border-radius: 50%;
   border: 1px solid var(--line);
-  background: var(--bg-soft);
+  background: rgba(255,255,255,.03);
   color: var(--ink);
-  font-size: 1.7rem;
-  line-height: 1;
+  font-size: 1.6rem; line-height: 1;
   cursor: pointer;
-  display: grid;
-  place-items: center;
-  transition: filter .2s ease, transform .15s ease;
+  display: grid; place-items: center;
+  transition: background .2s ease, transform .15s ease;
 }
-.back-btn:hover  { filter: brightness(1.3); }
-.back-btn:active { transform: scale(.92); }
+.icon-btn:hover  { background: rgba(255,255,255,.08); }
+.icon-btn:active { transform: scale(.92); }
+
+/* Cuerpo del formulario (crece para empujar los botones abajo) */
+.splash-body { flex: 1; }
+.splash-h { font-size: 1.75rem; margin-bottom: 6px; }
+.splash-sub { color: var(--ink-soft); font-size: 1rem; }
+.step-count {
+  display: inline-block;
+  color: var(--violet);
+  font-weight: 700; font-size: .82rem;
+  letter-spacing: .04em; text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+/* Zona de botones inferior */
+.splash-bottom { display: flex; flex-direction: column; gap: 12px; padding-top: 18px; }
+.btn.full { width: 100%; }
+.legal { text-align: center; font-size: .76rem; color: var(--ink-faint); margin-top: 4px; }
+
+/* --- Pie del formulario (ej: "¿No tienes cuenta?") --- */
+.splash-foot {
+  text-align: center; color: var(--ink-soft);
+  font-size: .95rem; padding-top: 16px;
+}
+.link {
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: inherit; font-weight: 700;
+  color: var(--violet);
+}
+.link-right {
+  display: block; margin: -4px 2px 18px auto;
+  background: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: .88rem; font-weight: 600;
+  color: var(--cyan);
+}
+
+/* ============== BIENVENIDA ============== */
+.welcome { position: relative; overflow: hidden; justify-content: flex-end; }
+.welcome-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; gap: 12px; padding: 0 24px;
+}
+.brand-logo {
+  width: 88px; height: 88px;
+  border-radius: 26px;
+  display: grid; place-items: center;
+  font-size: 3rem; font-weight: 800; color: #fff;
+  background: var(--grad-party);
+}
+.brand-logo.sm { width: 56px; height: 56px; border-radius: 18px; font-size: 1.9rem; margin-bottom: 16px; box-shadow: var(--glow-violet); }
+.brand-name {
+  font-size: 2.8rem; letter-spacing: -.02em;
+  background: linear-gradient(135deg,#fff 30%, #c9b8ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.brand-tag { color: var(--ink-soft); font-size: 1.05rem; }
+
+/* Orbes de luz difuminados al fondo de la bienvenida */
+.welcome-orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .55; pointer-events: none; }
+.orb-1 { width: 280px; height: 280px; top: -60px; right: -80px; background: var(--violet); }
+.orb-2 { width: 240px; height: 240px; bottom: 40px; left: -90px; background: var(--magenta); }
+
+/* ============== CAMPOS DE TEXTO ============== */
+.field {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.035);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  margin-bottom: 13px;
+  transition: border-color .2s ease, box-shadow .25s ease, background .2s ease;
+}
+.field:focus-within {
+  border-color: var(--violet);
+  background: rgba(139,92,246,.06);
+  box-shadow: 0 0 0 3px rgba(139,92,246,.16);
+}
+.field-icon {
+  width: 26px; text-align: center;
+  font-size: 1.1rem; color: var(--ink-faint);
+  flex-shrink: 0;
+}
+.field-main { flex: 1; min-width: 0; }
+.field-label {
+  display: block; font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .03em;
+  color: var(--ink-faint);
+}
+.field-input {
+  width: 100%; border: none; background: transparent; outline: none;
+  color: var(--ink); font-family: inherit;
+  font-size: 1.02rem; font-weight: 500; padding: 2px 0;
+}
+.field-input::placeholder { color: var(--ink-faint); font-weight: 400; }
+.field-eye { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: .6; flex-shrink: 0; }
+.field-eye:hover { opacity: 1; }
+
+/* ============== DIVISOR "o continúa con" ============== */
+.divider { display: flex; align-items: center; gap: 14px; margin: 20px 0; }
+.divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.divider span { color: var(--ink-faint); font-size: .82rem; }
+
+/* ============== BOTONES SOCIALES ============== */
+.social-row { display: flex; gap: 12px; }
+.social-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit; font-weight: 600; font-size: .95rem;
+  color: var(--ink);
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-pill);
+  padding: 13px; cursor: pointer;
+  transition: background .2s ease, transform .15s ease;
+}
+.social-btn:hover  { background: rgba(255,255,255,.09); }
+.social-btn:active { transform: scale(.97); }
+.social-g {
+  font-weight: 800;
+  background: conic-gradient(from -45deg,#ea4335,#fbbc05,#34a853,#4285f4,#ea4335);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ============== PUNTITOS DE PASO ============== */
+.step-dots { display: flex; gap: 7px; margin-left: auto; }
+.step-dots i {
+  height: 5px; width: 22px;
+  border-radius: var(--r-pill);
+  background: var(--line-strong);
+  transition: background .3s ease, box-shadow .3s ease, width .3s ease;
+}
+.step-dots i.is-on { background: var(--grad-party); width: 28px; box-shadow: 0 0 10px rgba(139,92,246,.5); }
+
+/* ============== TARJETAS DE ROL ============== */
+.rol-card {
+  display: flex; align-items: center; gap: 15px; width: 100%;
+  text-align: left; font-family: inherit; color: var(--ink);
+  background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 18px; margin-top: 16px; cursor: pointer;
+  transition: border-color .2s ease, box-shadow .25s ease, transform .15s ease;
+}
+.rol-card:hover  { border-color: rgba(139,92,246,.5); box-shadow: var(--glow-violet); transform: translateY(-2px); }
+.rol-card:active { transform: scale(.99); }
+.rol-emoji {
+  font-size: 1.7rem; width: 56px; height: 56px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 16px; background: rgba(255,255,255,.05);
+}
+.rol-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.rol-text strong { font-size: 1.1rem; }
+.rol-text small  { color: var(--ink-soft); line-height: 1.4; }
+.rol-arrow { font-size: 1.5rem; color: var(--ink-faint); }
+
+/* ============== "TODO LISTO" (paso 3) ============== */
+.splash-ready { text-align: center; margin-top: 30px; }
+.splash-ready-emoji { font-size: 3.2rem; }
 
 /* ================================================================== */
 /* INICIO (feed) + PERFIL + CREAR                                      */
 /* ================================================================== */
 
 /* Padding lateral común para el contenido de las pantallas */
-#screen-home, #screen-profile, #screen-create { padding: 20px 18px 96px; }
+#screen-home, #screen-profile, #screen-create, #screen-friends {
+  padding: calc(18px + env(safe-area-inset-top)) 18px 96px;
+}
 
 /* --- Barra superior (saludo + avatar) --- */
 .top-bar {
@@ -603,3 +639,175 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .nav-text { font-size: .72rem; font-weight: 600; }
 .nav-btn.is-active { color: var(--ink); }
 .nav-btn.is-active .nav-icon { filter: none; transform: translateY(-1px); }
+
+/* ================================================================== */
+/* ELEMENTOS COMPARTIDOS DE CONTENIDO                                  */
+/* ================================================================== */
+
+/* Encabezado de página (Amigos, Perfil) */
+.page-head { margin-bottom: 18px; }
+.page-head h1 { font-size: 1.9rem; }
+.page-sub { color: var(--ink-soft); margin-top: 2px; }
+
+/* Fila título + acción a la derecha */
+.row-between { display: flex; align-items: center; justify-content: space-between; margin: 22px 0 14px; }
+.row-between h3 { display: flex; align-items: center; gap: 8px; }
+.see-all { font-size: .85rem; font-weight: 600; color: var(--violet); cursor: pointer; }
+
+.icon-btn.sm { width: 38px; height: 38px; font-size: 1.1rem; }
+
+/* Pastilla suave (contador discreto) */
+.pill-soft {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: .8rem; font-weight: 600; color: var(--ink-soft);
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--line);
+  padding: 5px 10px; border-radius: var(--r-pill);
+}
+
+/* ============== EVENTO DESTACADO (extras) ============== */
+.featured-foot { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.featured-going { font-size: .85rem; font-weight: 600; color: rgba(255,255,255,.92); }
+.event-emoji { filter: drop-shadow(0 4px 10px rgba(0,0,0,.3)); }
+
+/* ============== BÚSQUEDA ============== */
+.search-bar {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 12px 16px; margin-bottom: 6px;
+}
+.search-bar input {
+  flex: 1; border: none; background: none; outline: none;
+  color: var(--ink); font-family: inherit; font-size: .98rem;
+}
+.search-bar input::placeholder { color: var(--ink-faint); }
+
+/* ============== "EN VIVO" (amigos en fiesta) ============== */
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3b6b; box-shadow: 0 0 10px #ff3b6b; }
+.live-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.live-row::-webkit-scrollbar { display: none; }
+.live-card { flex-shrink: 0; width: 76px; text-align: center; }
+.live-card strong { display: block; font-size: .85rem; margin-top: 7px; }
+.live-card small { color: var(--ink-faint); font-size: .72rem; }
+.live-ava {
+  position: relative; width: 64px; height: 64px; margin: 0 auto;
+  border-radius: 50%; display: grid; place-items: center; font-size: 1.7rem;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #ff3b6b;
+}
+.live-ping {
+  position: absolute; bottom: 2px; right: 2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #ff3b6b; border: 2px solid var(--bg);
+}
+
+/* ============== TARJETAS DE AMIGO ============== */
+.friend-list { display: flex; flex-direction: column; gap: 12px; }
+.friend-card {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px;
+}
+.friend-ava {
+  width: 50px; height: 50px; flex-shrink: 0;
+  border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem;
+}
+.friend-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.friend-main strong { font-size: 1rem; }
+.friend-main small { color: var(--ink-faint); }
+.friend-now { font-size: .85rem; font-weight: 600; color: #ff6b8a; margin-top: 4px; }
+.friend-was { font-size: .85rem; color: var(--ink-soft); margin-top: 4px; }
+.friend-locked { font-size: .82rem; color: var(--ink-faint); margin-top: 4px; }
+
+/* Tira de fotos en miniatura */
+.photo-strip { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
+.photo-thumb {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: grid; place-items: center; font-size: 1.05rem;
+  background: rgba(255,255,255,.06); border: 1px solid var(--line);
+}
+.photo-count { font-size: .78rem; color: var(--ink-faint); margin-left: 2px; }
+
+/* Botón agregar amigo */
+.add-btn {
+  align-self: center; flex-shrink: 0;
+  font-family: inherit; font-weight: 700; font-size: .85rem;
+  color: #fff; border: none; cursor: pointer;
+  background: var(--grad-party);
+  border-radius: var(--r-pill); padding: 9px 16px;
+  transition: transform .15s ease, filter .2s ease;
+}
+.add-btn:active { transform: scale(.95); }
+.add-btn.is-added { background: rgba(255,255,255,.08); color: var(--ink-soft); }
+
+/* ============== PERFIL (extras) ============== */
+.profile-actions { display: flex; gap: 10px; margin-top: 18px; align-items: stretch; }
+.profile-actions .icon-btn { font-size: 1.2rem; }
+
+/* Tarjeta de privacidad con interruptor */
+.privacy-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 16px; margin-top: 18px;
+}
+.privacy-text { display: flex; flex-direction: column; gap: 2px; }
+.privacy-text strong { font-size: .98rem; }
+.privacy-text small { color: var(--ink-soft); }
+.toggle {
+  width: 52px; height: 30px; flex-shrink: 0;
+  border-radius: var(--r-pill); border: none; cursor: pointer;
+  background: rgba(255,255,255,.12); position: relative;
+  transition: background .25s ease;
+}
+.toggle.is-on { background: var(--grad-party); }
+.toggle-knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #fff; transition: transform .25s ease;
+}
+.toggle.is-on .toggle-knob { transform: translateX(22px); }
+
+/* Listas compactas de fiestas (perfil asistente) */
+.mini-list { display: flex; flex-direction: column; gap: 10px; }
+.mini-card {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 10px 12px;
+}
+.mini-cover {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border-radius: 12px; display: grid; place-items: center; font-size: 1.4rem;
+}
+.mini-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mini-main strong { font-size: .98rem; }
+.mini-main small { color: var(--ink-faint); }
+.tag-go, .tag-was {
+  flex-shrink: 0; font-size: .72rem; font-weight: 700;
+  padding: 5px 10px; border-radius: var(--r-pill);
+}
+.tag-go  { color: #34d399; background: rgba(52,211,153,.14); }
+.tag-was { color: var(--ink-soft); background: rgba(255,255,255,.06); }
+
+/* Galería de fotos */
+.photo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.photo-cell {
+  aspect-ratio: 1; border-radius: 14px;
+  display: grid; place-items: center; font-size: 1.8rem;
+  background: linear-gradient(140deg, rgba(139,92,246,.18), rgba(244,63,94,.14));
+  border: 1px solid var(--line);
+}
+
+/* Insignia "Próximamente" */
+.soon-badge {
+  margin-top: 8px;
+  font-size: .8rem; font-weight: 700; color: var(--gold);
+  background: rgba(245,158,11,.14);
+  border: 1px solid rgba(245,158,11,.3);
+  padding: 6px 14px; border-radius: var(--r-pill);
+}
