@@ -6,6 +6,39 @@
    ===================================================================== */
 
 /* ===================================================================
+   0. ICONOS (SVG hechos a mano, no emojis: se ven diseñados)
+   ------------------------------------------------------------------
+   Cada icono es un trazo limpio que toma el color del texto
+   (currentColor), así combina con cualquier fondo o gradiente.
+   =================================================================== */
+
+const ICON_PATHS = {
+  home:   '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/>',
+  user:   '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.5-5.3 7-5.3s6.2 1.7 7 5.3"/>',
+  users:  '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.9-4.8 5.5-4.8s4.9 1.6 5.5 4.8"/><path d="M15.5 5.3a3.2 3.2 0 0 1 0 5.4"/><path d="M17 14.9c2 .7 3.3 2.1 3.7 4.6"/>',
+  plus:   '<path d="M12 5.5v13M5.5 12h13"/>',
+  ticket: '<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v2a1.5 1.5 0 0 0 0 5v2A1.5 1.5 0 0 1 18.5 18h-13A1.5 1.5 0 0 1 4 16.5v-2a1.5 1.5 0 0 0 0-5Z"/><path d="M14 6.5v11" stroke-dasharray="1.5 2.6"/>',
+  mic:    '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/>',
+  search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.4-3.4"/>',
+  gear:   '<circle cx="12" cy="12" r="3"/><path d="M19.1 13.4a7.7 7.7 0 0 0 0-2.8l1.8-1.4-2-3.4-2.1.9a7.5 7.5 0 0 0-2.4-1.4L12 3h-4 .1L7.6 5.3a7.5 7.5 0 0 0-2.4 1.4l-2.1-.9-2 3.4 1.8 1.4a7.7 7.7 0 0 0 0 2.8l-1.8 1.4 2 3.4 2.1-.9a7.5 7.5 0 0 0 2.4 1.4L8 21h4l.4-2.3a7.5 7.5 0 0 0 2.4-1.4l2.1.9 2-3.4Z"/>',
+  share:  '<path d="M12 3.5v11"/><path d="m8 7 4-4 4 4"/><path d="M6 12v6.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V12"/>',
+  chev:   '<path d="m9 5 7 7-7 7"/>',
+  mail:   '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 8 8 5.5L20 8"/>',
+  lock:   '<rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/>',
+  tag:    '<path d="M3.5 11.7 11.7 3.5H20a.5.5 0 0 1 .5.5v8.3l-8.2 8.2a1.4 1.4 0 0 1-2 0L3.5 13.7a1.4 1.4 0 0 1 0-2Z"/><circle cx="16.3" cy="7.7" r="1.3"/>',
+  spark:  '<path d="M12 3.5 13.8 9 19 10.8 13.8 12.6 12 18l-1.8-5.4L5 10.8 10.2 9Z"/>',
+  eye:    '<path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff: '<path d="m3 3 18 18"/><path d="M10.5 6.1A9.6 9.6 0 0 1 12 6c6 0 9.5 6 9.5 6a16.8 16.8 0 0 1-3 3.6"/><path d="M6.4 7.8A16.5 16.5 0 0 0 2.5 12S6 18 12 18a9.4 9.4 0 0 0 3-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  pin:    '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>'
+};
+
+// Devuelve el SVG de un icono. cls = clases CSS extra (opcional).
+function icon(nombre, cls = '') {
+  return `<svg class="ic ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[nombre] || ''}</svg>`;
+}
+
+/* ===================================================================
    1. NAVEGACIÓN
    =================================================================== */
 
@@ -51,7 +84,7 @@ function verPass(id, btn) {
   const inp = document.getElementById(id);
   const oculto = inp.type === 'password';
   inp.type = oculto ? 'text' : 'password';
-  btn.textContent = oculto ? '🙈' : '👁️';
+  btn.innerHTML = icon(oculto ? 'eyeOff' : 'eye');
 }
 
 // Guarda el rol elegido y adapta los textos del registro.
@@ -184,7 +217,7 @@ function pintarAmigos() {
     </header>
 
     <div class="search-bar">
-      <span>🔍</span>
+      ${icon('search', 'mute')}
       <input placeholder="Busca por nombre o @usuario">
     </div>
 
@@ -285,7 +318,7 @@ function perfilOrganizador(u) {
   return `
     <header class="page-head row-between">
       <h1>Perfil</h1>
-      <button class="icon-btn sm" onclick="alert('Ajustes (pendiente)')">⚙️</button>
+      <button class="icon-btn sm" onclick="alert('Ajustes (pendiente)')">${icon('gear')}</button>
     </header>
 
     <section class="profile-hero">
@@ -300,7 +333,7 @@ function perfilOrganizador(u) {
       </div>
       <div class="profile-actions">
         <button class="btn full">Editar perfil</button>
-        <button class="icon-btn" onclick="alert('Compartir perfil')">↗</button>
+        <button class="icon-btn" onclick="alert('Compartir perfil')">${icon('share')}</button>
       </div>
     </section>
 
@@ -336,7 +369,7 @@ function perfilAsistente(u) {
   return `
     <header class="page-head row-between">
       <h1>Mi perfil</h1>
-      <button class="icon-btn sm" onclick="alert('Ajustes (pendiente)')">⚙️</button>
+      <button class="icon-btn sm" onclick="alert('Ajustes (pendiente)')">${icon('gear')}</button>
     </header>
 
     <section class="profile-hero">
@@ -351,7 +384,7 @@ function perfilAsistente(u) {
       </div>
       <div class="profile-actions">
         <button class="btn full">Editar perfil</button>
-        <button class="icon-btn" onclick="irA('friends')">👥</button>
+        <button class="icon-btn" onclick="irA('friends')">${icon('users')}</button>
       </div>
     </section>
 
@@ -418,21 +451,21 @@ function pintarNav() {
   // El organizador tiene "Crear"; el asistente tiene "Amigos".
   const items = esOrg
     ? [
-        { go: 'home',    icono: '🏠', texto: 'Inicio' },
-        { go: 'create',  icono: '✨', texto: 'Crear'  },
-        { go: 'profile', icono: '👤', texto: 'Perfil' }
+        { go: 'home',    ic: 'home', texto: 'Inicio' },
+        { go: 'create',  ic: 'plus', texto: 'Crear'  },
+        { go: 'profile', ic: 'user', texto: 'Perfil' }
       ]
     : [
-        { go: 'home',    icono: '🏠', texto: 'Explorar' },
-        { go: 'friends', icono: '👥', texto: 'Amigos'   },
-        { go: 'profile', icono: '👤', texto: 'Perfil'   }
+        { go: 'home',    ic: 'home',  texto: 'Explorar' },
+        { go: 'friends', ic: 'users', texto: 'Amigos'   },
+        { go: 'profile', ic: 'user',  texto: 'Perfil'   }
       ];
 
   const actual = document.body.dataset.screen;
   nav.innerHTML = items.map((it) => `
     <button class="nav-btn ${it.go === actual ? 'is-active' : ''}"
             data-go="${it.go}" onclick="irA('${it.go}')">
-      <span class="nav-icon">${it.icono}</span>
+      <span class="nav-icon">${icon(it.ic)}</span>
       <span class="nav-text">${it.texto}</span>
     </button>
   `).join('');
