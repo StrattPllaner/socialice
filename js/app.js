@@ -339,26 +339,45 @@ function pintarResultados() {
    =================================================================== */
 
 // --- Estado del editor de la fiesta ---
-const venue = { tool: 'mesa', items: [], seq: 0 };
+// Cada piso guarda su propia lista de elementos.
+const venue = {
+  tool: 'mesa',
+  pisos: [{ nombre: 'Planta baja', items: [] }],
+  pisoActivo: 0,
+  sel: null,   // id del elemento seleccionado
+  seq: 0
+};
 const guests = [
   { nombre: 'Mateo Lara',  dentro: true },
   { nombre: 'Sofía Mendez', dentro: false }
 ];
 
-// Tipos de elementos que se pueden poner en el mapa
+// Tipos de elementos (pensados para antros). w/h = tamaño inicial en px.
 const VENUE_TOOLS = {
-  mesa:      { emoji: '🪑', label: 'Mesa',      cls: 'v-mesa' },
-  asiento:   { emoji: '💺', label: 'Asiento',   cls: 'v-asiento' },
-  barra:     { emoji: '🍸', label: 'Barra',     cls: 'v-barra' },
-  escenario: { emoji: '🎤', label: 'Escenario', cls: 'v-escenario' },
-  venta:     { emoji: '🎫', label: 'Venta',     cls: 'v-venta' }
+  mesa:    { emoji: '🪑', label: 'Mesa',      w: 44,  h: 44,  forma: 'redonda' },
+  silla:   { emoji: '💺', label: 'Silla',     w: 32,  h: 32,  forma: 'redonda' },
+  barra:   { emoji: '🍸', label: 'Barra',     w: 130, h: 36 },
+  dj:      { emoji: '🎧', label: 'Cabina DJ', w: 76,  h: 52 },
+  pista:   { emoji: '🕺', label: 'Pista',     w: 140, h: 120 },
+  vip:     { emoji: '👑', label: 'Zona VIP',  w: 96,  h: 72 },
+  lounge:  { emoji: '🛋️', label: 'Lounge',    w: 84,  h: 52 },
+  bano:    { emoji: '🚻', label: 'Baños',     w: 56,  h: 56 },
+  entrada: { emoji: '🚪', label: 'Entrada',   w: 52,  h: 42 },
+  salida:  { emoji: '🚨', label: 'Salida',    w: 52,  h: 42 },
+  taquilla:{ emoji: '🎫', label: 'Taquilla',  w: 52,  h: 46 },
+  bocina:  { emoji: '🔊', label: 'Bocina',    w: 40,  h: 56 }
 };
+
+// Atajos
+function pisoActual() { return venue.pisos[venue.pisoActivo]; }
+function itemsActuales() { return pisoActual().items; }
+function itemSel() { return itemsActuales().find((i) => i.id === venue.sel); }
 
 function pintarCrear() {
   document.getElementById('screen-create').innerHTML = `
     <header class="page-head">
       <h1>Crear fiesta</h1>
-      <p class="page-sub">Arma tu evento y el mapa del lugar.</p>
+      <p class="page-sub">Arma tu evento y el plano del antro.</p>
     </header>
 
     <!-- Datos básicos -->
@@ -375,12 +394,16 @@ function pintarCrear() {
       <input class="field-input" id="cvLugar" placeholder="Ej: Terraza Skyline, Polanco">
     </div></div>
 
-    <!-- Mapa del lugar -->
+    <!-- Plano del lugar -->
     <div class="row-between">
-      <h3>🗺️ Mapa del lugar</h3>
-      <span class="see-all" onclick="limpiarVenue()">Vaciar</span>
+      <h3>🗺️ Plano del antro</h3>
+      <span class="see-all" onclick="limpiarVenue()">Vaciar piso</span>
     </div>
-    <p class="hint">Elige un elemento y toca el mapa para colocarlo. Arrástralo para moverlo; tócalo para quitarlo.</p>
+
+    <!-- Pisos / niveles -->
+    <div class="floor-tabs" id="floorTabs"></div>
+
+    <p class="hint">Elige un elemento y toca el plano para colocarlo. Tócalo para seleccionarlo (cambiar tamaño/girar) y arrástralo para moverlo.</p>
 
     <div class="tool-row" id="toolRow"></div>
 
@@ -389,8 +412,11 @@ function pintarCrear() {
          onpointermove="venueMove(event)"
          onpointerup="venueDrop()" onpointerleave="venueDrop()">
       <div class="venue-grid"></div>
-      <span class="venue-hint" id="venueHint">Toca aquí para colocar “${VENUE_TOOLS[venue.tool].label}”</span>
+      <span class="venue-hint" id="venueHint"></span>
     </div>
+
+    <!-- Controles del elemento seleccionado -->
+    <div class="venue-controls" id="venueControls"></div>
 
     <!-- Lista de ingreso -->
     <div class="row-between">
@@ -406,12 +432,36 @@ function pintarCrear() {
 
     <button class="btn full" style="margin-top:24px" onclick="publicarFiesta()">Publicar fiesta 🎉</button>
   `;
+  pintarFloors();
   pintarTools();
   pintarVenue();
+  pintarControls();
   pintarGuests();
 }
 
-// Paleta de herramientas
+// --- Pisos / niveles ---
+function pintarFloors() {
+  const cont = document.getElementById('floorTabs');
+  if (!cont) return;
+  cont.innerHTML = venue.pisos.map((p, i) => `
+    <button class="floor-tab ${i === venue.pisoActivo ? 'is-active' : ''}" onclick="cambiarPiso(${i})">${p.nombre}</button>
+  `).join('') + `<button class="floor-add" onclick="agregarPiso()">＋ Piso</button>`;
+}
+function cambiarPiso(i) {
+  venue.pisoActivo = i;
+  venue.sel = null;
+  pintarFloors(); pintarVenue(); pintarControls();
+}
+function agregarPiso() {
+  const n = venue.pisos.length;
+  venue.pisos.push({ nombre: n === 0 ? 'Planta baja' : `Piso ${n}`, items: [] });
+  venue.pisoActivo = venue.pisos.length - 1;
+  venue.sel = null;
+  pintarFloors(); pintarVenue(); pintarControls();
+  toast('Piso agregado');
+}
+
+// --- Paleta ---
 function pintarTools() {
   document.getElementById('toolRow').innerHTML = Object.entries(VENUE_TOOLS).map(([id, t]) => `
     <button class="tool ${id === venue.tool ? 'is-active' : ''}" onclick="elegirTool('${id}')">
@@ -423,76 +473,143 @@ function pintarTools() {
 function elegirTool(id) {
   venue.tool = id;
   pintarTools();
+  actualizarHint();
+}
+function actualizarHint() {
   const h = document.getElementById('venueHint');
-  if (h) h.textContent = `Toca aquí para colocar “${VENUE_TOOLS[id].label}”`;
+  if (h) h.style.display = itemsActuales().length ? 'none' : 'block';
+  if (h) h.textContent = `Toca para colocar “${VENUE_TOOLS[venue.tool].label}”`;
 }
 
-// Dibuja los elementos colocados en el mapa
+// --- Dibujar el plano ---
 function pintarVenue() {
   const v = document.getElementById('venue');
   if (!v) return;
-  // Quitamos los items viejos (dejamos grid y hint)
   v.querySelectorAll('.v-item').forEach((el) => el.remove());
-  const hint = document.getElementById('venueHint');
-  if (hint) hint.style.display = venue.items.length ? 'none' : 'block';
+  actualizarHint();
 
-  venue.items.forEach((it) => {
+  itemsActuales().forEach((it) => {
     const t = VENUE_TOOLS[it.tipo];
+    const grande = it.w >= 70 || it.h >= 64;
     const el = document.createElement('div');
-    el.className = `v-item ${t.cls}`;
+    el.className = `v-item v-${it.tipo} ${t.forma === 'redonda' ? 'redonda' : ''} ${grande ? 'lg' : ''} ${it.id === venue.sel ? 'sel' : ''}`;
     el.style.left = it.x + '%';
     el.style.top = it.y + '%';
-    el.innerHTML = `<span>${t.emoji}</span>`;
+    el.style.width = it.w + 'px';
+    el.style.height = it.h + 'px';
+    el.style.transform = `translate(-50%,-50%) rotate(${it.rot || 0}deg)`;
+    el.innerHTML = `<span>${t.emoji}</span><b>${t.label}</b>`;
     el.setAttribute('onpointerdown', `venueGrab(event, ${it.id})`);
     el.setAttribute('onclick', `venueItemTap(event, ${it.id})`);
     v.appendChild(el);
   });
 }
 
-// Tocar el mapa: coloca un elemento nuevo (si no se tocó otro)
+// Tocar el plano vacío: coloca un elemento nuevo (y lo selecciona)
 function venueTap(ev) {
   if (ev.target.id !== 'venue' && !ev.target.classList.contains('venue-grid') &&
       ev.target.id !== 'venueHint') return;
   if (_dragMoved) { _dragMoved = false; return; }
+  const t = VENUE_TOOLS[venue.tool];
   const r = document.getElementById('venue').getBoundingClientRect();
-  const x = ((ev.clientX - r.left) / r.width) * 100;
-  const y = ((ev.clientY - r.top) / r.height) * 100;
-  venue.items.push({ id: ++venue.seq, tipo: venue.tool, x: clamp(x), y: clamp(y) });
+  const x = clamp(((ev.clientX - r.left) / r.width) * 100);
+  const y = clamp(((ev.clientY - r.top) / r.height) * 100);
+  const item = { id: ++venue.seq, tipo: venue.tool, x, y, w: t.w, h: t.h, rot: 0 };
+  itemsActuales().push(item);
+  venue.sel = item.id;
   pintarVenue();
+  pintarControls();
 }
 
-// Tocar un elemento existente: lo quita (si no se arrastró)
+// Tocar un elemento: lo selecciona (los controles aparecen abajo)
 function venueItemTap(ev, id) {
   ev.stopPropagation();
   if (_dragMoved) { _dragMoved = false; return; }
-  venue.items = venue.items.filter((i) => i.id !== id);
+  venue.sel = id;
   pintarVenue();
+  pintarControls();
 }
 
-// --- Arrastrar elementos ---
+// --- Arrastrar ---
 let _dragId = null, _dragMoved = false;
 function venueGrab(ev, id) {
   ev.stopPropagation();
   _dragId = id; _dragMoved = false;
+  venue.sel = id;
 }
 function venueMove(ev) {
   if (_dragId == null) return;
   _dragMoved = true;
   const r = document.getElementById('venue').getBoundingClientRect();
-  const it = venue.items.find((i) => i.id === _dragId);
+  const it = itemsActuales().find((i) => i.id === _dragId);
   if (!it) return;
   it.x = clamp(((ev.clientX - r.left) / r.width) * 100);
   it.y = clamp(((ev.clientY - r.top) / r.height) * 100);
-  const el = [...document.querySelectorAll('.v-item')][venue.items.indexOf(it)];
+  const el = [...document.querySelectorAll('.v-item')][itemsActuales().indexOf(it)];
   if (el) { el.style.left = it.x + '%'; el.style.top = it.y + '%'; }
 }
-function venueDrop() { _dragId = null; }
+function venueDrop() { if (_dragId != null) { _dragId = null; pintarVenue(); pintarControls(); } }
 function clamp(n) { return Math.max(3, Math.min(97, n)); }
 
+// --- Controles del elemento seleccionado ---
+function pintarControls() {
+  const c = document.getElementById('venueControls');
+  if (!c) return;
+  const it = itemSel();
+  if (!it) { c.className = 'venue-controls'; c.innerHTML = ''; return; }
+  const t = VENUE_TOOLS[it.tipo];
+  c.className = 'venue-controls on';
+  c.innerHTML = `
+    <div class="vc-head">
+      <span>${t.emoji} ${t.label}</span>
+      <button class="vc-done" onclick="deseleccionar()">Listo</button>
+    </div>
+    <div class="vc-grid">
+      <div class="vc-ctrl"><span>Ancho</span>
+        <button onclick="resize('w',-1)">−</button><b>${it.w}</b><button onclick="resize('w',1)">+</button></div>
+      <div class="vc-ctrl"><span>Alto</span>
+        <button onclick="resize('h',-1)">−</button><b>${it.h}</b><button onclick="resize('h',1)">+</button></div>
+      <div class="vc-ctrl"><span>Girar</span>
+        <button onclick="rotar(-15)">⟲</button><b>${it.rot || 0}°</b><button onclick="rotar(15)">⟳</button></div>
+    </div>
+    <div class="vc-actions">
+      <button class="vc-dup" onclick="duplicarItem()">⧉ Duplicar</button>
+      <button class="vc-del" onclick="eliminarItem()">🗑 Eliminar</button>
+    </div>
+  `;
+}
+function resize(dim, dir) {
+  const it = itemSel(); if (!it) return;
+  it[dim] = Math.max(22, Math.min(240, it[dim] + dir * 10));
+  pintarVenue(); pintarControls();
+}
+function rotar(deg) {
+  const it = itemSel(); if (!it) return;
+  it.rot = ((it.rot || 0) + deg + 360) % 360;
+  pintarVenue(); pintarControls();
+}
+function duplicarItem() {
+  const it = itemSel(); if (!it) return;
+  const copia = { ...it, id: ++venue.seq, x: clamp(it.x + 6), y: clamp(it.y + 6) };
+  itemsActuales().push(copia);
+  venue.sel = copia.id;
+  pintarVenue(); pintarControls();
+}
+function eliminarItem() {
+  pisoActual().items = itemsActuales().filter((i) => i.id !== venue.sel);
+  venue.sel = null;
+  pintarVenue(); pintarControls();
+}
+function deseleccionar() {
+  venue.sel = null;
+  pintarVenue(); pintarControls();
+}
+
 function limpiarVenue() {
-  venue.items = [];
-  pintarVenue();
-  toast('Mapa vaciado');
+  pisoActual().items = [];
+  venue.sel = null;
+  pintarVenue(); pintarControls();
+  toast('Piso vaciado');
 }
 
 // --- Lista de ingreso ---
@@ -1083,4 +1200,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'ajustes') abrirAjustes();
   if (p.get('sheet') === 'editar')  editarPerfil();
   if (p.get('openf')) abrirFiltrosInline();
+  if (p.get('seedvenue')) {
+    const add = (tipo, x, y, w, h) => { const t = VENUE_TOOLS[tipo]; pisoActual().items.push({ id: ++venue.seq, tipo, x, y, w: w || t.w, h: h || t.h, rot: 0 }); };
+    add('pista', 38, 30, 150, 120); add('dj', 38, 12); add('barra', 75, 20, 120, 36);
+    add('vip', 80, 55); add('mesa', 20, 65); add('mesa', 32, 72); add('silla', 25, 80);
+    add('entrada', 15, 92); add('bano', 88, 88);
+    venue.sel = pisoActual().items.find((i) => i.tipo === 'pista').id;
+    pintarVenue(); pintarControls();
+  }
 });

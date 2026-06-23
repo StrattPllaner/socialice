@@ -1107,9 +1107,24 @@ body.no-scroll { overflow: hidden; }
 .tool.is-active { border-color: var(--violet); background: rgba(139,92,246,.14); color: var(--ink); }
 .tool-emoji { font-size: 1.5rem; }
 
-/* Lienzo del mapa */
+/* Pisos / niveles */
+.floor-tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 10px; scrollbar-width: none; }
+.floor-tabs::-webkit-scrollbar { display: none; }
+.floor-tab {
+  flex-shrink: 0; font-family: inherit; font-weight: 600; font-size: .85rem; color: var(--ink-soft);
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 8px 14px; cursor: pointer;
+}
+.floor-tab.is-active { color: #fff; background: var(--grad-party); border-color: transparent; }
+.floor-add {
+  flex-shrink: 0; font-family: inherit; font-weight: 700; font-size: .85rem; color: var(--violet);
+  background: rgba(139,92,246,.1); border: 1px dashed rgba(139,92,246,.4);
+  border-radius: var(--r-pill); padding: 8px 14px; cursor: pointer;
+}
+
+/* Lienzo del plano */
 .venue {
-  position: relative; width: 100%; aspect-ratio: 1 / 1.05;
+  position: relative; width: 100%; aspect-ratio: 1 / 1.15;
   border-radius: var(--r-lg); overflow: hidden;
   background: radial-gradient(120% 120% at 50% 0%, #161a26, #0a0c12);
   border: 1px solid var(--line-strong);
@@ -1127,18 +1142,64 @@ body.no-scroll { overflow: hidden; }
   color: var(--ink-faint); font-size: .9rem; text-align: center; pointer-events: none; padding: 0 20px;
 }
 .v-item {
-  position: absolute; transform: translate(-50%,-50%);
-  width: 44px; height: 44px; border-radius: 12px;
-  display: grid; place-items: center; font-size: 1.3rem; cursor: grab;
-  background: rgba(255,255,255,.08); border: 1px solid var(--line-strong);
+  position: absolute;
+  border-radius: 10px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  font-size: 1.25rem; line-height: 1; cursor: grab; overflow: hidden;
+  background: rgba(255,255,255,.08); border: 1.5px solid var(--line-strong);
   box-shadow: 0 6px 16px rgba(0,0,0,.35);
 }
+.v-item.redonda { border-radius: 50%; }
 .v-item:active { cursor: grabbing; }
-.v-mesa      { background: rgba(139,92,246,.22); border-color: rgba(139,92,246,.5); }
-.v-asiento   { width: 34px; height: 34px; font-size: 1rem; background: rgba(0,212,255,.18); border-color: rgba(0,212,255,.5); }
-.v-barra     { background: rgba(245,158,11,.2); border-color: rgba(245,158,11,.5); }
-.v-escenario { width: 84px; height: 40px; background: rgba(244,63,94,.22); border-color: rgba(244,63,94,.55); }
-.v-venta     { background: rgba(52,211,153,.2); border-color: rgba(52,211,153,.5); }
+.v-item b { display: none; font-size: .56rem; font-weight: 700; color: rgba(255,255,255,.8); }
+.v-item.lg b { display: block; }
+/* Elemento seleccionado: resaltado */
+.v-item.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--violet), 0 8px 22px rgba(139,92,246,.5); z-index: 5; }
+
+/* Colores por tipo (pensados para antros) */
+.v-mesa     { background: rgba(139,92,246,.22); border-color: rgba(139,92,246,.55); }
+.v-silla    { background: rgba(0,212,255,.18);  border-color: rgba(0,212,255,.5); font-size: 1rem; }
+.v-barra    { background: rgba(245,158,11,.2);  border-color: rgba(245,158,11,.55); }
+.v-dj       { background: rgba(236,72,153,.22); border-color: rgba(236,72,153,.6); }
+.v-pista    { background: linear-gradient(135deg, rgba(139,92,246,.22), rgba(0,212,255,.18)); border-color: rgba(139,92,246,.5); border-style: dashed; }
+.v-vip      { background: rgba(245,158,11,.16); border-color: rgba(245,158,11,.6); border-style: dashed; }
+.v-lounge   { background: rgba(124,58,237,.2);  border-color: rgba(124,58,237,.5); }
+.v-bano     { background: rgba(99,102,241,.2);  border-color: rgba(99,102,241,.5); }
+.v-entrada  { background: rgba(52,211,153,.2);  border-color: rgba(52,211,153,.55); }
+.v-salida   { background: rgba(244,63,94,.2);   border-color: rgba(244,63,94,.6); }
+.v-taquilla { background: rgba(52,211,153,.16); border-color: rgba(52,211,153,.5); }
+.v-bocina   { background: rgba(255,255,255,.08); border-color: var(--line-strong); }
+
+/* Panel de controles del elemento seleccionado */
+.venue-controls {
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height .3s ease, opacity .25s ease, margin .25s ease;
+}
+.venue-controls.on {
+  max-height: 240px; opacity: 1; margin: 0 0 18px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line-strong);
+  border-radius: var(--r-md); padding: 14px;
+}
+.vc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.vc-head span { font-weight: 700; }
+.vc-done { font-family: inherit; font-weight: 700; font-size: .85rem; color: var(--violet); background: none; border: none; cursor: pointer; }
+.vc-grid { display: flex; flex-direction: column; gap: 10px; }
+.vc-ctrl { display: flex; align-items: center; gap: 10px; }
+.vc-ctrl > span { width: 56px; font-size: .85rem; color: var(--ink-soft); }
+.vc-ctrl b { min-width: 44px; text-align: center; font-weight: 700; }
+.vc-ctrl button {
+  width: 40px; height: 40px; border-radius: 12px; cursor: pointer;
+  font-size: 1.2rem; font-weight: 700; color: var(--ink);
+  background: rgba(255,255,255,.06); border: 1px solid var(--line-strong);
+}
+.vc-ctrl button:active { transform: scale(.92); }
+.vc-actions { display: flex; gap: 10px; margin-top: 14px; }
+.vc-dup, .vc-del {
+  flex: 1; font-family: inherit; font-weight: 700; font-size: .9rem; cursor: pointer;
+  border-radius: var(--r-pill); padding: 12px; border: 1px solid var(--line-strong);
+  background: rgba(255,255,255,.05); color: var(--ink);
+}
+.vc-del { color: var(--magenta); background: rgba(244,63,94,.1); border-color: rgba(244,63,94,.3); }
 
 /* Lista de ingreso */
 .guest-add { display: flex; gap: 10px; margin-bottom: 14px; }
