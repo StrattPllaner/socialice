@@ -126,8 +126,8 @@ function pintarInicio() {
 
     <section class="featured" style="${coverStyle(destacado)}" onclick="abrirEvento('${destacado.id}')">
       <span class="featured-tag">✦ Próxima fiesta</span>
-      <div class="featured-emoji">${destacado.emoji}</div>
-      <h2>${destacado.nombre}</h2>
+      <div class="featured-emoji">${destacado.emoji || ''}</div>
+      <h2 class="${destacado.nombreAnim ? 'name-anim' : ''}">${destacado.nombre}</h2>
       <p class="featured-meta">${destacado.fecha}</p>
       <p class="featured-meta">📍 ${destacado.lugar} · ${destacado.ciudad}</p>
       <div class="featured-foot">
@@ -182,11 +182,11 @@ function tarjetaEvento(e) {
   return `
     <article class="event-card" onclick="abrirEvento('${e.id}')">
       <div class="event-cover" style="${coverStyle(e)}">
-        <span class="event-emoji">${e.emoji}</span>
+        <span class="event-emoji">${e.emoji || ''}</span>
         <span class="event-price">${e.precio}</span>
       </div>
       <div class="event-body">
-        <h3>${e.nombre}</h3>
+        <h3 class="${e.nombreAnim ? 'name-anim' : ''}">${e.nombre}</h3>
         <p class="event-meta">${e.fecha}</p>
         <p class="event-meta">📍 ${e.lugar} · ${e.ciudad}</p>
         <div class="event-foot">
@@ -354,11 +354,17 @@ function nuevoDraft() {
   return {
     id: null,
     nombre: '', fecha: '', lugar: '', ciudad: '',
-    capacidad: 200,
-    cover: { grad: GRADS[0], emoji: '🎉', img: null },
+    nombreAnim: false,            // nombre con colores animados
+    cover: { grad: GRADS[0], img: null },   // portada sin emoji
+    // rango de edad (opcional)
+    edad: { activo: false, min: 18, max: 25 },
+    // tipos de boleto (zonas/precios)
+    boletos: [{ nombre: 'General', precio: 0, cantidad: 200 }],
+    // publicaciones del evento (texto + foto/video opcional)
     noticias: [],
     // mapa del antro
     tool: 'mesa',
+    zoom: 1,
     pisos: [{ nombre: 'Planta baja', items: [] }],
     pisoActivo: 0,
     sel: null,
@@ -382,9 +388,11 @@ function editarFiesta(id) {
   draft = nuevoDraft();
   draft.id = e.id;
   draft.nombre = e.nombre; draft.fecha = e.fecha; draft.lugar = e.lugar; draft.ciudad = e.ciudad || '';
-  draft.capacidad = e.capacidad || 200;
-  draft.cover = { grad: e.grad, emoji: e.emoji, img: e.coverImg || null };
-  draft.noticias = [...(e.noticias || [])];
+  draft.nombreAnim = !!e.nombreAnim;
+  draft.cover = { grad: e.grad, img: e.coverImg || null };
+  draft.edad = e.edadRango ? { ...e.edadRango } : { activo: false, min: 18, max: 25 };
+  draft.boletos = e.boletos ? e.boletos.map((b) => ({ ...b })) : [{ nombre: 'General', precio: 0, cantidad: e.capacidad || 200 }];
+  draft.noticias = (e.noticias || []).map((n) => ({ ...n }));
   irA('create');
 }
 
@@ -404,7 +412,6 @@ function coverStyle(e) {
 // Tipos de elementos (pensados para antros). w/h = tamaño inicial en px.
 const VENUE_TOOLS = {
   mesa:    { emoji: '🪑', label: 'Mesa',      w: 44,  h: 44,  forma: 'redonda' },
-  silla:   { emoji: '💺', label: 'Silla',     w: 32,  h: 32,  forma: 'redonda' },
   barra:   { emoji: '🍸', label: 'Barra',     w: 130, h: 36 },
   dj:      { emoji: '🎧', label: 'Cabina DJ', w: 76,  h: 52 },
   pista:   { emoji: '🕺', label: 'Pista',     w: 140, h: 120 },
@@ -412,9 +419,7 @@ const VENUE_TOOLS = {
   lounge:  { emoji: '🛋️', label: 'Lounge',    w: 84,  h: 52 },
   bano:    { emoji: '🚻', label: 'Baños',     w: 56,  h: 56 },
   entrada: { emoji: '🚪', label: 'Entrada',   w: 52,  h: 42 },
-  salida:  { emoji: '🚨', label: 'Salida',    w: 52,  h: 42 },
-  taquilla:{ emoji: '🎫', label: 'Taquilla',  w: 52,  h: 46 },
-  bocina:  { emoji: '🔊', label: 'Bocina',    w: 40,  h: 56 }
+  salida:  { emoji: '🚨', label: 'Salida',    w: 52,  h: 42 }
 };
 
 // Atajos
@@ -433,8 +438,7 @@ function pintarCrear() {
     <!-- Portada / fondo de publicación -->
     <div class="row-between"><h3>📣 Portada de publicación</h3></div>
     <div class="cover-preview" id="coverPreview" style="${coverStyleDraft()}">
-      ${draft.cover.img ? '' : `<span class="cover-emoji">${draft.cover.emoji}</span>`}
-      <span class="cover-name">${draft.nombre || 'Tu fiesta'}</span>
+      <span class="cover-name ${draft.nombreAnim ? 'name-anim' : ''}">${draft.nombre || 'Tu fiesta'}</span>
     </div>
     <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
     <div class="cover-actions">
@@ -445,10 +449,6 @@ function pintarCrear() {
     <div class="grad-row">
       ${GRADS.map((g) => `<button class="grad-swatch ${(g === draft.cover.grad && !draft.cover.img) ? 'sel' : ''}" style="background:${g}" onclick="setGrad('${g}')"></button>`).join('')}
     </div>
-    <p class="filtro-label" style="margin-top:12px">Emoji</p>
-    <div class="chips-row mini wrap">
-      ${COVER_EMOJIS.map((e) => `<button class="emoji-pick ${e === draft.cover.emoji ? 'sel' : ''}" onclick="setCoverEmoji('${e}')">${e}</button>`).join('')}
-    </div>
 
     <!-- Datos básicos -->
     <div class="field" style="margin-top:18px"><div class="field-main">
@@ -456,6 +456,12 @@ function pintarCrear() {
       <input class="field-input" id="cvNombre" value="${draft.nombre}" placeholder="Ej: Summer Rooftop"
              oninput="draft.nombre=this.value; document.querySelector('.cover-name').textContent=this.value||'Tu fiesta'">
     </div></div>
+    <!-- Nombre con colores animados (opcional) -->
+    <div class="mini-toggle-row">
+      <span>✨ Nombre con colores animados</span>
+      <button class="toggle ${draft.nombreAnim ? 'is-on' : ''}" onclick="toggleNombreAnim()"><span class="toggle-knob"></span></button>
+    </div>
+
     <div class="field"><div class="field-main">
       <label class="field-label">Fecha y hora</label>
       <input class="field-input" id="cvFecha" value="${draft.fecha}" placeholder="Ej: Vie 11 jul · 10:00 pm" oninput="draft.fecha=this.value">
@@ -468,19 +474,27 @@ function pintarCrear() {
       <label class="field-label">Ciudad</label>
       <input class="field-input" id="cvCiudad" value="${draft.ciudad}" placeholder="Ej: Polanco" oninput="draft.ciudad=this.value">
     </div></div>
+    <button class="maps-btn" onclick="toast('Vista en Google Maps · próximamente 🗺️')">📍 Ver el lugar en Google Maps</button>
 
-    <!-- Capacidad / boletos -->
-    <div class="cap-card">
-      <div>
-        <strong>🎟️ Capacidad</strong>
-        <small>Cantidad máxima de boletos</small>
-      </div>
-      <div class="cap-control">
-        <button onclick="setCapacidad(-50)">−</button>
-        <input id="cvCap" type="number" value="${draft.capacidad}" oninput="draft.capacidad=Math.max(0,+this.value||0)">
-        <button onclick="setCapacidad(50)">+</button>
+    <!-- Rango de edad (opcional) -->
+    <div class="mini-toggle-row">
+      <span>🔞 Restringir edad</span>
+      <button class="toggle ${draft.edad.activo ? 'is-on' : ''}" onclick="toggleEdad()"><span class="toggle-knob"></span></button>
+    </div>
+    <div id="edadRango" style="${draft.edad.activo ? '' : 'display:none'}">
+      <div class="edad-row">
+        <div class="edad-field"><label class="field-label">Edad mínima</label>
+          <input type="number" id="edadMin" value="${draft.edad.min}" oninput="draft.edad.min=+this.value||0"></div>
+        <div class="edad-field"><label class="field-label">Edad máxima</label>
+          <input type="number" id="edadMax" value="${draft.edad.max}" oninput="draft.edad.max=+this.value||0"></div>
       </div>
     </div>
+
+    <!-- Tipos de boleto / zonas -->
+    <div class="row-between"><h3>🎟️ Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>
+    <p class="hint">Crea distintos boletos: general, VIP, zonas exclusivas…</p>
+    <div id="boletosList"></div>
+    <button class="add-zone" onclick="addBoleto()">＋ Agregar tipo de boleto</button>
 
     <!-- Plano del lugar -->
     <div class="row-between">
@@ -491,7 +505,7 @@ function pintarCrear() {
     <!-- Pisos / niveles -->
     <div class="floor-tabs" id="floorTabs"></div>
 
-    <p class="hint">Elige un elemento y toca el plano para colocarlo. Tócalo para seleccionarlo (cambiar tamaño/girar) y arrástralo para moverlo.</p>
+    <p class="hint">Elige un elemento y toca el plano para colocarlo. Tócalo para seleccionarlo (tamaño/girar) y arrástralo para moverlo.</p>
 
     <div class="tool-row" id="toolRow"></div>
 
@@ -499,8 +513,16 @@ function pintarCrear() {
          onclick="venueTap(event)"
          onpointermove="venueMove(event)"
          onpointerup="venueDrop()" onpointerleave="venueDrop()">
-      <div class="venue-grid"></div>
+      <div class="venue-inner" id="venueInner">
+        <div class="venue-grid"></div>
+      </div>
       <span class="venue-hint" id="venueHint"></span>
+      <!-- Controles de zoom para ver el plano completo -->
+      <div class="venue-zoom">
+        <button onclick="zoomVenue(-1)" aria-label="Alejar">−</button>
+        <span id="zoomLabel">100%</span>
+        <button onclick="zoomVenue(1)" aria-label="Acercar">+</button>
+      </div>
     </div>
 
     <!-- Controles del elemento seleccionado -->
@@ -518,11 +540,17 @@ function pintarCrear() {
     </div>
     <div class="guest-list" id="guestList"></div>
 
-    <!-- Noticias / anuncios del evento -->
-    <div class="row-between"><h3>📰 Noticias del evento</h3></div>
-    <div class="guest-add">
-      <input id="newsInput" placeholder="Escribe un anuncio…" onkeydown="if(event.key==='Enter') addNoticia()">
-      <button class="add-btn" onclick="addNoticia()">Publicar</button>
+    <!-- Publicaciones del evento (tipo feed: texto + foto/video) -->
+    <div class="row-between"><h3>📰 Publicaciones del evento</h3></div>
+    <p class="hint">Comparte novedades como en Instagram: texto, fotos o videos.</p>
+    <div class="post-compose">
+      <textarea id="newsInput" placeholder="Escribe una publicación…" rows="2"></textarea>
+      <div class="post-compose-bar">
+        <input type="file" accept="image/*,video/*" id="newsFile" hidden onchange="adjuntarNoticia(event)">
+        <button class="post-attach" onclick="document.getElementById('newsFile').click()">📎 Foto / video</button>
+        <span id="newsAttachInfo" class="post-attach-info"></span>
+        <button class="add-btn" onclick="addNoticia()">Publicar</button>
+      </div>
     </div>
     <div class="news-list" id="newsList"></div>
 
@@ -535,12 +563,55 @@ function pintarCrear() {
   pintarVenue();
   pintarControls();
   pintarGuests();
+  pintarBoletos();
   pintarNoticias();
 }
 
+// --- Nombre animado + rango de edad ---
+function toggleNombreAnim() {
+  draft.nombreAnim = !draft.nombreAnim;
+  document.querySelector('.cover-name')?.classList.toggle('name-anim', draft.nombreAnim);
+  document.querySelectorAll('.mini-toggle-row .toggle')[0]?.classList.toggle('is-on', draft.nombreAnim);
+}
+function toggleEdad() {
+  draft.edad.activo = !draft.edad.activo;
+  document.getElementById('edadRango').style.display = draft.edad.activo ? '' : 'none';
+  document.querySelectorAll('.mini-toggle-row .toggle')[1]?.classList.toggle('is-on', draft.edad.activo);
+}
+
+// --- Boletos / zonas ---
+function pintarBoletos() {
+  const cont = document.getElementById('boletosList');
+  if (!cont) return;
+  cont.innerHTML = draft.boletos.map((b, i) => `
+    <div class="zona-card">
+      <div class="zona-top">
+        <input class="zona-name" value="${b.nombre}" placeholder="Nombre (ej: VIP)" oninput="draft.boletos[${i}].nombre=this.value">
+        ${draft.boletos.length > 1 ? `<button class="guest-del" onclick="delBoleto(${i})">✕</button>` : ''}
+      </div>
+      <div class="zona-fields">
+        <div class="zona-f"><label>Precio $</label>
+          <input type="number" value="${b.precio}" oninput="draft.boletos[${i}].precio=+this.value||0; pintarBoletos()"></div>
+        <div class="zona-f"><label>Cantidad</label>
+          <input type="number" value="${b.cantidad}" oninput="draft.boletos[${i}].cantidad=+this.value||0; actualizarCapTotal()"></div>
+      </div>
+    </div>
+  `).join('');
+  actualizarCapTotal();
+}
+function actualizarCapTotal() {
+  const total = draft.boletos.reduce((s, b) => s + (+b.cantidad || 0), 0);
+  const el = document.getElementById('capTotal');
+  if (el) el.textContent = `Cap. total: ${total}`;
+}
+function addBoleto() {
+  draft.boletos.push({ nombre: '', precio: 0, cantidad: 50 });
+  pintarBoletos();
+}
+function delBoleto(i) { draft.boletos.splice(i, 1); pintarBoletos(); }
+
 // --- Portada / fondo ---
 function setGrad(g) { draft.cover.grad = g; draft.cover.img = null; pintarCrear(); }
-function setCoverEmoji(e) { draft.cover.emoji = e; pintarCrear(); }
 function subirPortada(ev) {
   const file = ev.target.files[0];
   if (!file) return;
@@ -550,52 +621,79 @@ function subirPortada(ev) {
 }
 function quitarPortada() { draft.cover.img = null; pintarCrear(); }
 
-// --- Capacidad ---
-function setCapacidad(d) {
-  draft.capacidad = Math.max(0, draft.capacidad + d);
-  const inp = document.getElementById('cvCap');
-  if (inp) inp.value = draft.capacidad;
+// --- Publicaciones (tipo Instagram: texto + foto/video) ---
+let _newsMedia = null;  // adjunto temporal del compositor
+function adjuntarNoticia(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const tipo = file.type.startsWith('video') ? 'video' : 'img';
+  const reader = new FileReader();
+  reader.onload = () => {
+    _newsMedia = { tipo, url: reader.result };
+    const info = document.getElementById('newsAttachInfo');
+    if (info) info.textContent = tipo === 'video' ? '🎬 Video listo' : '🖼️ Foto lista';
+  };
+  reader.readAsDataURL(file);
 }
-
-// --- Noticias ---
+function mediaHTML(n) {
+  if (!n.media) return '';
+  return n.media.tipo === 'video'
+    ? `<video class="post-media" src="${n.media.url}" controls playsinline></video>`
+    : `<img class="post-media" src="${n.media.url}" alt="">`;
+}
 function pintarNoticias() {
   const cont = document.getElementById('newsList');
   if (!cont) return;
   cont.innerHTML = draft.noticias.length
     ? draft.noticias.map((n, i) => `
-        <div class="news-item">
-          <p>${n.texto}</p>
-          <button class="guest-del" onclick="delNoticia(${i})">✕</button>
+        <div class="post-card">
+          <div class="post-head">
+            <div class="post-ava" style="background:${DATA.usuario.color}">${DATA.usuario.avatar}</div>
+            <div><strong>${DATA.usuario.nombre}</strong><small>${n.fecha}</small></div>
+            <button class="guest-del" onclick="delNoticia(${i})">✕</button>
+          </div>
+          ${n.texto ? `<p class="post-text">${n.texto}</p>` : ''}
+          ${mediaHTML(n)}
         </div>`).join('')
-    : `<p class="empty">Aún no hay noticias. Comparte una novedad 📣</p>`;
+    : `<p class="empty">Aún no hay publicaciones. Comparte la primera 📣</p>`;
 }
 function addNoticia() {
   const inp = document.getElementById('newsInput');
   const texto = inp.value.trim();
-  if (!texto) return;
-  draft.noticias.unshift({ texto, fecha: 'ahora' });
+  if (!texto && !_newsMedia) return;
+  draft.noticias.unshift({ texto, media: _newsMedia, fecha: 'ahora' });
   inp.value = '';
+  _newsMedia = null;
+  const info = document.getElementById('newsAttachInfo');
+  if (info) info.textContent = '';
   pintarNoticias();
-  toast('Noticia publicada 📣');
+  toast('Publicación añadida 📣');
 }
 function delNoticia(i) { draft.noticias.splice(i, 1); pintarNoticias(); }
 
 // --- Guardar / publicar (crea o actualiza el evento) ---
 function guardarFiesta() {
   if (!draft.nombre.trim()) { toast('Ponle un nombre a tu fiesta'); return; }
+  const capacidad = draft.boletos.reduce((s, b) => s + (+b.cantidad || 0), 0);
+  // Precio: el más barato de los boletos
+  const precios = draft.boletos.map((b) => +b.precio || 0);
+  const minPrecio = precios.length ? Math.min(...precios) : 0;
   const campos = {
     nombre: draft.nombre.trim(),
     fecha: draft.fecha.trim() || 'Fecha por confirmar',
     lugar: draft.lugar.trim() || 'Lugar por confirmar',
     ciudad: draft.ciudad.trim() || 'Ciudad',
     organizador: DATA.usuario.nombre,
-    emoji: draft.cover.emoji,
+    emoji: '',
     grad: draft.cover.grad,
     coverImg: draft.cover.img,
-    capacidad: draft.capacidad,
-    noticias: draft.noticias,
-    precio: 'Gratis',
+    nombreAnim: draft.nombreAnim,
+    capacidad,
+    boletos: draft.boletos.map((b) => ({ ...b })),
+    edadRango: draft.edad.activo ? { ...draft.edad } : null,
     edad: '18+',
+    noticias: draft.noticias.map((n) => ({ ...n })),
+    precio: minPrecio > 0 ? `$${minPrecio}` : 'Gratis',
     cuando: 'semana'
   };
 
@@ -660,16 +758,23 @@ function actualizarHint() {
   if (h) h.textContent = `Toca para colocar “${VENUE_TOOLS[draft.tool].label}”`;
 }
 
+// El rectángulo de la zona del plano (ya con el zoom aplicado)
+function venueRect() { return document.getElementById('venueInner').getBoundingClientRect(); }
+
 // --- Dibujar el plano ---
 function pintarVenue() {
-  const v = document.getElementById('venue');
-  if (!v) return;
-  v.querySelectorAll('.v-item').forEach((el) => el.remove());
+  const inner = document.getElementById('venueInner');
+  if (!inner) return;
+  inner.style.transform = `scale(${draft.zoom})`;
+  const zl = document.getElementById('zoomLabel');
+  if (zl) zl.textContent = Math.round(draft.zoom * 100) + '%';
+
+  inner.querySelectorAll('.v-item').forEach((el) => el.remove());
   actualizarHint();
 
   itemsActuales().forEach((it) => {
     const t = VENUE_TOOLS[it.tipo];
-    const grande = it.w >= 70 || it.h >= 64;
+    const grande = it.w >= 78 || it.h >= 70;
     const el = document.createElement('div');
     el.className = `v-item v-${it.tipo} ${t.forma === 'redonda' ? 'redonda' : ''} ${grande ? 'lg' : ''} ${it.id === draft.sel ? 'sel' : ''}`;
     el.style.left = it.x + '%';
@@ -677,20 +782,28 @@ function pintarVenue() {
     el.style.width = it.w + 'px';
     el.style.height = it.h + 'px';
     el.style.transform = `translate(-50%,-50%) rotate(${it.rot || 0}deg)`;
-    el.innerHTML = `<span>${t.emoji}</span><b>${t.label}</b>`;
+    // El emoji escala con el tamaño del elemento (no estorba en los chicos)
+    const fs = Math.max(11, Math.min(26, Math.min(it.w, it.h) * 0.42));
+    el.innerHTML = `<span style="font-size:${fs}px">${t.emoji}</span><b>${t.label}</b>`;
     el.setAttribute('onpointerdown', `venueGrab(event, ${it.id})`);
     el.setAttribute('onclick', `venueItemTap(event, ${it.id})`);
-    v.appendChild(el);
+    inner.appendChild(el);
   });
+}
+
+// Zoom del plano (para verlo completo o de cerca)
+function zoomVenue(dir) {
+  draft.zoom = Math.max(0.5, Math.min(1.6, Math.round((draft.zoom + dir * 0.15) * 100) / 100));
+  pintarVenue();
 }
 
 // Tocar el plano vacío: coloca un elemento nuevo (y lo selecciona)
 function venueTap(ev) {
-  if (ev.target.id !== 'venue' && !ev.target.classList.contains('venue-grid') &&
-      ev.target.id !== 'venueHint') return;
+  if (ev.target.id !== 'venue' && ev.target.id !== 'venueInner' &&
+      !ev.target.classList.contains('venue-grid') && ev.target.id !== 'venueHint') return;
   if (_dragMoved) { _dragMoved = false; return; }
   const t = VENUE_TOOLS[draft.tool];
-  const r = document.getElementById('venue').getBoundingClientRect();
+  const r = venueRect();
   const x = clamp(((ev.clientX - r.left) / r.width) * 100);
   const y = clamp(((ev.clientY - r.top) / r.height) * 100);
   const item = { id: ++draft.seq, tipo: draft.tool, x, y, w: t.w, h: t.h, rot: 0 };
@@ -719,7 +832,7 @@ function venueGrab(ev, id) {
 function venueMove(ev) {
   if (_dragId == null) return;
   _dragMoved = true;
-  const r = document.getElementById('venue').getBoundingClientRect();
+  const r = venueRect();
   const it = itemsActuales().find((i) => i.id === _dragId);
   if (!it) return;
   it.x = clamp(((ev.clientX - r.left) / r.width) * 100);
@@ -1214,25 +1327,49 @@ function abrirEvento(id) {
   const esMio = e.organizador === DATA.usuario.nombre && DATA.usuario.rol === 'organizador';
   const cupo = e.capacidad ? `${e.asistentes}/${e.capacidad}` : `${e.asistentes}`;
 
+  const edadTxt = e.edadRango
+    ? `${e.edadRango.min}–${e.edadRango.max} años`
+    : '18+';
+
   abrirSheet(e.nombre, `
     <div class="ev-cover" style="${coverStyle(e)}">
-      <span class="ev-cover-emoji">${e.coverImg ? '' : e.emoji}</span>
+      <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
       <span class="event-price">${e.precio}</span>
     </div>
+    ${e.nombreAnim ? `<h2 class="name-anim" style="text-align:center;margin:14px 0 4px">${e.nombre}</h2>` : ''}
     <div class="ev-rows">
       <div class="ev-row">${icon('pin','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
-      <div class="ev-row">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Entrada: ${e.precio}</small></div></div>
+      <div class="ev-row">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Edad: ${edadTxt}</small></div></div>
       <div class="ev-row">${icon('users','mute')}<div><strong>${cupo} boletos</strong><small>Organiza ${e.organizador}</small></div></div>
     </div>
 
-    ${(e.noticias && e.noticias.length) ? `
-      <div class="row-between"><h3>📰 Novedades</h3></div>
-      <div class="news-list">
-        ${e.noticias.map((n) => `<div class="news-item read"><p>${n.texto}</p></div>`).join('')}
-      </div>
-    ` : `<p class="ev-desc">Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía. Llega temprano 🎶</p>`}
+    <button class="maps-btn" onclick="toast('Vista en Google Maps · próximamente 🗺️')">📍 Ver el lugar en Google Maps</button>
 
-    <div class="ev-map">${icon('pin')}<span>Ubicación en el mapa · próximamente</span></div>
+    ${(e.boletos && e.boletos.length) ? `
+      <div class="row-between"><h3>🎟️ Boletos</h3></div>
+      <div class="zona-list">
+        ${e.boletos.map((b) => `
+          <div class="zona-row">
+            <div><strong>${b.nombre || 'Boleto'}</strong><small>${b.cantidad} disponibles</small></div>
+            <span class="zona-precio">${(+b.precio) > 0 ? '$' + b.precio : 'Gratis'}</span>
+          </div>`).join('')}
+      </div>
+    ` : ''}
+
+    ${(e.noticias && e.noticias.length) ? `
+      <div class="row-between"><h3>📰 Publicaciones</h3></div>
+      <div class="news-list">
+        ${e.noticias.map((n) => `
+          <div class="post-card">
+            <div class="post-head">
+              <div class="post-ava" style="background:${DATA.usuario.color}">${DATA.usuario.avatar}</div>
+              <div><strong>${e.organizador}</strong><small>${n.fecha || ''}</small></div>
+            </div>
+            ${n.texto ? `<p class="post-text">${n.texto}</p>` : ''}
+            ${mediaHTML(n)}
+          </div>`).join('')}
+      </div>
+    ` : `<p class="ev-desc">Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía 🎶</p>`}
 
     <div class="sheet-actions">
       ${esMio
@@ -1384,7 +1521,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('seedvenue')) {
     const add = (tipo, x, y, w, h) => { const t = VENUE_TOOLS[tipo]; pisoActual().items.push({ id: ++draft.seq, tipo, x, y, w: w || t.w, h: h || t.h, rot: 0 }); };
     add('pista', 38, 30, 150, 120); add('dj', 38, 12); add('barra', 75, 20, 120, 36);
-    add('vip', 80, 55); add('mesa', 20, 65); add('mesa', 32, 72); add('silla', 25, 80);
+    add('vip', 80, 55); add('mesa', 20, 65); add('mesa', 32, 72); add('lounge', 60, 80);
     add('entrada', 15, 92); add('bano', 88, 88);
     draft.sel = pisoActual().items.find((i) => i.tipo === 'pista').id;
     pintarVenue(); pintarControls();

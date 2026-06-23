@@ -1296,3 +1296,127 @@ body.no-scroll { overflow: hidden; }
   font-family: inherit; font-weight: 700; font-size: .85rem; color: var(--violet);
   background: none; border: none; cursor: pointer;
 }
+
+/* ================================================================== */
+/* CREAR v2: zoom del plano, nombre animado, boletos, edad, posts      */
+/* ================================================================== */
+
+/* Zoom del plano */
+.venue-inner { position: absolute; inset: 0; transform-origin: center center; transition: transform .18s ease; }
+.venue-zoom {
+  position: absolute; top: 10px; right: 10px; z-index: 6;
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(10,12,18,.8); backdrop-filter: blur(8px);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 4px 6px;
+}
+.venue-zoom button {
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+  font-size: 1.2rem; font-weight: 700; color: var(--ink);
+  background: rgba(255,255,255,.08); border: none;
+}
+.venue-zoom span { font-size: .76rem; font-weight: 700; color: var(--ink-soft); min-width: 38px; text-align: center; }
+
+/* Nombre con colores animados */
+.name-anim {
+  background: linear-gradient(90deg,#8b5cf6,#f43f5e,#00d4ff,#f59e0b,#8b5cf6);
+  background-size: 300% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  color: transparent !important; -webkit-text-fill-color: transparent;
+  animation: nameflow 4s linear infinite;
+}
+@keyframes nameflow { to { background-position: 300% 0; } }
+@media (prefers-reduced-motion: reduce) { .name-anim { animation: none; } }
+
+/* Fila de toggle compacto */
+.mini-toggle-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 4px; margin-bottom: 6px;
+}
+.mini-toggle-row span { font-weight: 600; font-size: .95rem; }
+
+/* Botón Google Maps */
+.maps-btn {
+  width: 100%; font-family: inherit; font-weight: 600; font-size: .92rem; cursor: pointer;
+  color: var(--cyan); background: rgba(0,212,255,.08);
+  border: 1px solid rgba(0,212,255,.3); border-radius: var(--r-md);
+  padding: 12px; margin: 6px 0 4px; text-align: center;
+}
+.maps-btn:active { transform: scale(.99); }
+
+/* Rango de edad */
+.edad-row { display: flex; gap: 12px; margin-bottom: 6px; }
+.edad-field { flex: 1; }
+.edad-field label { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; color: var(--ink-faint); margin-bottom: 6px; }
+.edad-field input {
+  width: 100%; text-align: center; font-family: inherit; font-weight: 700; font-size: 1.05rem;
+  color: var(--ink); background: rgba(255,255,255,.04);
+  border: 1px solid var(--line); border-radius: var(--r-md); padding: 11px; outline: none;
+}
+.edad-field input:focus { border-color: var(--violet); }
+
+/* Boletos / zonas (editor) */
+.zona-card {
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 14px; margin-bottom: 10px;
+}
+.zona-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.zona-name {
+  flex: 1; font-family: inherit; font-weight: 700; font-size: 1rem; color: var(--ink);
+  background: none; border: none; border-bottom: 1px solid var(--line); padding: 4px 2px; outline: none;
+}
+.zona-name:focus { border-color: var(--violet); }
+.zona-fields { display: flex; gap: 10px; }
+.zona-f { flex: 1; }
+.zona-f label { display: block; font-size: .72rem; color: var(--ink-faint); margin-bottom: 5px; }
+.zona-f input {
+  width: 100%; font-family: inherit; font-weight: 600; color: var(--ink);
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: 11px; padding: 9px 11px; outline: none;
+}
+.zona-f input:focus { border-color: var(--violet); }
+.add-zone {
+  width: 100%; font-family: inherit; font-weight: 700; font-size: .92rem; cursor: pointer;
+  color: var(--violet); background: rgba(139,92,246,.1);
+  border: 1px dashed rgba(139,92,246,.4); border-radius: var(--r-md); padding: 13px; margin-top: 2px;
+}
+
+/* Boletos (vista en el detalle) */
+.zona-list { display: flex; flex-direction: column; gap: 8px; }
+.zona-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 12px 14px;
+}
+.zona-row small { display: block; color: var(--ink-faint); }
+.zona-precio { font-weight: 800; color: var(--gold); }
+
+/* Compositor de publicaciones */
+.post-compose {
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 12px; margin-bottom: 14px;
+}
+.post-compose textarea {
+  width: 100%; border: none; background: none; outline: none; resize: vertical;
+  color: var(--ink); font-family: inherit; font-size: .98rem; line-height: 1.4;
+}
+.post-compose textarea::placeholder { color: var(--ink-faint); }
+.post-compose-bar { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.post-attach {
+  font-family: inherit; font-weight: 600; font-size: .85rem; cursor: pointer;
+  color: var(--ink-soft); background: rgba(255,255,255,.05);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 8px 13px;
+}
+.post-attach-info { flex: 1; font-size: .8rem; color: var(--cyan); }
+
+/* Tarjeta de publicación (estilo feed) */
+.post-card {
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 14px; overflow: hidden;
+}
+.post-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.post-ava { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; flex-shrink: 0; }
+.post-head > div { flex: 1; }
+.post-head strong { display: block; font-size: .92rem; }
+.post-head small { color: var(--ink-faint); }
+.post-text { margin-bottom: 10px; line-height: 1.45; color: var(--ink); }
+.post-media { width: 100%; border-radius: 12px; display: block; max-height: 360px; object-fit: cover; }
