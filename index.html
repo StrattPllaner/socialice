@@ -56,9 +56,35 @@
           <p class="splash-sub">Crea, organiza y promociona<br>tus fiestas desde un solo lugar.</p>
         </div>
         <div class="splash-bottom">
-          <button class="btn" onclick="splashIr('reg1')">Crear cuenta</button>
+          <button class="btn" onclick="splashIr('rol')">Crear cuenta</button>
           <button class="btn btn-ghost" onclick="splashIr('login')">Ya tengo cuenta</button>
         </div>
+      </div>
+
+      <!-- a.2) Elegir tipo de cuenta -->
+      <div class="splash-page" data-page="rol">
+        <button class="back-btn" onclick="splashIr('welcome')">‹</button>
+        <div class="splash-form-top">
+          <h2>¿Cómo vas a usar Socialice?</h2>
+          <p class="splash-sub">Puedes cambiarlo después.</p>
+        </div>
+        <!-- Cada tarjeta elige un rol y avanza al registro -->
+        <button class="rol-card" onclick="elegirRol('organizador')">
+          <span class="rol-emoji">🎪</span>
+          <span class="rol-text">
+            <strong>Soy organizador</strong>
+            <small>Quiero crear y promocionar mis fiestas.</small>
+          </span>
+          <span class="rol-arrow">›</span>
+        </button>
+        <button class="rol-card" onclick="elegirRol('asistente')">
+          <span class="rol-emoji">🎟️</span>
+          <span class="rol-text">
+            <strong>Quiero ir a fiestas</strong>
+            <small>Descubrir eventos y seguir a organizadores.</small>
+          </span>
+          <span class="rol-arrow">›</span>
+        </button>
       </div>
 
       <!-- b) Iniciar sesión -->
@@ -83,7 +109,7 @@
 
       <!-- c) Registro · paso 1 de 3 (cuenta) -->
       <div class="splash-page" data-page="reg1">
-        <button class="back-btn" onclick="splashIr('welcome')">‹</button>
+        <button class="back-btn" onclick="splashIr('rol')">‹</button>
         <div class="step-dots"><i class="is-on"></i><i></i><i></i></div>
         <div class="splash-form-top">
           <small class="step-count">Paso 1 de 3</small>
@@ -108,11 +134,11 @@
         <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i></i></div>
         <div class="splash-form-top">
           <small class="step-count">Paso 2 de 3</small>
-          <h2>¿Quién organiza?</h2>
+          <h2 id="reg2Title">¿Quién eres?</h2>
         </div>
         <label class="splash-field-wrap">
-          <span class="splash-label">Nombre del organizador</span>
-          <input type="text" class="splash-input" placeholder="Ej: Limitless Events">
+          <span class="splash-label" id="reg2NameLabel">Nombre</span>
+          <input type="text" class="splash-input" id="reg2Name" placeholder="Ej: Andrea Ríos">
         </label>
         <label class="splash-field-wrap">
           <span class="splash-label">Usuario</span>
@@ -133,7 +159,7 @@
         </div>
         <label class="splash-field-wrap">
           <span class="splash-label">Bio</span>
-          <input type="text" class="splash-input" placeholder="Las mejores fiestas de la ciudad 🎉">
+          <input type="text" class="splash-input" id="reg3Bio" placeholder="Cuéntale a la gente quién eres 🎉">
         </label>
         <div class="splash-ready">
           <div class="splash-ready-emoji anim-float">🎉</div>
