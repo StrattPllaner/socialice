@@ -204,8 +204,8 @@ function tarjetaEvento(e) {
    2.5 BUSCAR FIESTAS
    =================================================================== */
 
-let busquedaTexto = '';
-let busquedaCat = 'todos';
+// Estado de los filtros del buscador
+const filtros = { texto: '', ciudad: 'Todas', cuando: 'todos', edad: 'Todas' };
 
 function pintarBuscar() {
   const cont = document.getElementById('screen-search');
@@ -217,68 +217,100 @@ function pintarBuscar() {
 
     <div class="search-bar">
       ${icon('search', 'mute')}
-      <input id="searchInput" placeholder="Fiesta, lugar, ciudad u organizador…"
-             oninput="buscarFiestas(this.value)" value="${busquedaTexto}">
+      <input id="searchInput" placeholder="Fiesta, lugar u organizador…"
+             oninput="buscarFiestas(this.value)" value="${filtros.texto}">
       <button class="search-clear" onclick="limpiarBusqueda()" aria-label="Limpiar">✕</button>
     </div>
 
-    <div class="chips-row" id="searchChips"></div>
+    <!-- Filtros: ciudad, cuándo y edad -->
+    <div class="filtro-grupo">
+      <span class="filtro-label">📍 Ciudad</span>
+      <div class="chips-row" id="fCiudad"></div>
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-label">📅 Cuándo</span>
+      <div class="chips-row" id="fCuando"></div>
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-label">🔞 Edad</span>
+      <div class="chips-row" id="fEdad"></div>
+    </div>
 
-    <div class="row-between"><h3 id="searchTitle">Todas las fiestas</h3></div>
+    <div class="row-between">
+      <h3 id="searchTitle">Todas las fiestas</h3>
+      <span class="see-all" id="limpiarFiltros" onclick="resetFiltros()" style="display:none">Limpiar filtros</span>
+    </div>
     <div class="event-list" id="searchResults"></div>
   `;
-  pintarChipsBuscar();
+  pintarFiltros();
   pintarResultados();
-  // Enfocar el campo al entrar
   const inp = document.getElementById('searchInput');
-  if (inp && !busquedaTexto) setTimeout(() => inp.focus(), 200);
+  if (inp && !filtros.texto) setTimeout(() => inp.focus(), 200);
 }
 
-function pintarChipsBuscar() {
-  document.getElementById('searchChips').innerHTML = DATA.categorias.map((c) => `
-    <button class="chip ${c.id === busquedaCat ? 'is-active' : ''}"
-            onclick="filtrarBuscar('${c.id}')">${c.texto}</button>
+// Dibuja los tres grupos de chips de filtro.
+function pintarFiltros() {
+  document.getElementById('fCiudad').innerHTML = DATA.ciudades.map((c) => `
+    <button class="chip ${c === filtros.ciudad ? 'is-active' : ''}" onclick="setFiltro('ciudad','${c}')">${c}</button>
+  `).join('');
+  document.getElementById('fCuando').innerHTML = DATA.cuandos.map((c) => `
+    <button class="chip ${c.id === filtros.cuando ? 'is-active' : ''}" onclick="setFiltro('cuando','${c.id}')">${c.texto}</button>
+  `).join('');
+  document.getElementById('fEdad').innerHTML = DATA.edades.map((e) => `
+    <button class="chip ${e === filtros.edad ? 'is-active' : ''}" onclick="setFiltro('edad','${e}')">${e}</button>
   `).join('');
 }
 
-function filtrarBuscar(cat) {
-  busquedaCat = cat;
-  pintarChipsBuscar();
+function setFiltro(tipo, valor) {
+  filtros[tipo] = valor;
+  pintarFiltros();
   pintarResultados();
 }
 
 function buscarFiestas(texto) {
-  busquedaTexto = texto;
+  filtros.texto = texto;
   pintarResultados();
 }
 
 function limpiarBusqueda() {
-  busquedaTexto = '';
+  filtros.texto = '';
   const inp = document.getElementById('searchInput');
   if (inp) { inp.value = ''; inp.focus(); }
   pintarResultados();
 }
 
+function resetFiltros() {
+  filtros.ciudad = 'Todas'; filtros.cuando = 'todos'; filtros.edad = 'Todas';
+  pintarFiltros();
+  pintarResultados();
+}
+
 function pintarResultados() {
   const cont = document.getElementById('searchResults');
-  const t = busquedaTexto.trim().toLowerCase();
+  const t = filtros.texto.trim().toLowerCase();
 
   const res = DATA.eventos.filter((e) => {
-    const okCat = busquedaCat === 'todos' || e.cat.includes(busquedaCat);
-    const okTexto = !t || [e.nombre, e.lugar, e.ciudad, e.organizador]
-      .some((campo) => campo.toLowerCase().includes(t));
-    return okCat && okTexto;
+    const okTexto  = !t || [e.nombre, e.lugar, e.ciudad, e.organizador].some((c) => c.toLowerCase().includes(t));
+    const okCiudad = filtros.ciudad === 'Todas' || e.ciudad === filtros.ciudad;
+    const okCuando = filtros.cuando === 'todos' || e.cuando === filtros.cuando;
+    const okEdad   = filtros.edad === 'Todas'  || e.edad === filtros.edad;
+    return okTexto && okCiudad && okCuando && okEdad;
   });
 
+  // ¿Hay algún filtro activo? (para mostrar "Limpiar filtros")
+  const hayFiltro = filtros.ciudad !== 'Todas' || filtros.cuando !== 'todos' || filtros.edad !== 'Todas';
+  const limpiar = document.getElementById('limpiarFiltros');
+  if (limpiar) limpiar.style.display = hayFiltro ? 'inline' : 'none';
+
   const titulo = document.getElementById('searchTitle');
-  if (titulo) titulo.textContent = t ? `Resultados (${res.length})` : 'Todas las fiestas';
+  if (titulo) titulo.textContent = (t || hayFiltro) ? `Resultados (${res.length})` : 'Todas las fiestas';
 
   cont.innerHTML = res.length
     ? res.map(tarjetaEvento).join('')
     : `<div class="empty-box">
          <div class="empty-emoji">🔍</div>
-         <p>No encontramos fiestas para “${busquedaTexto}”.</p>
-         <small>Prueba con otra ciudad o quita los filtros.</small>
+         <p>No encontramos fiestas con esos filtros.</p>
+         <small>Prueba con otra ciudad o quítalos.</small>
        </div>`;
 }
 
@@ -286,17 +318,194 @@ function pintarResultados() {
    3. CREAR EVENTO (placeholder · solo organizador)
    =================================================================== */
 
+// --- Estado del editor de la fiesta ---
+const venue = { tool: 'mesa', items: [], seq: 0 };
+const guests = [
+  { nombre: 'Mateo Lara',  dentro: true },
+  { nombre: 'Sofía Mendez', dentro: false }
+];
+
+// Tipos de elementos que se pueden poner en el mapa
+const VENUE_TOOLS = {
+  mesa:      { emoji: '🪑', label: 'Mesa',      cls: 'v-mesa' },
+  asiento:   { emoji: '💺', label: 'Asiento',   cls: 'v-asiento' },
+  barra:     { emoji: '🍸', label: 'Barra',     cls: 'v-barra' },
+  escenario: { emoji: '🎤', label: 'Escenario', cls: 'v-escenario' },
+  venta:     { emoji: '🎫', label: 'Venta',     cls: 'v-venta' }
+};
+
 function pintarCrear() {
   document.getElementById('screen-create').innerHTML = `
-    <div class="placeholder">
-      <div class="placeholder-emoji anim-float">🎪</div>
-      <h2>Crear evento</h2>
-      <p>Aquí armarás tu fiesta de principio a fin: mapa del lugar, zonas y
-         asientos, flyer de promoción y un muro de publicaciones.</p>
-      <button class="btn" style="margin-top:18px" onclick="toast('¡Pronto! Estamos construyendo esta pantalla 🛠️')">Crear mi primera fiesta</button>
-      <span class="soon-badge">Próximamente</span>
+    <header class="page-head">
+      <h1>Crear fiesta</h1>
+      <p class="page-sub">Arma tu evento y el mapa del lugar.</p>
+    </header>
+
+    <!-- Datos básicos -->
+    <div class="field"><div class="field-main">
+      <label class="field-label">Nombre de la fiesta</label>
+      <input class="field-input" id="cvNombre" placeholder="Ej: Summer Rooftop">
+    </div></div>
+    <div class="field"><div class="field-main">
+      <label class="field-label">Fecha y hora</label>
+      <input class="field-input" id="cvFecha" placeholder="Ej: Vie 11 jul · 10:00 pm">
+    </div></div>
+    <div class="field"><div class="field-main">
+      <label class="field-label">Lugar / dirección</label>
+      <input class="field-input" id="cvLugar" placeholder="Ej: Terraza Skyline, Polanco">
+    </div></div>
+
+    <!-- Mapa del lugar -->
+    <div class="row-between">
+      <h3>🗺️ Mapa del lugar</h3>
+      <span class="see-all" onclick="limpiarVenue()">Vaciar</span>
     </div>
+    <p class="hint">Elige un elemento y toca el mapa para colocarlo. Arrástralo para moverlo; tócalo para quitarlo.</p>
+
+    <div class="tool-row" id="toolRow"></div>
+
+    <div class="venue" id="venue"
+         onclick="venueTap(event)"
+         onpointermove="venueMove(event)"
+         onpointerup="venueDrop()" onpointerleave="venueDrop()">
+      <div class="venue-grid"></div>
+      <span class="venue-hint" id="venueHint">Toca aquí para colocar “${VENUE_TOOLS[venue.tool].label}”</span>
+    </div>
+
+    <!-- Lista de ingreso -->
+    <div class="row-between">
+      <h3>📋 Lista de ingreso</h3>
+      <span class="see-all" id="guestCount"></span>
+    </div>
+    <div class="guest-add">
+      <input id="guestInput" placeholder="Nombre del invitado"
+             onkeydown="if(event.key==='Enter') addGuest()">
+      <button class="add-btn" onclick="addGuest()">Añadir</button>
+    </div>
+    <div class="guest-list" id="guestList"></div>
+
+    <button class="btn full" style="margin-top:24px" onclick="publicarFiesta()">Publicar fiesta 🎉</button>
   `;
+  pintarTools();
+  pintarVenue();
+  pintarGuests();
+}
+
+// Paleta de herramientas
+function pintarTools() {
+  document.getElementById('toolRow').innerHTML = Object.entries(VENUE_TOOLS).map(([id, t]) => `
+    <button class="tool ${id === venue.tool ? 'is-active' : ''}" onclick="elegirTool('${id}')">
+      <span class="tool-emoji">${t.emoji}</span>
+      <span>${t.label}</span>
+    </button>
+  `).join('');
+}
+function elegirTool(id) {
+  venue.tool = id;
+  pintarTools();
+  const h = document.getElementById('venueHint');
+  if (h) h.textContent = `Toca aquí para colocar “${VENUE_TOOLS[id].label}”`;
+}
+
+// Dibuja los elementos colocados en el mapa
+function pintarVenue() {
+  const v = document.getElementById('venue');
+  if (!v) return;
+  // Quitamos los items viejos (dejamos grid y hint)
+  v.querySelectorAll('.v-item').forEach((el) => el.remove());
+  const hint = document.getElementById('venueHint');
+  if (hint) hint.style.display = venue.items.length ? 'none' : 'block';
+
+  venue.items.forEach((it) => {
+    const t = VENUE_TOOLS[it.tipo];
+    const el = document.createElement('div');
+    el.className = `v-item ${t.cls}`;
+    el.style.left = it.x + '%';
+    el.style.top = it.y + '%';
+    el.innerHTML = `<span>${t.emoji}</span>`;
+    el.setAttribute('onpointerdown', `venueGrab(event, ${it.id})`);
+    el.setAttribute('onclick', `venueItemTap(event, ${it.id})`);
+    v.appendChild(el);
+  });
+}
+
+// Tocar el mapa: coloca un elemento nuevo (si no se tocó otro)
+function venueTap(ev) {
+  if (ev.target.id !== 'venue' && !ev.target.classList.contains('venue-grid') &&
+      ev.target.id !== 'venueHint') return;
+  if (_dragMoved) { _dragMoved = false; return; }
+  const r = document.getElementById('venue').getBoundingClientRect();
+  const x = ((ev.clientX - r.left) / r.width) * 100;
+  const y = ((ev.clientY - r.top) / r.height) * 100;
+  venue.items.push({ id: ++venue.seq, tipo: venue.tool, x: clamp(x), y: clamp(y) });
+  pintarVenue();
+}
+
+// Tocar un elemento existente: lo quita (si no se arrastró)
+function venueItemTap(ev, id) {
+  ev.stopPropagation();
+  if (_dragMoved) { _dragMoved = false; return; }
+  venue.items = venue.items.filter((i) => i.id !== id);
+  pintarVenue();
+}
+
+// --- Arrastrar elementos ---
+let _dragId = null, _dragMoved = false;
+function venueGrab(ev, id) {
+  ev.stopPropagation();
+  _dragId = id; _dragMoved = false;
+}
+function venueMove(ev) {
+  if (_dragId == null) return;
+  _dragMoved = true;
+  const r = document.getElementById('venue').getBoundingClientRect();
+  const it = venue.items.find((i) => i.id === _dragId);
+  if (!it) return;
+  it.x = clamp(((ev.clientX - r.left) / r.width) * 100);
+  it.y = clamp(((ev.clientY - r.top) / r.height) * 100);
+  const el = [...document.querySelectorAll('.v-item')][venue.items.indexOf(it)];
+  if (el) { el.style.left = it.x + '%'; el.style.top = it.y + '%'; }
+}
+function venueDrop() { _dragId = null; }
+function clamp(n) { return Math.max(3, Math.min(97, n)); }
+
+function limpiarVenue() {
+  venue.items = [];
+  pintarVenue();
+  toast('Mapa vaciado');
+}
+
+// --- Lista de ingreso ---
+function pintarGuests() {
+  const cont = document.getElementById('guestList');
+  if (!cont) return;
+  const dentro = guests.filter((g) => g.dentro).length;
+  document.getElementById('guestCount').textContent = `${dentro}/${guests.length} dentro`;
+  cont.innerHTML = guests.length ? guests.map((g, i) => `
+    <div class="guest-row ${g.dentro ? 'is-in' : ''}">
+      <button class="guest-check" onclick="checkGuest(${i})">${g.dentro ? '✓' : ''}</button>
+      <span class="guest-name">${g.nombre}</span>
+      <span class="guest-state">${g.dentro ? 'Dentro' : 'Pendiente'}</span>
+      <button class="guest-del" onclick="delGuest(${i})">✕</button>
+    </div>
+  `).join('') : `<p class="empty">Aún no hay invitados. Añade el primero ✨</p>`;
+}
+function addGuest() {
+  const inp = document.getElementById('guestInput');
+  const nombre = inp.value.trim();
+  if (!nombre) return;
+  guests.push({ nombre, dentro: false });
+  inp.value = '';
+  pintarGuests();
+  inp.focus();
+}
+function checkGuest(i) { guests[i].dentro = !guests[i].dentro; pintarGuests();
+  toast(guests[i].dentro ? `${guests[i].nombre} ingresó ✓` : `${guests[i].nombre} marcado pendiente`); }
+function delGuest(i) { guests.splice(i, 1); pintarGuests(); }
+
+function publicarFiesta() {
+  const nombre = document.getElementById('cvNombre').value.trim() || 'Tu fiesta';
+  toast(`“${nombre}” lista para publicar 🎉 (conectaremos el guardado con Firebase)`);
 }
 
 /* ===================================================================
@@ -305,7 +514,8 @@ function pintarCrear() {
 
 function pintarAmigos() {
   const cont = document.getElementById('screen-friends');
-  const enVivo = DATA.amigos.filter((a) => a.ahora);
+  // Solo "en vivo" los que puedo ver (los privados no-mejores-amigos se ocultan)
+  const enVivo = DATA.amigos.filter((a) => a.ahora && puedeVer(a));
 
   cont.innerHTML = `
     <header class="page-head">
@@ -337,7 +547,7 @@ function pintarAmigos() {
 
     <div class="row-between"><h3>Tus amigos</h3><span class="see-all">${DATA.amigos.length}</span></div>
     <div class="friend-list" id="friendList">
-      ${DATA.amigos.map(tarjetaAmigo).join('')}
+      ${amigosOrdenados().map(tarjetaAmigo).join('')}
     </div>
 
     <div class="row-between"><h3>Quizá los conozcas</h3></div>
@@ -347,16 +557,24 @@ function pintarAmigos() {
   `;
 }
 
-// Tarjeta de un amigo: respeta si su perfil es privado. Clicable.
+// ¿Puedo ver la actividad de este amigo?
+// Los perfiles privados SOLO los ven sus mejores amigos.
+function puedeVer(a) { return !a.privado || a.mejorAmigo; }
+
+// Tarjeta de un amigo. Los mejores amigos se ven en AZUL. Clicable.
 function tarjetaAmigo(a) {
-  if (a.privado) {
+  const best = a.mejorAmigo ? 'best' : '';
+  const estrella = a.mejorAmigo ? '<span class="best-star">★</span>' : '';
+
+  // Privado y NO es mejor amigo → bloqueado
+  if (!puedeVer(a)) {
     return `
-      <article class="friend-card" onclick="abrirAmigo('${a.usuario}')">
-        <div class="friend-ava" style="background:${a.color}">${a.avatar}</div>
+      <article class="friend-card ${best}" onclick="abrirAmigo('${a.usuario}')">
+        <div class="friend-ava ${best}" style="background:${a.color}">${a.avatar}${estrella}</div>
         <div class="friend-main">
           <strong>${a.nombre}</strong>
           <small>${a.usuario}</small>
-          <p class="friend-locked">🔒 Perfil privado · solo amigos ven su actividad</p>
+          <p class="friend-locked">🔒 Privado · solo sus mejores amigos ven su actividad</p>
         </div>
       </article>`;
   }
@@ -364,10 +582,10 @@ function tarjetaAmigo(a) {
     ? `<span class="friend-now">🔴 En ${a.ahora} ahora</span>`
     : (a.fue[0] ? `<span class="friend-was">Última: ${a.fue[0]}</span>` : `<span class="friend-was">Sin fiestas aún</span>`);
   return `
-    <article class="friend-card" onclick="abrirAmigo('${a.usuario}')">
-      <div class="friend-ava" style="background:${a.color}">${a.avatar}</div>
+    <article class="friend-card ${best}" onclick="abrirAmigo('${a.usuario}')">
+      <div class="friend-ava ${best}" style="background:${a.color}">${a.avatar}${estrella}</div>
       <div class="friend-main">
-        <strong>${a.nombre}</strong>
+        <strong>${a.nombre} ${a.mejorAmigo ? '<span class="best-tag">Mejor amigo</span>' : ''}</strong>
         <small>${a.usuario}</small>
         ${estado}
         ${a.fotos.length ? `<div class="photo-strip">
@@ -382,21 +600,29 @@ function tarjetaAmigo(a) {
 function abrirAmigo(usuario) {
   const a = DATA.amigos.find((x) => x.usuario === usuario);
   if (!a) return;
-  if (a.privado) {
+
+  // Botón para marcar / quitar mejor amigo (azul)
+  const btnBest = `
+    <button class="best-btn ${a.mejorAmigo ? 'is-on' : ''}" onclick="toggleMejorAmigo('${a.usuario}')">
+      ${a.mejorAmigo ? '★ Mejor amigo' : '☆ Hacer mejor amigo'}
+    </button>`;
+
+  if (!puedeVer(a)) {
     abrirSheet(a.nombre, `
       <div class="amigo-top">
         <div class="amigo-ava" style="background:${a.color}">${a.avatar}</div>
         <strong>${a.nombre}</strong><small>${a.usuario}</small>
       </div>
-      <div class="locked-box">🔒 Este perfil es privado.<br>Síguelo para ver su actividad.</div>
-      <div class="sheet-actions"><button class="btn full" onclick="toast('Solicitud enviada 👋'); cerrarSheet()">Seguir</button></div>
+      <div class="locked-box">🔒 Este perfil es privado.<br>Solo sus mejores amigos ven su actividad.</div>
+      <div class="sheet-actions">${btnBest}</div>
     `);
     return;
   }
   abrirSheet(a.nombre, `
     <div class="amigo-top">
-      <div class="amigo-ava" style="background:${a.color}">${a.avatar}</div>
+      <div class="amigo-ava ${a.mejorAmigo ? 'best' : ''}" style="background:${a.color}">${a.avatar}</div>
       <strong>${a.nombre}</strong><small>${a.usuario}</small>
+      ${a.mejorAmigo ? '<span class="best-tag">★ Mejor amigo</span>' : ''}
       ${a.ahora ? `<span class="friend-now">🔴 En ${a.ahora} ahora</span>` : ''}
     </div>
     <div class="row-between"><h3>Fiestas a las que fue</h3></div>
@@ -405,8 +631,17 @@ function abrirAmigo(usuario) {
     <div class="row-between"><h3>Sus fotos</h3></div>
     ${a.fotos.length ? `<div class="photo-grid">${a.fotos.map((f) => `<div class="photo-cell">${f}</div>`).join('')}</div>`
                      : `<p class="empty">Sin fotos todavía 📸</p>`}
-    <div class="sheet-actions"><button class="btn full" onclick="toast('Ahora sigues a ${a.nombre} ✓'); cerrarSheet()">Seguir</button></div>
+    <div class="sheet-actions">${btnBest}</div>
   `);
+}
+
+// Marca / quita a un amigo como mejor amigo y refresca todo.
+function toggleMejorAmigo(usuario) {
+  const a = DATA.amigos.find((x) => x.usuario === usuario);
+  a.mejorAmigo = !a.mejorAmigo;
+  toast(a.mejorAmigo ? `${a.nombre} ahora es tu mejor amigo 💙` : `${a.nombre} ya no es mejor amigo`);
+  abrirAmigo(usuario);  // re-pinta el panel
+  pintarAmigos();       // re-pinta la lista de fondo
 }
 
 // Tarjeta de sugerencia con botón "Agregar".
@@ -431,12 +666,17 @@ function agregarAmigo(btn) {
   if (ok) toast('Solicitud de amistad enviada 👋');
 }
 
+// Amigos ordenados: los mejores amigos primero.
+function amigosOrdenados() {
+  return [...DATA.amigos].sort((a, b) => (b.mejorAmigo ? 1 : 0) - (a.mejorAmigo ? 1 : 0));
+}
+
 // Filtra "Tus amigos" en vivo según el texto del buscador.
 function filtrarAmigos(texto) {
   const t = texto.trim().toLowerCase();
   const lista = document.getElementById('friendList');
   if (!lista) return;
-  const res = DATA.amigos.filter((a) =>
+  const res = amigosOrdenados().filter((a) =>
     a.nombre.toLowerCase().includes(t) || a.usuario.toLowerCase().includes(t));
   lista.innerHTML = res.length
     ? res.map(tarjetaAmigo).join('')
@@ -465,18 +705,23 @@ function perfilOrganizador(u) {
     </header>
 
     <section class="profile-hero">
-      <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
-      <h2>${u.nombre}</h2>
-      <p class="profile-user">${u.usuario} · 🎪 Organizador</p>
-      <p class="profile-bio">${u.bio}</p>
-      <div class="profile-stats">
-        <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
-        <div class="stat"><strong>${kilo(u.stats.asistentes)}</strong><small>asistentes</small></div>
-        <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
-      </div>
-      <div class="profile-actions">
-        <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
-        <button class="icon-btn" onclick="compartir('mi perfil')">${icon('share')}</button>
+      <div class="hero-cover" style="background:${u.color}"></div>
+      <div class="hero-body">
+        <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
+        <h2 class="hero-name">${u.nombre}</h2>
+        <p class="profile-user">${u.usuario} <span class="role-chip host">🎪 Organizador</span></p>
+        <p class="profile-bio">${u.bio}</p>
+        <div class="profile-stats">
+          <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
+          <span class="stat-sep"></span>
+          <div class="stat"><strong>${kilo(u.stats.asistentes)}</strong><small>asistentes</small></div>
+          <span class="stat-sep"></span>
+          <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
+        </div>
+        <div class="profile-actions">
+          <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
+          <button class="icon-btn" onclick="compartir('mi perfil')">${icon('share')}</button>
+        </div>
       </div>
     </section>
 
@@ -516,18 +761,23 @@ function perfilAsistente(u) {
     </header>
 
     <section class="profile-hero">
-      <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
-      <h2>${u.nombre}</h2>
-      <p class="profile-user">${u.usuario} · 🎟️ Asistente</p>
-      <p class="profile-bio">${u.bio}</p>
-      <div class="profile-stats">
-        <div class="stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
-        <div class="stat"><strong>${u.stats.amigos}</strong><small>amigos</small></div>
-        <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
-      </div>
-      <div class="profile-actions">
-        <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
-        <button class="icon-btn" onclick="irA('friends')">${icon('users')}</button>
+      <div class="hero-cover" style="background:${u.color}"></div>
+      <div class="hero-body">
+        <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
+        <h2 class="hero-name">${u.nombre}</h2>
+        <p class="profile-user">${u.usuario} <span class="role-chip guest">🎟️ Asistente</span></p>
+        <p class="profile-bio">${u.bio}</p>
+        <div class="profile-stats">
+          <div class="stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
+          <span class="stat-sep"></span>
+          <div class="stat"><strong>${u.stats.amigos}</strong><small>amigos</small></div>
+          <span class="stat-sep"></span>
+          <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
+        </div>
+        <div class="profile-actions">
+          <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
+          <button class="icon-btn" onclick="irA('friends')">${icon('users')}</button>
+        </div>
       </div>
     </section>
 

@@ -588,15 +588,26 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .event-org { font-size: .85rem; color: var(--ink-faint); }
 .empty { text-align: center; color: var(--ink-faint); padding: 30px 0; }
 
-/* --- Perfil --- */
+/* --- Perfil (con portada) --- */
 .profile-hero {
   text-align: center;
   background: linear-gradient(180deg, var(--bg-soft), #0a0c12);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: 26px 20px;
   margin-bottom: 8px;
+  overflow: hidden;
+  position: relative;
 }
+/* Portada de color arriba, con degradado a oscuro */
+.hero-cover {
+  height: 96px;
+  position: relative;
+}
+.hero-cover::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,.05), var(--bg-soft));
+}
+.hero-body { padding: 0 20px 24px; margin-top: -46px; position: relative; }
 .profile-avatar {
   width: 92px;
   height: 92px;
@@ -606,20 +617,32 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   place-items: center;
   font-size: 3rem;
   background: var(--grad-party);
-  box-shadow: var(--glow-violet);
+  box-shadow: 0 0 0 4px var(--bg-soft), 0 10px 30px rgba(0,0,0,.4);
 }
-.profile-user { color: var(--violet); font-weight: 600; margin-top: 2px; }
-.profile-bio { margin-top: 8px; }
+.hero-name { font-size: 1.5rem; }
+.profile-user { color: var(--ink-soft); font-weight: 600; margin-top: 4px; }
+.role-chip {
+  display: inline-block; font-size: .76rem; font-weight: 700;
+  padding: 3px 10px; border-radius: var(--r-pill); margin-left: 4px; vertical-align: middle;
+}
+.role-chip.host  { color: #c4b5fd; background: rgba(139,92,246,.18); }
+.role-chip.guest { color: #7dd3fc; background: rgba(0,212,255,.16); }
+.profile-bio { margin-top: 10px; }
 .profile-stats {
   display: flex;
+  align-items: center;
   justify-content: center;
-  gap: 26px;
-  margin: 20px 0;
+  gap: 18px;
+  margin: 20px 0 4px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px 10px;
 }
-.stat { display: flex; flex-direction: column; }
-.stat strong { font-size: 1.35rem; }
-.stat small { color: var(--ink-faint); }
-.profile-edit { width: 100%; }
+.stat { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.stat strong { font-size: 1.3rem; }
+.stat small { color: var(--ink-faint); font-size: .8rem; }
+.stat-sep { width: 1px; align-self: stretch; background: var(--line); }
 
 /* --- Pantalla placeholder (Crear) --- */
 .placeholder {
@@ -716,22 +739,54 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 }
 .search-bar input::placeholder { color: var(--ink-faint); }
 
+/* ============== FILTROS DEL BUSCADOR ============== */
+.filtro-grupo { margin: 14px 0 4px; }
+.filtro-label {
+  display: block; font-size: .78rem; font-weight: 700;
+  color: var(--ink-soft); margin-bottom: 8px; letter-spacing: .01em;
+}
+
 /* ============== "EN VIVO" (amigos en fiesta) ============== */
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3b6b; box-shadow: 0 0 10px #ff3b6b; }
-.live-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; }
+.live-dot {
+  width: 9px; height: 9px; border-radius: 50%; background: #ff3b6b;
+  box-shadow: 0 0 10px #ff3b6b; animation: blink 1.6s ease-in-out infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* padding arriba para que el anillo NO se corte */
+.live-row { display: flex; gap: 14px; overflow-x: auto; padding: 10px 2px 8px; scrollbar-width: none; }
 .live-row::-webkit-scrollbar { display: none; }
 .live-card { flex-shrink: 0; width: 76px; text-align: center; }
-.live-card strong { display: block; font-size: .85rem; margin-top: 7px; }
+.live-card strong { display: block; font-size: .85rem; margin-top: 9px; }
 .live-card small { color: var(--ink-faint); font-size: .72rem; }
 .live-ava {
   position: relative; width: 64px; height: 64px; margin: 0 auto;
   border-radius: 50%; display: grid; place-items: center; font-size: 1.7rem;
   box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #ff3b6b;
 }
+/* Anillo que se expande (efecto "radar") alrededor del avatar en vivo */
+.live-ava::before {
+  content: ''; position: absolute; inset: -4px;
+  border-radius: 50%; border: 2px solid #ff3b6b;
+  animation: radar 2s ease-out infinite;
+}
+@keyframes radar {
+  0%   { transform: scale(1);    opacity: .7; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+/* La bolita que late */
 .live-ping {
   position: absolute; bottom: 2px; right: 2px;
-  width: 14px; height: 14px; border-radius: 50%;
+  width: 15px; height: 15px; border-radius: 50%;
   background: #ff3b6b; border: 2px solid var(--bg);
+  animation: pingPulse 1.4s ease-in-out infinite;
+}
+@keyframes pingPulse {
+  0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,59,107,.6); }
+  50%     { transform: scale(1.18); box-shadow: 0 0 0 5px rgba(255,59,107,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-ava::before, .live-ping, .live-dot { animation: none; }
 }
 
 /* ============== TARJETAS DE AMIGO ============== */
@@ -744,6 +799,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   padding: 14px;
 }
 .friend-ava {
+  position: relative;
   width: 50px; height: 50px; flex-shrink: 0;
   border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem;
 }
@@ -753,6 +809,31 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .friend-now { font-size: .85rem; font-weight: 600; color: #ff6b8a; margin-top: 4px; }
 .friend-was { font-size: .85rem; color: var(--ink-soft); margin-top: 4px; }
 .friend-locked { font-size: .82rem; color: var(--ink-faint); margin-top: 4px; }
+
+/* ============== MEJORES AMIGOS (azul) ============== */
+.friend-card.best { border-color: rgba(47,155,255,.35); background: linear-gradient(120deg, rgba(47,155,255,.08), rgba(255,255,255,.02)); }
+.friend-ava.best, .amigo-ava.best { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px #2f9bff; }
+.best-star {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 19px; height: 19px; border-radius: 50%;
+  background: #2f9bff; color: #fff; font-size: .7rem;
+  display: grid; place-items: center; border: 2px solid var(--bg);
+}
+.best-tag {
+  display: inline-block; vertical-align: middle;
+  font-size: .68rem; font-weight: 700; color: #2f9bff;
+  background: rgba(47,155,255,.16); border: 1px solid rgba(47,155,255,.35);
+  padding: 2px 8px; border-radius: var(--r-pill); margin-left: 4px;
+}
+.best-btn {
+  flex: 1; font-family: inherit; font-weight: 700; font-size: .95rem;
+  cursor: pointer; padding: 14px; border-radius: var(--r-pill);
+  color: #2f9bff; background: rgba(47,155,255,.12);
+  border: 1px solid rgba(47,155,255,.4);
+  transition: transform .15s ease;
+}
+.best-btn:active { transform: scale(.98); }
+.best-btn.is-on { color: #fff; background: linear-gradient(135deg,#2f9bff,#6366f1); border-color: transparent; }
 
 /* Tira de fotos en miniatura */
 .photo-strip { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
@@ -983,3 +1064,81 @@ body.no-scroll { overflow: hidden; }
   transition: opacity .25s ease, translate .25s ease;
 }
 .toast.is-on { opacity: 1; translate: -50% -8px; }
+
+/* ================================================================== */
+/* CREAR FIESTA · editor de mapa + lista de ingreso                    */
+/* ================================================================== */
+.hint { font-size: .85rem; color: var(--ink-faint); margin-bottom: 12px; line-height: 1.45; }
+
+/* Paleta de herramientas */
+.tool-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; scrollbar-width: none; }
+.tool-row::-webkit-scrollbar { display: none; }
+.tool {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-family: inherit; font-size: .72rem; font-weight: 600; color: var(--ink-soft);
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: 14px; padding: 10px 12px; cursor: pointer; min-width: 64px;
+  transition: border-color .2s ease, background .2s ease, transform .15s ease;
+}
+.tool:active { transform: scale(.95); }
+.tool.is-active { border-color: var(--violet); background: rgba(139,92,246,.14); color: var(--ink); }
+.tool-emoji { font-size: 1.5rem; }
+
+/* Lienzo del mapa */
+.venue {
+  position: relative; width: 100%; aspect-ratio: 1 / 1.05;
+  border-radius: var(--r-lg); overflow: hidden;
+  background: radial-gradient(120% 120% at 50% 0%, #161a26, #0a0c12);
+  border: 1px solid var(--line-strong);
+  touch-action: none; user-select: none; margin-bottom: 8px;
+}
+.venue-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.venue-hint {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  color: var(--ink-faint); font-size: .9rem; text-align: center; pointer-events: none; padding: 0 20px;
+}
+.v-item {
+  position: absolute; transform: translate(-50%,-50%);
+  width: 44px; height: 44px; border-radius: 12px;
+  display: grid; place-items: center; font-size: 1.3rem; cursor: grab;
+  background: rgba(255,255,255,.08); border: 1px solid var(--line-strong);
+  box-shadow: 0 6px 16px rgba(0,0,0,.35);
+}
+.v-item:active { cursor: grabbing; }
+.v-mesa      { background: rgba(139,92,246,.22); border-color: rgba(139,92,246,.5); }
+.v-asiento   { width: 34px; height: 34px; font-size: 1rem; background: rgba(0,212,255,.18); border-color: rgba(0,212,255,.5); }
+.v-barra     { background: rgba(245,158,11,.2); border-color: rgba(245,158,11,.5); }
+.v-escenario { width: 84px; height: 40px; background: rgba(244,63,94,.22); border-color: rgba(244,63,94,.55); }
+.v-venta     { background: rgba(52,211,153,.2); border-color: rgba(52,211,153,.5); }
+
+/* Lista de ingreso */
+.guest-add { display: flex; gap: 10px; margin-bottom: 14px; }
+.guest-add input {
+  flex: 1; border: 1px solid var(--line); background: rgba(255,255,255,.04);
+  border-radius: var(--r-pill); padding: 12px 16px; color: var(--ink);
+  font-family: inherit; font-size: .95rem; outline: none;
+}
+.guest-add input:focus { border-color: var(--violet); }
+.guest-list { display: flex; flex-direction: column; gap: 8px; }
+.guest-row {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 10px 14px;
+}
+.guest-row.is-in { border-color: rgba(52,211,153,.35); background: rgba(52,211,153,.06); }
+.guest-check {
+  width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%;
+  border: 2px solid var(--line-strong); background: none; cursor: pointer;
+  color: #34d399; font-weight: 800; display: grid; place-items: center;
+}
+.guest-row.is-in .guest-check { background: #34d399; color: #06231a; border-color: transparent; }
+.guest-name { flex: 1; font-weight: 600; }
+.guest-state { font-size: .76rem; color: var(--ink-faint); }
+.guest-row.is-in .guest-state { color: #34d399; }
+.guest-del { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: .95rem; padding: 4px; }
