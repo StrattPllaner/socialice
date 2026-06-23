@@ -1317,6 +1317,7 @@ function pintarPerfil() {
 // --- Perfil de ORGANIZADOR ---
 function perfilOrganizador(u) {
   const mios = DATA.eventos.filter((e) => e.organizador === u.nombre);
+  const insignia = u.verificado ? `<span class="verif" title="Verificado">❄</span>` : '';
   return `
     <header class="page-head row-between">
       <h1>Perfil</h1>
@@ -1327,22 +1328,37 @@ function perfilOrganizador(u) {
       <div class="hero-cover" style="background:${u.color}"></div>
       <div class="hero-body">
         <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
-        <h2 class="hero-name">${u.nombre}</h2>
+        <h2 class="hero-name">${u.nombre} ${insignia}</h2>
         <p class="profile-user">${u.usuario} <span class="role-chip host">🎪 Organizador</span></p>
         <p class="profile-bio">${u.bio}</p>
+
         <div class="profile-stats">
           <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
           <span class="stat-sep"></span>
           <div class="stat"><strong>${kilo(u.stats.asistentes)}</strong><small>asistentes</small></div>
           <span class="stat-sep"></span>
-          <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
+          <button class="stat as-btn" onclick="verSeguidores()"><strong>${u.stats.seguidores}</strong><small>seguidores</small></button>
         </div>
+
+        ${redesHTML(u)}
+
         <div class="profile-actions">
           <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
           <button class="icon-btn" onclick="compartir('mi perfil')">${icon('share')}</button>
         </div>
       </div>
     </section>
+
+    ${(u.colaboradores && u.colaboradores.length) ? `
+      <div class="row-between"><h3>🤝 Colaboradores</h3></div>
+      <div class="colab-row">
+        ${u.colaboradores.map((c) => `
+          <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
+            <span class="colab-ava" style="background:${c.color}">${c.avatar}</span>
+            <span class="colab-name">${c.nombre.split(' ')[0]}</span>
+            <span class="colab-user">${c.usuario}</span>
+          </button>`).join('')}
+      </div>` : ''}
 
     <div class="row-between"><h3>Mis eventos</h3><span class="see-all" onclick="nuevaFiesta()">＋ Nueva</span></div>
     <div class="event-list">
@@ -1364,7 +1380,64 @@ function perfilOrganizador(u) {
         </article>
       `).join('') : `<p class="empty">Aún no creas eventos. Toca “＋ Nueva” para empezar 🎉</p>`}
     </div>
+
+    ${(u.eventosPasados && u.eventosPasados.length) ? `
+      <div class="row-between"><h3>📸 Eventos anteriores</h3></div>
+      <p class="hint">Revive lo que pasó en fiestas pasadas.</p>
+      <div class="past-list">
+        ${u.eventosPasados.map((p, i) => `
+          <div class="past-card">
+            <div class="past-head" style="background:${p.grad}">
+              <span class="past-emoji">${p.emoji}</span>
+              <div class="past-info"><strong>${p.nombre}</strong><small>${p.fecha} · 👥 ${p.asistentes}</small></div>
+            </div>
+            <div class="past-photos">
+              ${p.fotos.map((f) => `<button class="past-photo" onclick="toast('Foto de ${p.nombre} 📸')">${f}</button>`).join('')}
+            </div>
+          </div>`).join('')}
+      </div>` : ''}
   `;
+}
+
+// Fila de redes sociales / contacto
+function redesHTML(u) {
+  const r = u.redes || {};
+  const items = [];
+  if (r.whatsapp)  items.push(`<a class="red red-wa" href="https://wa.me/${r.whatsapp}" target="_blank" rel="noopener">💬 WhatsApp</a>`);
+  if (r.instagram) items.push(`<a class="red red-ig" href="https://instagram.com/${r.instagram}" target="_blank" rel="noopener">📸 Instagram</a>`);
+  if (r.tiktok)    items.push(`<a class="red red-tk" href="https://tiktok.com/@${r.tiktok}" target="_blank" rel="noopener">🎵 TikTok</a>`);
+  if (r.web)       items.push(`<a class="red red-web" href="${r.web}" target="_blank" rel="noopener">🌐 Sitio</a>`);
+  return items.length ? `<div class="redes-row">${items.join('')}</div>` : '';
+}
+
+// Ver la lista de seguidores
+function verSeguidores() {
+  const lista = DATA.usuario.seguidoresList || [];
+  abrirSheet(`Seguidores · ${DATA.usuario.stats.seguidores}`, `
+    <div class="friend-list">
+      ${lista.map((s) => `
+        <article class="friend-card" onclick="verPerfilDe('${s.nombre}','${s.usuario}','${s.avatar}')">
+          <div class="friend-ava" style="background:${s.color}">${s.avatar}</div>
+          <div class="friend-main"><strong>${s.nombre}</strong><small>${s.usuario}</small></div>
+          <button class="add-btn" onclick="event.stopPropagation(); this.classList.toggle('is-added'); this.textContent=this.classList.contains('is-added')?'Siguiendo ✓':'Seguir'">Seguir</button>
+        </article>`).join('')}
+    </div>
+  `);
+}
+
+// Mini-perfil de otra persona (colaborador / seguidor)
+function verPerfilDe(nombre, usuario, avatar) {
+  abrirSheet(nombre, `
+    <div class="amigo-top">
+      <div class="amigo-ava" style="background:var(--grad-cool)">${avatar}</div>
+      <strong>${nombre}</strong><small>${usuario}</small>
+    </div>
+    <p class="ev-desc" style="text-align:center">Perfil de organizador/colaborador en Socialice.</p>
+    <div class="sheet-actions">
+      <button class="btn full" onclick="toast('Ahora sigues a ${nombre} ✓'); cerrarSheet()">Seguir</button>
+      <button class="icon-btn" onclick="compartir('${nombre}')">${icon('share')}</button>
+    </div>
+  `);
 }
 
 // --- Perfil de ASISTENTE ---
@@ -1616,6 +1689,24 @@ function editarPerfil() {
       <input class="field-input" id="edBio" value="${u.bio}">
     </div></div>
 
+    <p class="form-label" style="margin-top:18px">Redes y contacto</p>
+    <div class="field"><span class="field-icon">💬</span><div class="field-main">
+      <label class="field-label">WhatsApp (con lada, ej: 52155…)</label>
+      <input class="field-input" id="edWa" value="${(u.redes||{}).whatsapp||''}" placeholder="5215512345678">
+    </div></div>
+    <div class="field"><span class="field-icon">📸</span><div class="field-main">
+      <label class="field-label">Instagram (usuario)</label>
+      <input class="field-input" id="edIg" value="${(u.redes||{}).instagram||''}" placeholder="tuusuario">
+    </div></div>
+    <div class="field"><span class="field-icon">🎵</span><div class="field-main">
+      <label class="field-label">TikTok (usuario)</label>
+      <input class="field-input" id="edTk" value="${(u.redes||{}).tiktok||''}" placeholder="tuusuario">
+    </div></div>
+    <div class="field"><span class="field-icon">🌐</span><div class="field-main">
+      <label class="field-label">Sitio web</label>
+      <input class="field-input" id="edWeb" value="${(u.redes||{}).web||''}" placeholder="https://…">
+    </div></div>
+
     <div class="sheet-actions">
       <button class="btn full" onclick="guardarPerfil()">Guardar cambios</button>
     </div>
@@ -1634,6 +1725,12 @@ function guardarPerfil() {
   u.bio = document.getElementById('edBio').value.trim();
   if (_avatarTmp) u.avatar = _avatarTmp;
   _avatarTmp = null;
+  // Redes sociales
+  u.redes = u.redes || {};
+  u.redes.whatsapp  = document.getElementById('edWa').value.trim().replace(/[^\d]/g, '');
+  u.redes.instagram = document.getElementById('edIg').value.trim().replace(/^@/, '');
+  u.redes.tiktok    = document.getElementById('edTk').value.trim().replace(/^@/, '');
+  u.redes.web       = document.getElementById('edWeb').value.trim();
   cerrarSheet();
   pintarPerfil();
   toast('Perfil actualizado ✓');

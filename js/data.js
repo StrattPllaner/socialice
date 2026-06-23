@@ -16,6 +16,33 @@ const DATA = {
     color: 'linear-gradient(135deg,#8b5cf6,#f43f5e)',
     rol: 'organizador',
     privado: false,
+    verificado: true,   // muestra la insignia ❄
+    // Redes sociales y contacto (lo que el organizador quiera poner)
+    redes: {
+      whatsapp: '5215512345678',
+      instagram: 'andrea.eventos',
+      tiktok: 'andrea.eventos',
+      web: ''
+    },
+    // Colaboradores (links a otros perfiles)
+    colaboradores: [
+      { nombre: 'Pulse Crew', usuario: '@pulsecrew', avatar: '🎛️', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
+      { nombre: 'Mateo Lara', usuario: '@mateo',     avatar: '🐺', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)' }
+    ],
+    // Lista de seguidores (para "ver seguidores")
+    seguidoresList: [
+      { nombre: 'Sofía Mendez', usuario: '@sof',   avatar: '🌸', color: 'linear-gradient(135deg,#ec4899,#f43f5e)' },
+      { nombre: 'Diego Cruz',   usuario: '@diegoc', avatar: '🎧', color: 'linear-gradient(135deg,#8b5cf6,#06b6d4)' },
+      { nombre: 'Valeria Ortiz',usuario: '@valee',  avatar: '🦋', color: 'linear-gradient(135deg,#f59e0b,#ec4899)' },
+      { nombre: 'Camila Reyes', usuario: '@cami',   avatar: '🐱', color: 'linear-gradient(135deg,#22d3ee,#818cf8)' },
+      { nombre: 'Tomás Vega',   usuario: '@tomv',   avatar: '🛹', color: 'linear-gradient(135deg,#fb7185,#f59e0b)' }
+    ],
+    // Eventos pasados con fotos de lo que pasó
+    eventosPasados: [
+      { nombre: 'Midnight Bloom', fecha: 'May 2026', emoji: '🌙', grad: 'linear-gradient(135deg,#6366f1,#ec4899)', asistentes: 240, fotos: ['🪩','💃','🍸','🎉','🌙','✨'] },
+      { nombre: 'Electric Garden', fecha: 'Abr 2026', emoji: '🌿', grad: 'linear-gradient(135deg,#10b981,#06b6d4)', asistentes: 180, fotos: ['🌿','🕺','🥂','🎶'] },
+      { nombre: 'Purple Haze', fecha: 'Mar 2026', emoji: '🟣', grad: 'linear-gradient(135deg,#8b5cf6,#d946ef)', asistentes: 310, fotos: ['🟣','🎇','💜','🪩','🍾'] }
+    ],
     stats: { eventos: 8, asistentes: 1240, seguidores: 357, amigos: 24, fueA: 36 }
   },
 

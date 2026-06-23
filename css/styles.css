@@ -1492,3 +1492,70 @@ body.no-scroll { overflow: hidden; }
 
 /* Plano con imagen de fondo: atenúa la cuadrícula */
 .venue-inner.has-bg .venue-grid { opacity: .3; }
+
+/* ================================================================== */
+/* PERFIL v2: verificado, redes, colaboradores, eventos anteriores    */
+/* ================================================================== */
+
+/* Insignia de verificado (copo de nieve, estilo IG) */
+.verif {
+  display: inline-grid; place-items: center; vertical-align: middle;
+  width: 20px; height: 20px; border-radius: 50%; font-size: .72rem;
+  color: #fff; background: linear-gradient(135deg,#22d3ee,#3b82f6);
+  box-shadow: 0 2px 8px rgba(59,130,246,.5); margin-left: 2px;
+  position: relative; top: -2px;
+}
+
+/* Stat clickable (ver seguidores) */
+.stat.as-btn { background: none; border: none; cursor: pointer; font-family: inherit; }
+.stat.as-btn:active { transform: scale(.95); }
+
+/* Redes sociales */
+.redes-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 16px 0 4px; }
+.red {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit; font-weight: 700; font-size: .82rem; text-decoration: none; color: #fff;
+  border-radius: var(--r-pill); padding: 8px 14px;
+  transition: transform .15s ease, filter .2s ease;
+}
+.red:active { transform: scale(.96); }
+.red:hover { filter: brightness(1.08); }
+.red-wa  { background: linear-gradient(135deg,#25d366,#128c7e); }
+.red-ig  { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
+.red-tk  { background: #111; border: 1px solid var(--line-strong); }
+.red-web { background: rgba(255,255,255,.08); border: 1px solid var(--line-strong); color: var(--ink); }
+
+/* Colaboradores */
+.colab-row { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
+.colab-row::-webkit-scrollbar { display: none; }
+.colab {
+  flex-shrink: 0; width: 92px; text-align: center; cursor: pointer;
+  font-family: inherit; color: var(--ink);
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 14px 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: border-color .2s ease, transform .15s ease;
+}
+.colab:hover { border-color: var(--violet); transform: translateY(-2px); }
+.colab-ava { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; font-size: 1.5rem; }
+.colab-name { font-weight: 700; font-size: .88rem; }
+.colab-user { font-size: .74rem; color: var(--ink-faint); }
+
+/* Eventos anteriores (con fotos) */
+.past-list { display: flex; flex-direction: column; gap: 14px; }
+.past-card { background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.past-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; position: relative; }
+.past-head::after { content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.25); }
+.past-emoji { font-size: 1.8rem; z-index: 1; }
+.past-info { z-index: 1; }
+.past-info strong { display: block; color: #fff; font-size: 1.05rem; }
+.past-info small { color: rgba(255,255,255,.85); }
+.past-photos { display: flex; gap: 8px; overflow-x: auto; padding: 12px; scrollbar-width: none; }
+.past-photos::-webkit-scrollbar { display: none; }
+.past-photo {
+  flex-shrink: 0; width: 64px; height: 64px; border-radius: 12px; cursor: pointer;
+  display: grid; place-items: center; font-size: 1.8rem;
+  background: linear-gradient(140deg, rgba(139,92,246,.2), rgba(244,63,94,.15));
+  border: 1px solid var(--line);
+}
+.past-photo:active { transform: scale(.94); }
