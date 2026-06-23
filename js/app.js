@@ -212,97 +212,68 @@ function pintarBuscar() {
       <p class="page-sub">Encuentra tu próxima noche.</p>
     </header>
 
-    <div class="search-bar">
+    <!-- Al tocar/enfocar la barra, se despliegan los filtros -->
+    <div class="search-bar" onclick="abrirFiltrosInline()">
       ${icon('search', 'mute')}
       <input id="searchInput" placeholder="Fiesta, lugar u organizador…"
-             oninput="buscarFiestas(this.value)" value="${filtros.texto}">
+             onfocus="abrirFiltrosInline()" oninput="buscarFiestas(this.value)" value="${filtros.texto}">
       <button class="search-clear" onclick="limpiarBusqueda()" aria-label="Limpiar">✕</button>
     </div>
 
-    <!-- Barra de filtros: botón + chips activos -->
-    <div class="filter-bar" id="filterBar"></div>
+    <!-- Filtros desplegables (ocultos hasta tocar la barra) -->
+    <div class="filtros-panel" id="filtrosPanel">
+      <div class="fp-group">
+        <span class="filtro-label">📍 Ciudad</span>
+        <input class="fp-input" id="ciudadInput" value="${filtros.ciudad}"
+               placeholder="Cualquier ciudad (ej: Cuernavaca)" oninput="setCiudad(this.value)">
+        <div class="chips-row mini wrap" id="fCiudad"></div>
+      </div>
+      <div class="fp-group">
+        <span class="filtro-label">📅 Cuándo</span>
+        <div class="chips-row mini wrap" id="fCuando"></div>
+      </div>
+      <div class="fp-group">
+        <span class="filtro-label">🔞 Edad</span>
+        <div class="chips-row mini wrap" id="fEdad"></div>
+      </div>
+    </div>
 
     <div class="row-between">
       <h3 id="searchTitle">Todas las fiestas</h3>
+      <span class="see-all" id="limpiarFiltros" onclick="resetFiltros()" style="display:none">Limpiar</span>
     </div>
     <div class="event-list" id="searchResults"></div>
   `;
-  pintarFilterBar();
+  pintarFiltros();
   pintarResultados();
 }
 
-// Texto legible de cada filtro activo (para los chips quitables)
-function etiquetaCuando() { return (DATA.cuandos.find((c) => c.id === filtros.cuando) || {}).texto; }
-
-// Barra: botón "Filtros" + chips de los filtros activos (quitables)
-function pintarFilterBar() {
-  const bar = document.getElementById('filterBar');
-  if (!bar) return;
-
-  const activos = [];
-  if (filtros.ciudad)            activos.push(`<button class="f-chip" onclick="setCiudad('')">📍 ${filtros.ciudad} <span>✕</span></button>`);
-  if (filtros.cuando !== 'todos')activos.push(`<button class="f-chip" onclick="setFiltro('cuando','todos')">${etiquetaCuando()} <span>✕</span></button>`);
-  if (filtros.edad !== 'Todas')  activos.push(`<button class="f-chip" onclick="setFiltro('edad','Todas')">${filtros.edad} <span>✕</span></button>`);
-
-  const n = activos.length;
-  bar.innerHTML = `
-    <button class="filter-btn ${n ? 'has' : ''}" onclick="abrirFiltros()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 6h18M6 12h12M10 18h4"/></svg>
-      Filtros${n ? ` · ${n}` : ''}
-    </button>
-    ${activos.join('')}
-  `;
+// Despliega el panel de filtros (al tocar la barra de búsqueda)
+function abrirFiltrosInline() {
+  const p = document.getElementById('filtrosPanel');
+  if (p) p.classList.add('open');
 }
 
-// Panel de filtros (se abre solo cuando el usuario quiere)
-function abrirFiltros() {
-  abrirSheet('Filtros', filtrosHTML());
-}
-function filtrosHTML() {
-  return `
-    <div class="field"><div class="field-main">
-      <label class="field-label">📍 Ciudad</label>
-      <input class="field-input" id="ciudadInput" value="${filtros.ciudad}"
-             placeholder="Cualquier ciudad (ej: Cuernavaca)" oninput="setCiudad(this.value)">
-    </div></div>
-    <div class="chips-row wrap mini" style="margin:-2px 0 16px">
-      ${DATA.ciudades.map((c) => `
-        <button class="chip ${c.toLowerCase() === filtros.ciudad.toLowerCase() ? 'is-active' : ''}"
-                onclick="setCiudad('${c}')">${c}</button>`).join('')}
-    </div>
-
-    <p class="form-label">📅 Cuándo</p>
-    <div class="chips-row wrap" style="margin-bottom:18px">
-      ${DATA.cuandos.map((c) => `
-        <button class="chip ${c.id === filtros.cuando ? 'is-active' : ''}"
-                onclick="setFiltro('cuando','${c.id}')">${c.texto}</button>`).join('')}
-    </div>
-
-    <p class="form-label">🔞 Edad</p>
-    <div class="chips-row wrap">
-      ${DATA.edades.map((e) => `
-        <button class="chip ${e === filtros.edad ? 'is-active' : ''}"
-                onclick="setFiltro('edad','${e}')">${e}</button>`).join('')}
-    </div>
-
-    <div class="sheet-actions">
-      <button class="best-btn" style="color:var(--ink-soft);background:rgba(255,255,255,.05);border-color:var(--line-strong)" onclick="resetFiltros()">Limpiar</button>
-      <button class="btn full" onclick="cerrarSheet()">Ver resultados</button>
-    </div>
-  `;
-}
-// Si el panel de filtros está abierto, lo refresca
-function refrescarFiltrosSheet() {
-  if (document.getElementById('sheetOverlay').classList.contains('is-on')) {
-    document.getElementById('sheetBody').innerHTML = filtrosHTML();
-  }
+// Dibuja los chips de cada filtro dentro del panel desplegable
+function pintarFiltros() {
+  const fc = document.getElementById('fCiudad');
+  if (fc) fc.innerHTML = DATA.ciudades.map((c) => `
+    <button class="chip ${c.toLowerCase() === filtros.ciudad.toLowerCase() ? 'is-active' : ''}"
+            onclick="setCiudad('${c}')">${c}</button>`).join('');
+  const fcu = document.getElementById('fCuando');
+  if (fcu) fcu.innerHTML = DATA.cuandos.map((c) => `
+    <button class="chip ${c.id === filtros.cuando ? 'is-active' : ''}"
+            onclick="setFiltro('cuando','${c.id}')">${c.texto}</button>`).join('');
+  const fe = document.getElementById('fEdad');
+  if (fe) fe.innerHTML = DATA.edades.map((e) => `
+    <button class="chip ${e === filtros.edad ? 'is-active' : ''}"
+            onclick="setFiltro('edad','${e}')">${e}</button>`).join('');
 }
 
 function setFiltro(tipo, valor) {
   filtros[tipo] = valor;
-  pintarFilterBar();
+  pintarFiltros();
   pintarResultados();
-  refrescarFiltrosSheet();
 }
 
 // Ciudad por texto libre (desde el input o un chip)
@@ -310,7 +281,7 @@ function setCiudad(valor) {
   filtros.ciudad = valor;
   const inp = document.getElementById('ciudadInput');
   if (inp && inp.value !== valor) inp.value = valor;
-  pintarFilterBar();
+  pintarFiltros();
   pintarResultados();
 }
 
@@ -328,9 +299,10 @@ function limpiarBusqueda() {
 
 function resetFiltros() {
   filtros.ciudad = ''; filtros.cuando = 'todos'; filtros.edad = 'Todas';
-  pintarFilterBar();
+  const inp = document.getElementById('ciudadInput');
+  if (inp) inp.value = '';
+  pintarFiltros();
   pintarResultados();
-  refrescarFiltrosSheet();
 }
 
 function pintarResultados() {
@@ -348,6 +320,8 @@ function pintarResultados() {
   });
 
   const hayFiltro = !!ciudad || filtros.cuando !== 'todos' || filtros.edad !== 'Todas';
+  const limpiar = document.getElementById('limpiarFiltros');
+  if (limpiar) limpiar.style.display = hayFiltro ? 'inline' : 'none';
   const titulo = document.getElementById('searchTitle');
   if (titulo) titulo.textContent = (t || hayFiltro) ? `Resultados (${res.length})` : 'Todas las fiestas';
 
@@ -1108,5 +1082,5 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'evento')  abrirEvento('e1');
   if (p.get('sheet') === 'ajustes') abrirAjustes();
   if (p.get('sheet') === 'editar')  editarPerfil();
-  if (p.get('sheet') === 'filtros') abrirFiltros();
+  if (p.get('openf')) abrirFiltrosInline();
 });

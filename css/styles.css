@@ -745,32 +745,28 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   display: block; font-size: .78rem; font-weight: 700;
   color: var(--ink-soft); margin-bottom: 8px; letter-spacing: .01em;
 }
-/* Barra de filtros (botón + chips activos quitables) */
-.filter-bar {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  align-items: center; margin: 14px 0 6px;
+/* Panel de filtros desplegable (oculto hasta tocar la barra) */
+.filtros-panel {
+  max-height: 0; opacity: 0; overflow: hidden;
+  transition: max-height .35s ease, opacity .3s ease, margin .3s ease;
 }
-.filter-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-family: inherit; font-weight: 700; font-size: .9rem; color: var(--ink);
-  background: rgba(255,255,255,.05); border: 1px solid var(--line-strong);
-  border-radius: var(--r-pill); padding: 9px 16px; cursor: pointer;
-  transition: background .2s ease, border-color .2s ease, transform .15s ease;
+.filtros-panel.open {
+  max-height: 520px; opacity: 1;
+  margin: 12px 0 4px;
 }
-.filter-btn svg { width: 17px; height: 17px; }
-.filter-btn:active { transform: scale(.96); }
-.filter-btn.has { color: #fff; background: var(--grad-party); border-color: transparent; }
-/* Chip de un filtro activo (con ✕ para quitarlo) */
-.f-chip {
-  display: inline-flex; align-items: center; gap: 7px;
-  font-family: inherit; font-weight: 600; font-size: .84rem; color: var(--ink);
-  background: rgba(139,92,246,.14); border: 1px solid rgba(139,92,246,.35);
-  border-radius: var(--r-pill); padding: 8px 13px; cursor: pointer;
+.fp-group { margin-bottom: 14px; }
+.fp-group .filtro-label { margin-bottom: 8px; }
+.fp-input {
+  width: 100%; border: 1px solid var(--line); background: rgba(255,255,255,.04);
+  border-radius: var(--r-md); padding: 11px 14px; margin-bottom: 10px;
+  color: var(--ink); font-family: inherit; font-size: .95rem; outline: none;
+  transition: border-color .2s ease;
 }
-.f-chip span { color: var(--ink-faint); font-size: .75rem; }
-.f-chip:active { transform: scale(.96); }
+.fp-input:focus { border-color: var(--violet); }
+.fp-input::placeholder { color: var(--ink-faint); }
 
-/* Chips más chicos dentro del panel de filtros */
+/* Chips más chicos dentro de los filtros */
+.chips-row.mini { flex-wrap: wrap; }
 .chips-row.mini .chip { font-size: .8rem; padding: 7px 13px; }
 
 /* ============== "EN VIVO" (amigos en fiesta) ============== */
