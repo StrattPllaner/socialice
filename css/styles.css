@@ -1226,3 +1226,73 @@ body.no-scroll { overflow: hidden; }
 .guest-state { font-size: .76rem; color: var(--ink-faint); }
 .guest-row.is-in .guest-state { color: #34d399; }
 .guest-del { background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: .95rem; padding: 4px; }
+
+/* ================================================================== */
+/* CREAR/EDITAR: portada, capacidad, noticias                         */
+/* ================================================================== */
+/* Portada / fondo de publicación */
+.cover-preview {
+  height: 150px; border-radius: var(--r-lg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  position: relative; overflow: hidden; margin-bottom: 12px;
+  box-shadow: 0 12px 36px rgba(0,0,0,.35);
+}
+.cover-emoji { font-size: 3rem; filter: drop-shadow(0 4px 10px rgba(0,0,0,.35)); }
+.cover-name { font-weight: 800; font-size: 1.3rem; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+.cover-actions { display: flex; gap: 8px; margin-bottom: 4px; }
+
+/* Muestras de gradiente */
+.grad-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.grad-swatch {
+  width: 46px; height: 46px; border-radius: 14px; cursor: pointer;
+  border: 2px solid transparent; transition: transform .15s ease, border-color .2s ease;
+}
+.grad-swatch:active { transform: scale(.9); }
+.grad-swatch.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--violet); }
+
+/* Selector de emoji */
+.emoji-pick {
+  font-size: 1.4rem; width: 44px; height: 44px; cursor: pointer;
+  background: rgba(255,255,255,.04); border: 2px solid transparent; border-radius: 12px;
+}
+.emoji-pick.sel { border-color: var(--violet); background: rgba(139,92,246,.16); }
+
+/* Capacidad */
+.cap-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 14px 16px; margin-bottom: 4px;
+}
+.cap-card strong { display: block; font-size: 1rem; }
+.cap-card small { color: var(--ink-faint); }
+.cap-control { display: flex; align-items: center; gap: 8px; }
+.cap-control button {
+  width: 38px; height: 38px; border-radius: 11px; cursor: pointer;
+  font-size: 1.3rem; font-weight: 700; color: var(--ink);
+  background: rgba(255,255,255,.06); border: 1px solid var(--line-strong);
+}
+.cap-control input {
+  width: 70px; text-align: center; font-family: inherit; font-weight: 700; font-size: 1rem;
+  color: var(--ink); background: rgba(255,255,255,.04);
+  border: 1px solid var(--line); border-radius: 11px; padding: 9px 4px; outline: none;
+  -moz-appearance: textfield;
+}
+.cap-control input::-webkit-outer-spin-button,
+.cap-control input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Noticias */
+.news-list { display: flex; flex-direction: column; gap: 10px; }
+.news-item {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-left: 3px solid var(--violet);
+  border-radius: var(--r-md); padding: 12px 14px;
+}
+.news-item p { color: var(--ink); margin: 0; line-height: 1.4; }
+.news-item.read { border-left-color: var(--cyan); }
+
+/* Enlace editar evento */
+.edit-link {
+  font-family: inherit; font-weight: 700; font-size: .85rem; color: var(--violet);
+  background: none; border: none; cursor: pointer;
+}

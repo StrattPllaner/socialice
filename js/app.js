@@ -124,7 +124,7 @@ function pintarInicio() {
       <span class="search-fake-text">Busca fiestas, lugares, organizadores…</span>
     </button>
 
-    <section class="featured" style="background:${destacado.grad}" onclick="abrirEvento('${destacado.id}')">
+    <section class="featured" style="${coverStyle(destacado)}" onclick="abrirEvento('${destacado.id}')">
       <span class="featured-tag">✦ Próxima fiesta</span>
       <div class="featured-emoji">${destacado.emoji}</div>
       <h2>${destacado.nombre}</h2>
@@ -181,7 +181,7 @@ function pintarEventos() {
 function tarjetaEvento(e) {
   return `
     <article class="event-card" onclick="abrirEvento('${e.id}')">
-      <div class="event-cover" style="background:${e.grad}">
+      <div class="event-cover" style="${coverStyle(e)}">
         <span class="event-emoji">${e.emoji}</span>
         <span class="event-price">${e.precio}</span>
       </div>
@@ -338,19 +338,68 @@ function pintarResultados() {
    3. CREAR EVENTO (placeholder · solo organizador)
    =================================================================== */
 
-// --- Estado del editor de la fiesta ---
-// Cada piso guarda su propia lista de elementos.
-const venue = {
-  tool: 'mesa',
-  pisos: [{ nombre: 'Planta baja', items: [] }],
-  pisoActivo: 0,
-  sel: null,   // id del elemento seleccionado
-  seq: 0
-};
-const guests = [
-  { nombre: 'Mateo Lara',  dentro: true },
-  { nombre: 'Sofía Mendez', dentro: false }
+// --- Borrador de la fiesta (lo que se está creando o editando) ---
+// Si draft.id existe, estamos EDITANDO un evento ya creado.
+const GRADS = [
+  'linear-gradient(135deg,#7c3aed,#db2777)',
+  'linear-gradient(135deg,#0ea5e9,#7c3aed)',
+  'linear-gradient(135deg,#f59e0b,#ef4444)',
+  'linear-gradient(135deg,#ec4899,#6366f1)',
+  'linear-gradient(135deg,#22d3ee,#818cf8)',
+  'linear-gradient(135deg,#10b981,#06b6d4)'
 ];
+const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','👑','🔥'];
+
+function nuevoDraft() {
+  return {
+    id: null,
+    nombre: '', fecha: '', lugar: '', ciudad: '',
+    capacidad: 200,
+    cover: { grad: GRADS[0], emoji: '🎉', img: null },
+    noticias: [],
+    // mapa del antro
+    tool: 'mesa',
+    pisos: [{ nombre: 'Planta baja', items: [] }],
+    pisoActivo: 0,
+    sel: null,
+    seq: 0,
+    // lista de ingreso
+    guests: [
+      { nombre: 'Mateo Lara',  dentro: true },
+      { nombre: 'Sofía Mendez', dentro: false }
+    ]
+  };
+}
+let draft = nuevoDraft();
+
+// Empezar una fiesta nueva
+function nuevaFiesta() { draft = nuevoDraft(); irA('create'); }
+
+// Editar un evento ya creado (carga sus datos al borrador)
+function editarFiesta(id) {
+  const e = DATA.eventos.find((x) => x.id === id);
+  if (!e) return;
+  draft = nuevoDraft();
+  draft.id = e.id;
+  draft.nombre = e.nombre; draft.fecha = e.fecha; draft.lugar = e.lugar; draft.ciudad = e.ciudad || '';
+  draft.capacidad = e.capacidad || 200;
+  draft.cover = { grad: e.grad, emoji: e.emoji, img: e.coverImg || null };
+  draft.noticias = [...(e.noticias || [])];
+  irA('create');
+}
+
+// Estilo de la portada del borrador (imagen o gradiente)
+function coverStyleDraft() {
+  return draft.cover.img
+    ? `background-image:url(${draft.cover.img});background-size:cover;background-position:center`
+    : `background:${draft.cover.grad}`;
+}
+// Estilo de portada de un evento cualquiera (para tarjetas)
+function coverStyle(e) {
+  return e.coverImg
+    ? `background-image:url(${e.coverImg});background-size:cover;background-position:center`
+    : `background:${e.grad}`;
+}
 
 // Tipos de elementos (pensados para antros). w/h = tamaño inicial en px.
 const VENUE_TOOLS = {
@@ -369,30 +418,69 @@ const VENUE_TOOLS = {
 };
 
 // Atajos
-function pisoActual() { return venue.pisos[venue.pisoActivo]; }
+function pisoActual() { return draft.pisos[draft.pisoActivo]; }
 function itemsActuales() { return pisoActual().items; }
-function itemSel() { return itemsActuales().find((i) => i.id === venue.sel); }
+function itemSel() { return itemsActuales().find((i) => i.id === draft.sel); }
 
 function pintarCrear() {
+  const editando = !!draft.id;
   document.getElementById('screen-create').innerHTML = `
     <header class="page-head">
-      <h1>Crear fiesta</h1>
-      <p class="page-sub">Arma tu evento y el plano del antro.</p>
+      <h1>${editando ? 'Editar fiesta' : 'Crear fiesta'}</h1>
+      <p class="page-sub">${editando ? 'Cambia lo que quieras y guarda.' : 'Arma tu evento y el plano del antro.'}</p>
     </header>
 
+    <!-- Portada / fondo de publicación -->
+    <div class="row-between"><h3>📣 Portada de publicación</h3></div>
+    <div class="cover-preview" id="coverPreview" style="${coverStyleDraft()}">
+      ${draft.cover.img ? '' : `<span class="cover-emoji">${draft.cover.emoji}</span>`}
+      <span class="cover-name">${draft.nombre || 'Tu fiesta'}</span>
+    </div>
+    <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+    <div class="cover-actions">
+      <button class="chip" onclick="document.getElementById('coverFile').click()">⬆ Subir imagen</button>
+      ${draft.cover.img ? `<button class="chip" onclick="quitarPortada()">Quitar imagen</button>` : ''}
+    </div>
+    <p class="filtro-label" style="margin-top:12px">Color de fondo</p>
+    <div class="grad-row">
+      ${GRADS.map((g) => `<button class="grad-swatch ${(g === draft.cover.grad && !draft.cover.img) ? 'sel' : ''}" style="background:${g}" onclick="setGrad('${g}')"></button>`).join('')}
+    </div>
+    <p class="filtro-label" style="margin-top:12px">Emoji</p>
+    <div class="chips-row mini wrap">
+      ${COVER_EMOJIS.map((e) => `<button class="emoji-pick ${e === draft.cover.emoji ? 'sel' : ''}" onclick="setCoverEmoji('${e}')">${e}</button>`).join('')}
+    </div>
+
     <!-- Datos básicos -->
-    <div class="field"><div class="field-main">
+    <div class="field" style="margin-top:18px"><div class="field-main">
       <label class="field-label">Nombre de la fiesta</label>
-      <input class="field-input" id="cvNombre" placeholder="Ej: Summer Rooftop">
+      <input class="field-input" id="cvNombre" value="${draft.nombre}" placeholder="Ej: Summer Rooftop"
+             oninput="draft.nombre=this.value; document.querySelector('.cover-name').textContent=this.value||'Tu fiesta'">
     </div></div>
     <div class="field"><div class="field-main">
       <label class="field-label">Fecha y hora</label>
-      <input class="field-input" id="cvFecha" placeholder="Ej: Vie 11 jul · 10:00 pm">
+      <input class="field-input" id="cvFecha" value="${draft.fecha}" placeholder="Ej: Vie 11 jul · 10:00 pm" oninput="draft.fecha=this.value">
     </div></div>
     <div class="field"><div class="field-main">
       <label class="field-label">Lugar / dirección</label>
-      <input class="field-input" id="cvLugar" placeholder="Ej: Terraza Skyline, Polanco">
+      <input class="field-input" id="cvLugar" value="${draft.lugar}" placeholder="Ej: Terraza Skyline" oninput="draft.lugar=this.value">
     </div></div>
+    <div class="field"><div class="field-main">
+      <label class="field-label">Ciudad</label>
+      <input class="field-input" id="cvCiudad" value="${draft.ciudad}" placeholder="Ej: Polanco" oninput="draft.ciudad=this.value">
+    </div></div>
+
+    <!-- Capacidad / boletos -->
+    <div class="cap-card">
+      <div>
+        <strong>🎟️ Capacidad</strong>
+        <small>Cantidad máxima de boletos</small>
+      </div>
+      <div class="cap-control">
+        <button onclick="setCapacidad(-50)">−</button>
+        <input id="cvCap" type="number" value="${draft.capacidad}" oninput="draft.capacidad=Math.max(0,+this.value||0)">
+        <button onclick="setCapacidad(50)">+</button>
+      </div>
+    </div>
 
     <!-- Plano del lugar -->
     <div class="row-between">
@@ -430,33 +518,124 @@ function pintarCrear() {
     </div>
     <div class="guest-list" id="guestList"></div>
 
-    <button class="btn full" style="margin-top:24px" onclick="publicarFiesta()">Publicar fiesta 🎉</button>
+    <!-- Noticias / anuncios del evento -->
+    <div class="row-between"><h3>📰 Noticias del evento</h3></div>
+    <div class="guest-add">
+      <input id="newsInput" placeholder="Escribe un anuncio…" onkeydown="if(event.key==='Enter') addNoticia()">
+      <button class="add-btn" onclick="addNoticia()">Publicar</button>
+    </div>
+    <div class="news-list" id="newsList"></div>
+
+    <button class="btn full" style="margin-top:24px" onclick="guardarFiesta()">
+      ${editando ? 'Guardar cambios ✓' : 'Publicar fiesta 🎉'}
+    </button>
   `;
   pintarFloors();
   pintarTools();
   pintarVenue();
   pintarControls();
   pintarGuests();
+  pintarNoticias();
+}
+
+// --- Portada / fondo ---
+function setGrad(g) { draft.cover.grad = g; draft.cover.img = null; pintarCrear(); }
+function setCoverEmoji(e) { draft.cover.emoji = e; pintarCrear(); }
+function subirPortada(ev) {
+  const file = ev.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { draft.cover.img = reader.result; pintarCrear(); };
+  reader.readAsDataURL(file);
+}
+function quitarPortada() { draft.cover.img = null; pintarCrear(); }
+
+// --- Capacidad ---
+function setCapacidad(d) {
+  draft.capacidad = Math.max(0, draft.capacidad + d);
+  const inp = document.getElementById('cvCap');
+  if (inp) inp.value = draft.capacidad;
+}
+
+// --- Noticias ---
+function pintarNoticias() {
+  const cont = document.getElementById('newsList');
+  if (!cont) return;
+  cont.innerHTML = draft.noticias.length
+    ? draft.noticias.map((n, i) => `
+        <div class="news-item">
+          <p>${n.texto}</p>
+          <button class="guest-del" onclick="delNoticia(${i})">✕</button>
+        </div>`).join('')
+    : `<p class="empty">Aún no hay noticias. Comparte una novedad 📣</p>`;
+}
+function addNoticia() {
+  const inp = document.getElementById('newsInput');
+  const texto = inp.value.trim();
+  if (!texto) return;
+  draft.noticias.unshift({ texto, fecha: 'ahora' });
+  inp.value = '';
+  pintarNoticias();
+  toast('Noticia publicada 📣');
+}
+function delNoticia(i) { draft.noticias.splice(i, 1); pintarNoticias(); }
+
+// --- Guardar / publicar (crea o actualiza el evento) ---
+function guardarFiesta() {
+  if (!draft.nombre.trim()) { toast('Ponle un nombre a tu fiesta'); return; }
+  const campos = {
+    nombre: draft.nombre.trim(),
+    fecha: draft.fecha.trim() || 'Fecha por confirmar',
+    lugar: draft.lugar.trim() || 'Lugar por confirmar',
+    ciudad: draft.ciudad.trim() || 'Ciudad',
+    organizador: DATA.usuario.nombre,
+    emoji: draft.cover.emoji,
+    grad: draft.cover.grad,
+    coverImg: draft.cover.img,
+    capacidad: draft.capacidad,
+    noticias: draft.noticias,
+    precio: 'Gratis',
+    edad: '18+',
+    cuando: 'semana'
+  };
+
+  if (draft.id) {
+    // Editando: actualizamos el evento existente
+    const e = DATA.eventos.find((x) => x.id === draft.id);
+    if (e) Object.assign(e, campos);
+    toast('Cambios guardados ✓');
+  } else {
+    // Nuevo: lo creamos y lo agregamos al inicio del feed
+    DATA.eventos.unshift({
+      id: 'ev' + Date.now(),
+      asistentes: 0,
+      cat: ['semana', 'cerca'],
+      ...campos
+    });
+    toast('¡Fiesta publicada! 🎉');
+  }
+  draft = nuevoDraft();
+  irA('profile');
 }
 
 // --- Pisos / niveles ---
 function pintarFloors() {
   const cont = document.getElementById('floorTabs');
   if (!cont) return;
-  cont.innerHTML = venue.pisos.map((p, i) => `
-    <button class="floor-tab ${i === venue.pisoActivo ? 'is-active' : ''}" onclick="cambiarPiso(${i})">${p.nombre}</button>
+  cont.innerHTML = draft.pisos.map((p, i) => `
+    <button class="floor-tab ${i === draft.pisoActivo ? 'is-active' : ''}" onclick="cambiarPiso(${i})">${p.nombre}</button>
   `).join('') + `<button class="floor-add" onclick="agregarPiso()">＋ Piso</button>`;
 }
 function cambiarPiso(i) {
-  venue.pisoActivo = i;
-  venue.sel = null;
+  draft.pisoActivo = i;
+  draft.sel = null;
   pintarFloors(); pintarVenue(); pintarControls();
 }
 function agregarPiso() {
-  const n = venue.pisos.length;
-  venue.pisos.push({ nombre: n === 0 ? 'Planta baja' : `Piso ${n}`, items: [] });
-  venue.pisoActivo = venue.pisos.length - 1;
-  venue.sel = null;
+  const n = draft.pisos.length;
+  draft.pisos.push({ nombre: n === 0 ? 'Planta baja' : `Piso ${n}`, items: [] });
+  draft.pisoActivo = draft.pisos.length - 1;
+  draft.sel = null;
   pintarFloors(); pintarVenue(); pintarControls();
   toast('Piso agregado');
 }
@@ -464,21 +643,21 @@ function agregarPiso() {
 // --- Paleta ---
 function pintarTools() {
   document.getElementById('toolRow').innerHTML = Object.entries(VENUE_TOOLS).map(([id, t]) => `
-    <button class="tool ${id === venue.tool ? 'is-active' : ''}" onclick="elegirTool('${id}')">
+    <button class="tool ${id === draft.tool ? 'is-active' : ''}" onclick="elegirTool('${id}')">
       <span class="tool-emoji">${t.emoji}</span>
       <span>${t.label}</span>
     </button>
   `).join('');
 }
 function elegirTool(id) {
-  venue.tool = id;
+  draft.tool = id;
   pintarTools();
   actualizarHint();
 }
 function actualizarHint() {
   const h = document.getElementById('venueHint');
   if (h) h.style.display = itemsActuales().length ? 'none' : 'block';
-  if (h) h.textContent = `Toca para colocar “${VENUE_TOOLS[venue.tool].label}”`;
+  if (h) h.textContent = `Toca para colocar “${VENUE_TOOLS[draft.tool].label}”`;
 }
 
 // --- Dibujar el plano ---
@@ -492,7 +671,7 @@ function pintarVenue() {
     const t = VENUE_TOOLS[it.tipo];
     const grande = it.w >= 70 || it.h >= 64;
     const el = document.createElement('div');
-    el.className = `v-item v-${it.tipo} ${t.forma === 'redonda' ? 'redonda' : ''} ${grande ? 'lg' : ''} ${it.id === venue.sel ? 'sel' : ''}`;
+    el.className = `v-item v-${it.tipo} ${t.forma === 'redonda' ? 'redonda' : ''} ${grande ? 'lg' : ''} ${it.id === draft.sel ? 'sel' : ''}`;
     el.style.left = it.x + '%';
     el.style.top = it.y + '%';
     el.style.width = it.w + 'px';
@@ -510,13 +689,13 @@ function venueTap(ev) {
   if (ev.target.id !== 'venue' && !ev.target.classList.contains('venue-grid') &&
       ev.target.id !== 'venueHint') return;
   if (_dragMoved) { _dragMoved = false; return; }
-  const t = VENUE_TOOLS[venue.tool];
+  const t = VENUE_TOOLS[draft.tool];
   const r = document.getElementById('venue').getBoundingClientRect();
   const x = clamp(((ev.clientX - r.left) / r.width) * 100);
   const y = clamp(((ev.clientY - r.top) / r.height) * 100);
-  const item = { id: ++venue.seq, tipo: venue.tool, x, y, w: t.w, h: t.h, rot: 0 };
+  const item = { id: ++draft.seq, tipo: draft.tool, x, y, w: t.w, h: t.h, rot: 0 };
   itemsActuales().push(item);
-  venue.sel = item.id;
+  draft.sel = item.id;
   pintarVenue();
   pintarControls();
 }
@@ -525,7 +704,7 @@ function venueTap(ev) {
 function venueItemTap(ev, id) {
   ev.stopPropagation();
   if (_dragMoved) { _dragMoved = false; return; }
-  venue.sel = id;
+  draft.sel = id;
   pintarVenue();
   pintarControls();
 }
@@ -535,7 +714,7 @@ let _dragId = null, _dragMoved = false;
 function venueGrab(ev, id) {
   ev.stopPropagation();
   _dragId = id; _dragMoved = false;
-  venue.sel = id;
+  draft.sel = id;
 }
 function venueMove(ev) {
   if (_dragId == null) return;
@@ -590,24 +769,24 @@ function rotar(deg) {
 }
 function duplicarItem() {
   const it = itemSel(); if (!it) return;
-  const copia = { ...it, id: ++venue.seq, x: clamp(it.x + 6), y: clamp(it.y + 6) };
+  const copia = { ...it, id: ++draft.seq, x: clamp(it.x + 6), y: clamp(it.y + 6) };
   itemsActuales().push(copia);
-  venue.sel = copia.id;
+  draft.sel = copia.id;
   pintarVenue(); pintarControls();
 }
 function eliminarItem() {
-  pisoActual().items = itemsActuales().filter((i) => i.id !== venue.sel);
-  venue.sel = null;
+  pisoActual().items = itemsActuales().filter((i) => i.id !== draft.sel);
+  draft.sel = null;
   pintarVenue(); pintarControls();
 }
 function deseleccionar() {
-  venue.sel = null;
+  draft.sel = null;
   pintarVenue(); pintarControls();
 }
 
 function limpiarVenue() {
   pisoActual().items = [];
-  venue.sel = null;
+  draft.sel = null;
   pintarVenue(); pintarControls();
   toast('Piso vaciado');
 }
@@ -616,9 +795,9 @@ function limpiarVenue() {
 function pintarGuests() {
   const cont = document.getElementById('guestList');
   if (!cont) return;
-  const dentro = guests.filter((g) => g.dentro).length;
-  document.getElementById('guestCount').textContent = `${dentro}/${guests.length} dentro`;
-  cont.innerHTML = guests.length ? guests.map((g, i) => `
+  const dentro = draft.guests.filter((g) => g.dentro).length;
+  document.getElementById('guestCount').textContent = `${dentro}/${draft.guests.length} dentro`;
+  cont.innerHTML = draft.guests.length ? draft.guests.map((g, i) => `
     <div class="guest-row ${g.dentro ? 'is-in' : ''}">
       <button class="guest-check" onclick="checkGuest(${i})">${g.dentro ? '✓' : ''}</button>
       <span class="guest-name">${g.nombre}</span>
@@ -631,19 +810,14 @@ function addGuest() {
   const inp = document.getElementById('guestInput');
   const nombre = inp.value.trim();
   if (!nombre) return;
-  guests.push({ nombre, dentro: false });
+  draft.guests.push({ nombre, dentro: false });
   inp.value = '';
   pintarGuests();
   inp.focus();
 }
-function checkGuest(i) { guests[i].dentro = !guests[i].dentro; pintarGuests();
-  toast(guests[i].dentro ? `${guests[i].nombre} ingresó ✓` : `${guests[i].nombre} marcado pendiente`); }
-function delGuest(i) { guests.splice(i, 1); pintarGuests(); }
-
-function publicarFiesta() {
-  const nombre = document.getElementById('cvNombre').value.trim() || 'Tu fiesta';
-  toast(`“${nombre}” lista para publicar 🎉 (conectaremos el guardado con Firebase)`);
-}
+function checkGuest(i) { draft.guests[i].dentro = !draft.guests[i].dentro; pintarGuests();
+  toast(draft.guests[i].dentro ? `${draft.guests[i].nombre} ingresó ✓` : `${draft.guests[i].nombre} marcado pendiente`); }
+function delGuest(i) { draft.guests.splice(i, 1); pintarGuests(); }
 
 /* ===================================================================
    4. AMIGOS (solo asistente)
@@ -862,11 +1036,11 @@ function perfilOrganizador(u) {
       </div>
     </section>
 
-    <div class="row-between"><h3>Mis eventos</h3><span class="see-all">${mios.length}</span></div>
+    <div class="row-between"><h3>Mis eventos</h3><span class="see-all" onclick="nuevaFiesta()">＋ Nueva</span></div>
     <div class="event-list">
-      ${mios.map((e) => `
+      ${mios.length ? mios.map((e) => `
         <article class="event-card">
-          <div class="event-cover" style="background:${e.grad}">
+          <div class="event-cover" style="${coverStyle(e)}" onclick="abrirEvento('${e.id}')">
             <span class="event-emoji">${e.emoji}</span>
             <span class="event-price">${e.precio}</span>
           </div>
@@ -875,12 +1049,12 @@ function perfilOrganizador(u) {
             <p class="event-meta">${e.fecha}</p>
             <p class="event-meta">📍 ${e.lugar} · ${e.ciudad}</p>
             <div class="event-foot">
-              <span class="pill-soft">👥 ${e.asistentes} van</span>
-              <span class="see-all" onclick="toast('Gestión del evento · próximamente')">Gestionar</span>
+              <span class="pill-soft">👥 ${e.asistentes} · cap. ${e.capacidad || '—'}</span>
+              <button class="edit-link" onclick="editarFiesta('${e.id}')">✎ Editar</button>
             </div>
           </div>
         </article>
-      `).join('')}
+      `).join('') : `<p class="empty">Aún no creas eventos. Toca “＋ Nueva” para empezar 🎉</p>`}
     </div>
   `;
 }
@@ -1037,26 +1211,33 @@ function abrirEvento(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   if (!e) return;
   const voy = !!e._voy;
+  const esMio = e.organizador === DATA.usuario.nombre && DATA.usuario.rol === 'organizador';
+  const cupo = e.capacidad ? `${e.asistentes}/${e.capacidad}` : `${e.asistentes}`;
+
   abrirSheet(e.nombre, `
-    <div class="ev-cover" style="background:${e.grad}">
-      <span class="ev-cover-emoji">${e.emoji}</span>
+    <div class="ev-cover" style="${coverStyle(e)}">
+      <span class="ev-cover-emoji">${e.coverImg ? '' : e.emoji}</span>
       <span class="event-price">${e.precio}</span>
     </div>
     <div class="ev-rows">
-      <div class="ev-row">${icon('home','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
+      <div class="ev-row">${icon('pin','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
       <div class="ev-row">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Entrada: ${e.precio}</small></div></div>
-      <div class="ev-row">${icon('users','mute')}<div><strong>${e.asistentes} asistentes</strong><small>Organiza ${e.organizador}</small></div></div>
+      <div class="ev-row">${icon('users','mute')}<div><strong>${cupo} boletos</strong><small>Organiza ${e.organizador}</small></div></div>
     </div>
-    <p class="ev-desc">Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía.
-       Llega temprano para no quedarte fuera. 🎶</p>
 
-    <!-- Mini-mapa de ejemplo (el mapa real va en la siguiente etapa) -->
+    ${(e.noticias && e.noticias.length) ? `
+      <div class="row-between"><h3>📰 Novedades</h3></div>
+      <div class="news-list">
+        ${e.noticias.map((n) => `<div class="news-item read"><p>${n.texto}</p></div>`).join('')}
+      </div>
+    ` : `<p class="ev-desc">Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía. Llega temprano 🎶</p>`}
+
     <div class="ev-map">${icon('pin')}<span>Ubicación en el mapa · próximamente</span></div>
 
     <div class="sheet-actions">
-      <button class="btn full" id="goBtn" onclick="asistir('${e.id}', this)">
-        ${voy ? '✓ Voy a ir' : 'Asistir a esta fiesta'}
-      </button>
+      ${esMio
+        ? `<button class="btn full" onclick="cerrarSheet(); editarFiesta('${e.id}')">✎ Editar evento</button>`
+        : `<button class="btn full ${voy ? 'is-going' : ''}" onclick="asistir('${e.id}', this)">${voy ? '✓ Voy a ir' : 'Asistir a esta fiesta'}</button>`}
       <button class="icon-btn" onclick="compartir('${e.nombre}')" aria-label="Compartir">${icon('share')}</button>
     </div>
   `);
@@ -1201,11 +1382,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'editar')  editarPerfil();
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('seedvenue')) {
-    const add = (tipo, x, y, w, h) => { const t = VENUE_TOOLS[tipo]; pisoActual().items.push({ id: ++venue.seq, tipo, x, y, w: w || t.w, h: h || t.h, rot: 0 }); };
+    const add = (tipo, x, y, w, h) => { const t = VENUE_TOOLS[tipo]; pisoActual().items.push({ id: ++draft.seq, tipo, x, y, w: w || t.w, h: h || t.h, rot: 0 }); };
     add('pista', 38, 30, 150, 120); add('dj', 38, 12); add('barra', 75, 20, 120, 36);
     add('vip', 80, 55); add('mesa', 20, 65); add('mesa', 32, 72); add('silla', 25, 80);
     add('entrada', 15, 92); add('bano', 88, 88);
-    venue.sel = pisoActual().items.find((i) => i.tipo === 'pista').id;
+    draft.sel = pisoActual().items.find((i) => i.tipo === 'pista').id;
     pintarVenue(); pintarControls();
   }
 });
