@@ -309,7 +309,12 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   text-align: center; gap: 12px; padding: 0 24px;
+  /* Es solo decoración (logo y texto): que NO bloquee los clicks
+     de los botones que están debajo. */
+  pointer-events: none;
 }
+/* Los botones de la bienvenida van por encima y sí reciben clicks */
+.welcome .splash-bottom { position: relative; z-index: 2; }
 .brand-logo {
   width: 88px; height: 88px;
   border-radius: 26px;
