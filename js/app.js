@@ -204,8 +204,8 @@ function tarjetaEvento(e) {
    2.5 BUSCAR FIESTAS
    =================================================================== */
 
-// Estado de los filtros del buscador
-const filtros = { texto: '', ciudad: 'Todas', cuando: 'todos', edad: 'Todas' };
+// Estado de los filtros del buscador (ciudad = texto libre)
+const filtros = { texto: '', ciudad: '', cuando: 'todos', edad: 'Todas' };
 
 function pintarBuscar() {
   const cont = document.getElementById('screen-search');
@@ -222,9 +222,15 @@ function pintarBuscar() {
       <button class="search-clear" onclick="limpiarBusqueda()" aria-label="Limpiar">✕</button>
     </div>
 
-    <!-- Filtros: ciudad, cuándo y edad -->
+    <!-- Filtros: ciudad (texto libre), cuándo y edad -->
     <div class="filtro-grupo">
       <span class="filtro-label">📍 Ciudad</span>
+      <div class="ciudad-input">
+        <input id="ciudadInput" placeholder="Escribe una ciudad (ej: Cuernavaca)"
+               value="${filtros.ciudad}" oninput="setCiudad(this.value)">
+        ${filtros.ciudad ? `<button class="search-clear" onclick="setCiudad('')">✕</button>` : ''}
+      </div>
+      <!-- Sugerencias rápidas (el usuario igual puede escribir otra) -->
       <div class="chips-row" id="fCiudad"></div>
     </div>
     <div class="filtro-grupo">
@@ -248,10 +254,12 @@ function pintarBuscar() {
   if (inp && !filtros.texto) setTimeout(() => inp.focus(), 200);
 }
 
-// Dibuja los tres grupos de chips de filtro.
+// Dibuja los grupos de filtro.
 function pintarFiltros() {
+  // Sugerencias de ciudad (se resaltan si coinciden con lo escrito)
   document.getElementById('fCiudad').innerHTML = DATA.ciudades.map((c) => `
-    <button class="chip ${c === filtros.ciudad ? 'is-active' : ''}" onclick="setFiltro('ciudad','${c}')">${c}</button>
+    <button class="chip ${c.toLowerCase() === filtros.ciudad.toLowerCase() ? 'is-active' : ''}"
+            onclick="setCiudad('${c}')">${c}</button>
   `).join('');
   document.getElementById('fCuando').innerHTML = DATA.cuandos.map((c) => `
     <button class="chip ${c.id === filtros.cuando ? 'is-active' : ''}" onclick="setFiltro('cuando','${c.id}')">${c.texto}</button>
@@ -264,6 +272,17 @@ function pintarFiltros() {
 function setFiltro(tipo, valor) {
   filtros[tipo] = valor;
   pintarFiltros();
+  pintarResultados();
+}
+
+// Ciudad por texto libre. Si viene de un chip, actualiza el input.
+function setCiudad(valor) {
+  filtros.ciudad = valor;
+  const inp = document.getElementById('ciudadInput');
+  if (inp && inp.value !== valor) inp.value = valor;
+  // Resalta los chips que coincidan
+  document.querySelectorAll('#fCiudad .chip').forEach((c) =>
+    c.classList.toggle('is-active', c.textContent.toLowerCase() === valor.toLowerCase()));
   pintarResultados();
 }
 
@@ -280,7 +299,9 @@ function limpiarBusqueda() {
 }
 
 function resetFiltros() {
-  filtros.ciudad = 'Todas'; filtros.cuando = 'todos'; filtros.edad = 'Todas';
+  filtros.ciudad = ''; filtros.cuando = 'todos'; filtros.edad = 'Todas';
+  const inp = document.getElementById('ciudadInput');
+  if (inp) inp.value = '';
   pintarFiltros();
   pintarResultados();
 }
@@ -289,16 +310,17 @@ function pintarResultados() {
   const cont = document.getElementById('searchResults');
   const t = filtros.texto.trim().toLowerCase();
 
+  const ciudad = filtros.ciudad.trim().toLowerCase();
   const res = DATA.eventos.filter((e) => {
     const okTexto  = !t || [e.nombre, e.lugar, e.ciudad, e.organizador].some((c) => c.toLowerCase().includes(t));
-    const okCiudad = filtros.ciudad === 'Todas' || e.ciudad === filtros.ciudad;
+    const okCiudad = !ciudad || e.ciudad.toLowerCase().includes(ciudad);
     const okCuando = filtros.cuando === 'todos' || e.cuando === filtros.cuando;
     const okEdad   = filtros.edad === 'Todas'  || e.edad === filtros.edad;
     return okTexto && okCiudad && okCuando && okEdad;
   });
 
   // ¿Hay algún filtro activo? (para mostrar "Limpiar filtros")
-  const hayFiltro = filtros.ciudad !== 'Todas' || filtros.cuando !== 'todos' || filtros.edad !== 'Todas';
+  const hayFiltro = !!ciudad || filtros.cuando !== 'todos' || filtros.edad !== 'Todas';
   const limpiar = document.getElementById('limpiarFiltros');
   if (limpiar) limpiar.style.display = hayFiltro ? 'inline' : 'none';
 
