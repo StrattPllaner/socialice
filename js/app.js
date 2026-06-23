@@ -116,7 +116,7 @@ function pintarInicio() {
   cont.innerHTML = `
     <header class="home-top">
       <div class="home-brand">Socialice</div>
-      <button class="top-avatar" onclick="irA('profile')">${u.avatar}</button>
+      <button class="top-avatar" style="${avatarFondo(u)}" onclick="irA('profile')">${avatarContenido(u)}</button>
     </header>
 
     ${vas.length ? `
@@ -373,8 +373,8 @@ const GRADS = [
 ];
 const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','👑','🔥'];
 
-// Atajos de color para el nombre (además del selector libre)
-const NAME_COLORS = ['#ffffff', '#8b5cf6', '#f43f5e', '#00d4ff', '#f59e0b', '#34d399', '#f472b6', 'anim'];
+// Paleta simple de colores para el nombre
+const NAME_COLORS = ['#ffffff', '#8b5cf6', '#f43f5e', '#00d4ff', '#f59e0b', '#34d399', '#f472b6'];
 // Emojis sugeridos para poner en la portada
 const COVER_EMOJI_SET = ['🎉','🪩','🔥','✨','🌙','🌃','💜','🍸','🎶','👑','🌌','⚡','🦋','🌴','💎','🎈'];
 
@@ -385,7 +385,8 @@ function nuevoDraft() {
     nombre: '', fecha: '', lugar: '', ciudad: '',
     cover: {
       grad: GRADS[0], img: null,  // fondo (color o imagen)
-      titleColor: '#ffffff',      // color del nombre (o 'anim')
+      titleColor: '#ffffff',      // color sólido del nombre
+      anim: [],                   // si tiene 2+ colores, el nombre se anima entre ellos
       titleSize: 26,              // tamaño del título (px)
       titlePos: { x: 50, y: 50 }, // posición del título en la portada (%)
       textos: []                  // elementos libres: {texto, x, y, color, size, emoji?}
@@ -430,6 +431,7 @@ function editarFiesta(id) {
   draft.cover = {
     grad: e.grad, img: e.coverImg || null,
     titleColor: e.nombreColor || '#ffffff',
+    anim: e.animColors ? e.animColors.slice() : [],
     titleSize: e.titleSize || 26,
     titlePos: e.titlePos ? { ...e.titlePos } : { x: 50, y: 50 },
     textos: (e.coverTextos || []).map((t) => ({ ...t }))
@@ -448,9 +450,13 @@ function coverStyleDraft() {
     ? `background-image:url(${draft.cover.img});background-size:cover;background-position:center`
     : `background:${draft.cover.grad}`;
 }
-// Atributos para el nombre del evento según su color elegido
+// Construye un gradiente animado a partir de una lista de colores
+function animGrad(cols) { return `linear-gradient(90deg, ${cols.concat(cols[0]).join(',')})`; }
+
+// Atributos para el nombre del evento según su color/animación
 function nombreAttrs(e) {
-  if (e.nombreColor === 'anim') return 'class="name-anim"';
+  if (e.animColors && e.animColors.length >= 2)
+    return `class="name-anim" style="background-image:${animGrad(e.animColors)}"`;
   if (e.nombreColor && e.nombreColor !== '#ffffff') return `style="color:${e.nombreColor}"`;
   return '';
 }
@@ -547,12 +553,15 @@ function pasoHTML(paso) {
 // --- Paso 1: Portada editable ---
 function pasoPortada() {
   const sel = draft.coverSel !== null ? draft.cover.textos[draft.coverSel] : null;
-  const colorPicker = draft.cover.titleColor === 'anim' ? '#8b5cf6' : draft.cover.titleColor;
+  const anim = draft.cover.anim && draft.cover.anim.length >= 2;
+  const tituloEstilo = anim
+    ? `background-image:${animGrad(draft.cover.anim)}`
+    : `color:${draft.cover.titleColor}`;
   return `
     <div class="cover-preview" id="coverPreview" style="${coverStyleDraft()}"
          onpointermove="coverMove(event)" onpointerup="coverDrop()" onpointerleave="coverDrop()">
-      <div class="cover-title ${draft.cover.titleColor === 'anim' ? 'name-anim' : ''}" id="coverTitle"
-           style="left:${draft.cover.titlePos.x}%; top:${draft.cover.titlePos.y}%; font-size:${draft.cover.titleSize}px; ${draft.cover.titleColor !== 'anim' ? `color:${draft.cover.titleColor}` : ''}"
+      <div class="cover-title ${anim ? 'name-anim' : ''}" id="coverTitle"
+           style="left:${draft.cover.titlePos.x}%; top:${draft.cover.titlePos.y}%; font-size:${draft.cover.titleSize}px; ${tituloEstilo}"
            onpointerdown="coverGrab(event,'title')">${draft.nombre || 'Tu fiesta'}</div>
       ${draft.cover.textos.map((t, i) => `
         <div class="cover-text ${t.emoji ? 'is-emoji' : ''} ${draft.coverSel === i ? 'sel' : ''}"
@@ -576,7 +585,7 @@ function pasoPortada() {
       <div class="el-ctrl">
         <div class="el-ctrl-head"><span>${sel.emoji ? 'Emoji' : 'Texto'} seleccionado</span></div>
         <div class="el-ctrl-row">
-          ${sel.emoji ? '' : `<label class="color-pick">🎨<input type="color" value="${sel.color}" oninput="setCoverElColor(this.value)"></label>`}
+          ${sel.emoji ? '' : `<label class="color-pick"><input type="color" value="${sel.color}" oninput="setCoverElColor(this.value)"></label>`}
           <span class="el-size">Tamaño</span>
           <button class="el-btn" onclick="resizeCoverEl(-4)">−</button>
           <button class="el-btn" onclick="resizeCoverEl(4)">+</button>
@@ -591,25 +600,40 @@ function pasoPortada() {
              oninput="draft.nombre=this.value; const t=document.getElementById('coverTitle'); if(t)t.textContent=this.value||'Tu fiesta'">
     </div></div>
 
-    <p class="filtro-label" style="margin-top:8px">Color de fondo</p>
+    <!-- Tamaño del título, justo debajo del nombre -->
+    <div class="row-mini">
+      <span class="filtro-label" style="margin:0">Tamaño del título</span>
+      <div class="size-ctrl">
+        <button class="el-btn" onclick="resizeTitulo(-3)">−</button>
+        <span>${draft.cover.titleSize}px</span>
+        <button class="el-btn" onclick="resizeTitulo(3)">+</button>
+      </div>
+    </div>
+
+    <p class="filtro-label" style="margin-top:14px">Color de fondo</p>
     <div class="grad-row">
       ${GRADS.map((g) => `<button class="grad-swatch ${(g === draft.cover.grad && !draft.cover.img) ? 'sel' : ''}" style="background:${g}" onclick="setGrad('${g}')"></button>`).join('')}
     </div>
 
     <p class="filtro-label" style="margin-top:14px">Color del nombre</p>
     <div class="name-colors">
-      <label class="name-swatch picker" title="Elige cualquier color">
-        🎨<input type="color" value="${colorPicker}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
+      ${NAME_COLORS.map((c) => `<button class="name-dot ${(!anim && draft.cover.titleColor === c) ? 'sel' : ''}"
+          style="background:${c}" onclick="setNombreColor('${c}')"></button>`).join('')}
+      <label class="name-dot custom ${(!anim && !NAME_COLORS.includes(draft.cover.titleColor)) ? 'sel' : ''}" title="Otro color"
+             style="background:${(!anim && !NAME_COLORS.includes(draft.cover.titleColor)) ? draft.cover.titleColor : 'transparent'}">
+        <input type="color" value="${anim ? '#8b5cf6' : draft.cover.titleColor}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
       </label>
-      ${NAME_COLORS.map((c) => `<button class="name-swatch ${draft.cover.titleColor === c ? 'sel' : ''} ${c === 'anim' ? 'anim' : ''}"
-          style="${c !== 'anim' ? `background:${c}` : ''}" onclick="setNombreColor('${c}')">${c === 'anim' ? '✨' : ''}</button>`).join('')}
     </div>
 
-    <p class="filtro-label" style="margin-top:14px">Tamaño del título</p>
-    <div class="size-ctrl">
-      <button class="el-btn" onclick="resizeTitulo(-3)">−</button>
-      <span>${draft.cover.titleSize}px</span>
-      <button class="el-btn" onclick="resizeTitulo(3)">+</button>
+    <!-- Color animado: el organizador elige 2+ colores -->
+    <div class="row-mini" style="margin-top:14px">
+      <span class="filtro-label" style="margin:0">✨ Color animado</span>
+      <span class="anim-hint">${anim ? 'activo' : 'elige 2 o más'}</span>
+    </div>
+    <div class="name-colors">
+      ${NAME_COLORS.filter((c) => c !== '#ffffff').map((c) => `<button class="name-dot ${draft.cover.anim.includes(c) ? 'on' : ''}"
+          style="background:${c}" onclick="toggleAnimColor('${c}')">${draft.cover.anim.includes(c) ? '✓' : ''}</button>`).join('')}
+      ${draft.cover.anim.length ? `<button class="anim-clear" onclick="limpiarAnim()">Quitar</button>` : ''}
     </div>`;
 }
 
@@ -712,13 +736,21 @@ function toggleEdad(btn) {
 }
 
 /* --- Portada editable: color del nombre, arrastrar título y textos --- */
-function setNombreColor(c) { draft.cover.titleColor = c; pintarCrear(); }
+function setNombreColor(c) { draft.cover.titleColor = c; draft.cover.anim = []; pintarCrear(); }
 // Actualiza el color del título en vivo (sin re-render, mientras mueves el selector)
 function setNombreColorLive(c) {
-  draft.cover.titleColor = c;
+  draft.cover.titleColor = c; draft.cover.anim = [];
   const t = document.getElementById('coverTitle');
-  if (t) { t.classList.remove('name-anim'); t.style.color = c; }
+  if (t) { t.classList.remove('name-anim'); t.style.backgroundImage = ''; t.style.color = c; }
 }
+// Agrega/quita un color de la animación del nombre
+function toggleAnimColor(c) {
+  const i = draft.cover.anim.indexOf(c);
+  if (i >= 0) draft.cover.anim.splice(i, 1);
+  else draft.cover.anim.push(c);
+  pintarCrear();
+}
+function limpiarAnim() { draft.cover.anim = []; pintarCrear(); }
 
 let _coverDrag = null;  // 'title' o índice de texto
 function coverGrab(ev, target) {
@@ -928,6 +960,7 @@ function guardarFiesta() {
     grad: draft.cover.grad,
     coverImg: draft.cover.img,
     nombreColor: draft.cover.titleColor,
+    animColors: draft.cover.anim.slice(),
     titlePos: { ...draft.cover.titlePos },
     titleSize: draft.cover.titleSize,
     coverTextos: draft.cover.textos.map((t) => ({ ...t })),
@@ -1420,10 +1453,9 @@ function perfilOrganizador(u) {
 
     <section class="profile-hero ${popular ? 'is-popular' : ''}">
       ${popular ? '<div class="hero-spark"><i>✦</i><i>✶</i><i>✦</i><i>✶</i><i>✦</i></div>' : ''}
-      <div class="hero-cover" style="background:${u.color}"></div>
+      <div class="hero-cover" style="${u.logo ? `background-image:url(${u.logo});background-size:cover;background-position:center` : `background:${u.color}`}"></div>
       <div class="hero-body">
-        ${popular ? '<div class="popular-flag">🔥 Cuenta popular</div>' : ''}
-        <div class="profile-avatar ${popular ? 'ring' : ''}" style="background:${u.color}">${u.avatar}</div>
+        <div class="profile-avatar ${popular ? 'ring' : ''}" style="${avatarFondo(u)}">${avatarContenido(u)}</div>
         <h2 class="hero-name">${u.nombre} ${insignia}</h2>
         <p class="profile-user">${u.usuario} <span class="role-chip host">🎪 Organizador</span></p>
         <p class="profile-bio">${u.bio}</p>
@@ -1431,7 +1463,7 @@ function perfilOrganizador(u) {
         <div class="profile-stats">
           <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
           <span class="stat-sep"></span>
-          <div class="stat"><strong>${kilo(u.stats.asistentes)}</strong><small>asistentes</small></div>
+          <div class="stat"><strong>${kilo(u.stats.asistentes)} 🔥</strong><small>asistentes</small></div>
           <span class="stat-sep"></span>
           <button class="stat as-btn" onclick="verSeguidores()"><strong>${u.stats.seguidores}</strong><small>seguidores</small></button>
         </div>
@@ -1456,15 +1488,13 @@ function perfilOrganizador(u) {
           </button>`).join('')}
       </div>` : ''}
 
-    ${calendarioHTML(u)}
-
-    <div class="row-between"><h3>Mis eventos</h3><span class="see-all" onclick="nuevaFiesta()">＋ Nueva</span></div>
+    <div class="row-between"><h3>Mis eventos</h3><button class="cal-link" onclick="verCalendario()">📅 Calendario</button></div>
     <div class="event-list">
       ${mios.length ? mios.map((e) => `
         <div class="mio-wrap">
           ${tarjetaEvento(e)}
           <button class="mio-edit" onclick="event.stopPropagation(); editarFiesta('${e.id}')">✎ Editar</button>
-        </div>`).join('') : `<p class="empty">Aún no creas eventos. Toca “＋ Nueva” para empezar 🎉</p>`}
+        </div>`).join('') : `<p class="empty">Aún no creas eventos 🎉</p>`}
     </div>
 
     ${(u.eventosPasados && u.eventosPasados.length) ? `
@@ -1498,6 +1528,20 @@ function redesHTML(u) {
   return items.length ? `<div class="redes-row">${items.join('')}</div>` : '';
 }
 
+// Iniciales para usar como "logo" cuando no hay imagen
+function inicialesDe(nombre) {
+  return nombre.split(' ').filter(Boolean).map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+}
+// Fondo del avatar/logo (imagen si hay logo, si no el color)
+function avatarFondo(u) {
+  return u.logo ? `background-image:url(${u.logo});background-size:cover;background-position:center` : `background:${u.color}`;
+}
+// Contenido del avatar (nada si hay logo; iniciales para organizador; emoji para asistente)
+function avatarContenido(u) {
+  if (u.logo) return '';
+  return u.rol === 'organizador' ? `<span class="ava-ini">${inicialesDe(u.nombre)}</span>` : u.avatar;
+}
+
 // Calendario del mes con los eventos del organizador
 function calendarioHTML(u) {
   const anio = 2026, mes = 5; // junio (0 = enero)
@@ -1512,12 +1556,17 @@ function calendarioHTML(u) {
     celdas += `<button class="cal-cell ${has ? 'has' : ''}" ${has ? `onclick="verDiaEventos(${d})"` : ''}>${d}${has ? '<i class="cal-dot"></i>' : ''}</button>`;
   }
   return `
-    <div class="row-between"><h3>📅 Calendario · Junio</h3></div>
-    <p class="hint">Los días con punto tienen evento. Tócalos para ver.</p>
     <div class="cal">
       <div class="cal-week"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
       <div class="cal-grid">${celdas}</div>
     </div>`;
+}
+// Abre el calendario del mes en un panel
+function verCalendario() {
+  abrirSheet('Calendario · Junio', `
+    <p class="hint">Los días con punto tienen evento. Tócalos para ver.</p>
+    ${calendarioHTML(DATA.usuario)}
+  `);
 }
 function verDiaEventos(d) {
   const evs = DATA.eventos.filter((e) => e.dia === d);
@@ -1719,7 +1768,7 @@ function abrirEvento(id) {
       <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
       <span class="event-price">${e.precio}</span>
     </div>
-    ${(e.nombreColor && e.nombreColor !== '#ffffff') ? `<h2 ${nombreAttrs(e)} style="text-align:center;margin:14px 0 4px">${e.nombre}</h2>` : ''}
+    ${((e.animColors && e.animColors.length >= 2) || (e.nombreColor && e.nombreColor !== '#ffffff')) ? `<div class="ev-title-wrap"><h2 ${nombreAttrs(e)}>${e.nombre}</h2></div>` : ''}
     <div class="ev-rows">
       <div class="ev-row">${icon('pin','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
       <div class="ev-row">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Edad: ${edadTxt}</small></div></div>
@@ -1782,13 +1831,24 @@ function asistir(id, btn) {
 const AVATARES = ['🦄','🐺','🌸','🎧','🦋','🐱','🌙','🔥','😎','👑','🎈','🪩'];
 function editarPerfil() {
   const u = DATA.usuario;
+  const esOrg = u.rol === 'organizador';
   abrirSheet('Editar perfil', `
-    <p class="form-label">Foto (elige un emoji)</p>
-    <div class="avatar-grid" id="avatarGrid">
-      ${AVATARES.map((a) => `
-        <button class="avatar-opt ${a === u.avatar ? 'is-sel' : ''}" onclick="elegirAvatar('${a}', this)">${a}</button>
-      `).join('')}
-    </div>
+    ${esOrg ? `
+      <p class="form-label">Logo de la organizadora</p>
+      <div class="logo-edit">
+        <div class="logo-prev" style="${avatarFondo(u)}">${u.logo ? '' : inicialesDe(u.nombre)}</div>
+        <input type="file" accept="image/*" id="logoFile" hidden onchange="subirLogo(event)">
+        <button class="chip" onclick="document.getElementById('logoFile').click()">⬆ Subir logo</button>
+        ${u.logo ? `<button class="chip" onclick="quitarLogo()">Quitar</button>` : ''}
+      </div>
+    ` : `
+      <p class="form-label">Foto (elige un emoji)</p>
+      <div class="avatar-grid" id="avatarGrid">
+        ${AVATARES.map((a) => `
+          <button class="avatar-opt ${a === u.avatar ? 'is-sel' : ''}" onclick="elegirAvatar('${a}', this)">${a}</button>
+        `).join('')}
+      </div>
+    `}
 
     <div class="field"><div class="field-main">
       <label class="field-label">Nombre</label>
@@ -1826,6 +1886,15 @@ function editarPerfil() {
     </div>
   `);
 }
+function subirLogo(ev) {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { DATA.usuario.logo = r.result; editarPerfil(); };
+  r.readAsDataURL(f);
+}
+function quitarLogo() { DATA.usuario.logo = null; editarPerfil(); }
+
 let _avatarTmp = null;
 function elegirAvatar(a, btn) {
   _avatarTmp = a;

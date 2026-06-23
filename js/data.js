@@ -13,6 +13,7 @@ const DATA = {
     usuario: '@andrea',
     bio: 'Coleccionando noches inolvidables ✨',
     avatar: '🦄',
+    logo: null,   // logo de la organizadora (imagen); si está, reemplaza al avatar
     color: 'linear-gradient(135deg,#8b5cf6,#f43f5e)',
     rol: 'organizador',
     privado: false,

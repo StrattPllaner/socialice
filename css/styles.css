@@ -1318,7 +1318,7 @@ body.no-scroll { overflow: hidden; }
 
 /* Nombre con colores animados */
 .name-anim {
-  background: linear-gradient(90deg,#8b5cf6,#f43f5e,#00d4ff,#f59e0b,#8b5cf6);
+  /* El gradiente de colores se pasa por estilo en línea (los elige el organizador) */
   background-size: 300% 100%;
   -webkit-background-clip: text; background-clip: text;
   color: transparent !important; -webkit-text-fill-color: transparent;
@@ -1452,7 +1452,8 @@ body.no-scroll { overflow: hidden; }
   text-shadow: 0 2px 10px rgba(0,0,0,.5); padding: 4px 8px; border-radius: 8px;
   white-space: nowrap;
 }
-.cover-text.sel { outline: 2px dashed rgba(255,255,255,.8); }
+/* Selección de un elemento de portada: brillo suave (NADA de líneas blancas) */
+.cover-text.sel { filter: drop-shadow(0 0 8px rgba(139,92,246,.95)); }
 .cover-text-ctrl { display: flex; gap: 10px; margin-bottom: 6px; }
 .cover-text-ctrl button {
   flex: 1; font-family: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
@@ -1771,10 +1772,30 @@ body.no-scroll { overflow: hidden; }
 .cal-cell.empty { visibility: hidden; }
 .cal-cell.has {
   color: #fff; cursor: pointer;
-  background: var(--grad-party); box-shadow: 0 4px 14px rgba(139,92,246,.4);
+  background: var(--grad-party);
 }
 .cal-cell.has:active { transform: scale(.92); }
-.cal-dot { position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: #fff; }
+.cal-dot { position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: #fff; }
+
+/* Link "Calendario" junto a Mis eventos */
+.cal-link {
+  font-family: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
+  color: var(--violet); background: rgba(139,92,246,.1);
+  border: 1px solid rgba(139,92,246,.3); border-radius: var(--r-pill); padding: 7px 13px;
+}
+
+/* Iniciales como logo cuando no hay imagen */
+.ava-ini { font-weight: 800; color: #fff; letter-spacing: .02em; }
+.profile-avatar .ava-ini { font-size: 2rem; }
+.top-avatar .ava-ini { font-size: 1rem; }
+
+/* Editar logo */
+.logo-edit { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+.logo-prev {
+  width: 64px; height: 64px; border-radius: 16px; flex-shrink: 0;
+  display: grid; place-items: center; font-weight: 800; font-size: 1.4rem; color: #fff;
+  border: 1px solid var(--line-strong);
+}
 
 /* Editar sobre la tarjeta de "Mis eventos" */
 .mio-wrap { position: relative; }
@@ -1784,3 +1805,49 @@ body.no-scroll { overflow: hidden; }
   color: #fff; background: rgba(0,0,0,.45); backdrop-filter: blur(6px);
   border: 1px solid rgba(255,255,255,.2); border-radius: var(--r-pill); padding: 6px 12px;
 }
+
+/* ================================================================== */
+/* Paleta simple del nombre + insignias centradas/animadas + ajustes  */
+/* ================================================================== */
+.ev-title-wrap { text-align: center; margin: 14px 0 4px; }
+.ev-title-wrap h2 { display: inline-block; }
+
+/* Paleta de puntos de color (simple) */
+.name-colors { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.name-dot {
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer; padding: 0;
+  border: 2px solid rgba(255,255,255,.15); position: relative;
+  display: grid; place-items: center; color: #fff; font-weight: 800; font-size: .8rem;
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+.name-dot:active { transform: scale(.9); }
+.name-dot.sel { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--violet); }
+.name-dot.on  { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--cyan); }
+/* Botón "otro color" (selector nativo, limpio) */
+.name-dot.custom {
+  overflow: hidden; border-style: dashed;
+  background-image: conic-gradient(#f43f5e,#f59e0b,#34d399,#00d4ff,#8b5cf6,#f43f5e);
+}
+.name-dot.custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+.anim-clear {
+  font-family: inherit; font-weight: 700; font-size: .82rem; cursor: pointer;
+  color: var(--ink-soft); background: rgba(255,255,255,.06);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 7px 13px;
+}
+.anim-hint { font-size: .8rem; color: var(--ink-faint); }
+.row-mini { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+
+/* Insignias centradas y animadas */
+.verif, .popular {
+  display: inline-flex; align-items: center; justify-content: center;
+  line-height: 1; font-style: normal;
+}
+.verif {
+  animation: verifSpin 4s ease-in-out infinite;
+}
+@keyframes verifSpin {
+  0%,100% { transform: rotate(0) scale(1); }
+  25%     { transform: rotate(-12deg) scale(1.12); }
+  75%     { transform: rotate(12deg) scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce) { .verif { animation: none; } }
