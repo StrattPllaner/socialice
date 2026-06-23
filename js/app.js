@@ -107,42 +107,36 @@ let categoriaActiva = 'todos';
 function pintarInicio() {
   const cont = document.getElementById('screen-home');
   const u = DATA.usuario;
-  const destacado = DATA.eventos.find((e) => e.id === DATA.destacadoId);
+
+  // ¿Vas a ir? (las que confirmaste)
+  const vas = DATA.eventos.filter((e) => (e.voy || e._voy) && !e.proximamente);
+  // Próximamente (para crear expectativa)
+  const pronto = DATA.eventos.filter((e) => e.proximamente);
 
   cont.innerHTML = `
-    <header class="top-bar">
-      <div>
-        <small>Hola de nuevo</small>
-        <h2>${u.nombre.split(' ')[0]} 👋</h2>
-      </div>
+    <header class="home-top">
+      <div class="home-brand">Socialice</div>
       <button class="top-avatar" onclick="irA('profile')">${u.avatar}</button>
     </header>
 
-    <!-- Barra de búsqueda que lleva al buscador -->
-    <button class="search-bar fake" onclick="irA('search')">
-      ${icon('search', 'mute')}
-      <span class="search-fake-text">Busca fiestas, lugares, organizadores…</span>
-    </button>
+    ${vas.length ? `
+      <div class="row-between"><h3>Vas a ir</h3><span class="see-all" onclick="irA('search')">${vas.length}</span></div>
+      <div class="voy-row">
+        ${vas.map(tarjetaVoy).join('')}
+      </div>` : ''}
 
-    <section class="featured" style="${coverStyle(destacado)}" onclick="abrirEvento('${destacado.id}')">
-      <span class="featured-tag">✦ Próxima fiesta</span>
-      <div class="featured-emoji">${destacado.emoji || ''}</div>
-      <h2 ${nombreAttrs(destacado)}>${destacado.nombre}</h2>
-      <p class="featured-meta">${destacado.fecha}</p>
-      <p class="featured-meta">📍 ${destacado.lugar} · ${destacado.ciudad}</p>
-      <div class="featured-foot">
-        <span class="featured-btn">Ver evento</span>
-        <span class="featured-going">👥 ${destacado.asistentes} van</span>
-      </div>
-    </section>
-
-    <div class="chips-row" id="chipsRow"></div>
-
-    <div class="row-between">
-      <h3>Próximas fiestas</h3>
-      <span class="see-all" onclick="irA('search')">Ver todas</span>
+    <div class="row-between" style="margin-top:${vas.length ? '22px' : '4px'}">
+      <h3>Recomendadas para ti</h3>
     </div>
+    <div class="chips-row" id="chipsRow"></div>
     <div class="event-list" id="eventList"></div>
+
+    ${pronto.length ? `
+      <div class="row-between" style="margin-top:24px"><h3>✦ Próximamente</h3></div>
+      <p class="hint">Fiestas en preparación. Activa el aviso para no perdértelas.</p>
+      <div class="event-list">
+        ${pronto.map(tarjetaProximamente).join('')}
+      </div>` : ''}
   `;
 
   pintarChips();
@@ -151,6 +145,7 @@ function pintarInicio() {
 
 function pintarChips() {
   const fila = document.getElementById('chipsRow');
+  if (!fila) return;
   fila.innerHTML = DATA.categorias.map((c) => `
     <button class="chip ${c.id === categoriaActiva ? 'is-active' : ''}"
             onclick="filtrar('${c.id}')">${c.texto}</button>
@@ -165,34 +160,62 @@ function filtrar(catId) {
 
 function pintarEventos() {
   const lista = document.getElementById('eventList');
+  if (!lista) return;
+  // Recomendaciones: ni "próximamente" ni las que ya vas
   const eventos = DATA.eventos.filter((e) =>
-    categoriaActiva === 'todos' || e.cat.includes(categoriaActiva)
+    !e.proximamente && (categoriaActiva === 'todos' || e.cat.includes(categoriaActiva))
   );
 
-  if (!eventos.length) {
-    lista.innerHTML = `<p class="empty">No hay fiestas en esta categoría 🙈</p>`;
-    return;
-  }
-
-  lista.innerHTML = eventos.map(tarjetaEvento).join('');
+  lista.innerHTML = eventos.length
+    ? eventos.map(tarjetaEvento).join('')
+    : `<p class="empty">No hay fiestas en esta categoría 🙈</p>`;
 }
 
-// Tarjeta de evento reutilizable (feed y buscador). Es clicable.
+// Tarjeta de evento (estilo editorial: título sobre la portada). Clicable.
 function tarjetaEvento(e) {
   return `
-    <article class="event-card" onclick="abrirEvento('${e.id}')">
-      <div class="event-cover" style="${coverStyle(e)}">
-        <span class="event-emoji">${e.emoji || ''}</span>
-        <span class="event-price">${e.precio}</span>
-      </div>
-      <div class="event-body">
-        <h3 ${nombreAttrs(e)}>${e.nombre}</h3>
-        <p class="event-meta">${e.fecha}</p>
-        <p class="event-meta">📍 ${e.lugar} · ${e.ciudad}</p>
-        <div class="event-foot">
-          <span class="event-org">por ${e.organizador}</span>
-          <span class="pill-soft">👥 ${e.asistentes}</span>
+    <article class="ev2" onclick="abrirEvento('${e.id}')">
+      <div class="ev2-cover" style="${coverStyle(e)}">
+        <span class="ev2-price">${e.precio}</span>
+        <div class="ev2-overlay">
+          <h3 ${nombreAttrs(e)}>${e.nombre}</h3>
+          <p class="ev2-when">${e.fecha}</p>
         </div>
+      </div>
+      <div class="ev2-foot">
+        <span class="ev2-place">📍 ${e.lugar} · ${e.ciudad}</span>
+        <span class="ev2-people">👥 ${e.asistentes}</span>
+      </div>
+    </article>`;
+}
+
+// Tarjeta compacta horizontal "Vas a ir"
+function tarjetaVoy(e) {
+  return `
+    <button class="voy-card" onclick="abrirEvento('${e.id}')" style="${coverStyle(e)}">
+      <span class="voy-shade"></span>
+      <span class="voy-tag">Confirmado</span>
+      <span class="voy-info">
+        <strong ${nombreAttrs(e)}>${e.nombre}</strong>
+        <small>${e.fecha}</small>
+      </span>
+    </button>`;
+}
+
+// Tarjeta "Próximamente"
+function tarjetaProximamente(e) {
+  return `
+    <article class="ev2 soon" onclick="abrirEvento('${e.id}')">
+      <div class="ev2-cover" style="${coverStyle(e)}">
+        <span class="ev2-soon-badge">✦ Próximamente</span>
+        <div class="ev2-overlay">
+          <h3 ${nombreAttrs(e)}>${e.nombre}</h3>
+          <p class="ev2-when">${e.lugar} · ${e.ciudad}</p>
+        </div>
+      </div>
+      <div class="ev2-foot">
+        <span class="ev2-place">Aún sin fecha</span>
+        <button class="ev2-bell" onclick="event.stopPropagation(); this.classList.toggle('on'); this.textContent=this.classList.contains('on')?'🔔 Avisarme ✓':'🔔 Avísame'">🔔 Avísame</button>
       </div>
     </article>`;
 }
@@ -350,8 +373,10 @@ const GRADS = [
 ];
 const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','👑','🔥'];
 
-// Colores que el organizador puede elegir para el nombre
+// Atajos de color para el nombre (además del selector libre)
 const NAME_COLORS = ['#ffffff', '#8b5cf6', '#f43f5e', '#00d4ff', '#f59e0b', '#34d399', '#f472b6', 'anim'];
+// Emojis sugeridos para poner en la portada
+const COVER_EMOJI_SET = ['🎉','🪩','🔥','✨','🌙','🌃','💜','🍸','🎶','👑','🌌','⚡','🦋','🌴','💎','🎈'];
 
 function nuevoDraft() {
   return {
@@ -361,9 +386,11 @@ function nuevoDraft() {
     cover: {
       grad: GRADS[0], img: null,  // fondo (color o imagen)
       titleColor: '#ffffff',      // color del nombre (o 'anim')
+      titleSize: 26,              // tamaño del título (px)
       titlePos: { x: 50, y: 50 }, // posición del título en la portada (%)
-      textos: []                  // textos libres: {texto, x, y, color}
+      textos: []                  // elementos libres: {texto, x, y, color, size, emoji?}
     },
+    proximamente: false,          // marca la fiesta como "próximamente"
     // rango de edad (si se restringe, el mínimo SIEMPRE es 18)
     edad: { activo: false, max: null },
     // tipos de boleto (zonas/precios)
@@ -403,9 +430,11 @@ function editarFiesta(id) {
   draft.cover = {
     grad: e.grad, img: e.coverImg || null,
     titleColor: e.nombreColor || '#ffffff',
+    titleSize: e.titleSize || 26,
     titlePos: e.titlePos ? { ...e.titlePos } : { x: 50, y: 50 },
     textos: (e.coverTextos || []).map((t) => ({ ...t }))
   };
+  draft.proximamente = !!e.proximamente;
   draft.edad = e.edadRango ? { activo: true, max: e.edadRango.max || null } : { activo: false, max: null };
   draft.boletos = e.boletos ? e.boletos.map((b) => ({ ...b })) : [{ nombre: 'General', precio: 0, cantidad: e.capacidad || 200 }];
   draft.organizadores = (e.organizadores || []).map((o) => ({ ...o }));
@@ -517,28 +546,43 @@ function pasoHTML(paso) {
 
 // --- Paso 1: Portada editable ---
 function pasoPortada() {
+  const sel = draft.coverSel !== null ? draft.cover.textos[draft.coverSel] : null;
+  const colorPicker = draft.cover.titleColor === 'anim' ? '#8b5cf6' : draft.cover.titleColor;
   return `
     <div class="cover-preview" id="coverPreview" style="${coverStyleDraft()}"
          onpointermove="coverMove(event)" onpointerup="coverDrop()" onpointerleave="coverDrop()">
       <div class="cover-title ${draft.cover.titleColor === 'anim' ? 'name-anim' : ''}" id="coverTitle"
-           style="left:${draft.cover.titlePos.x}%; top:${draft.cover.titlePos.y}%; ${draft.cover.titleColor !== 'anim' ? `color:${draft.cover.titleColor}` : ''}"
+           style="left:${draft.cover.titlePos.x}%; top:${draft.cover.titlePos.y}%; font-size:${draft.cover.titleSize}px; ${draft.cover.titleColor !== 'anim' ? `color:${draft.cover.titleColor}` : ''}"
            onpointerdown="coverGrab(event,'title')">${draft.nombre || 'Tu fiesta'}</div>
       ${draft.cover.textos.map((t, i) => `
-        <div class="cover-text ${draft.coverSel === i ? 'sel' : ''}" style="left:${t.x}%; top:${t.y}%; color:${t.color}"
+        <div class="cover-text ${t.emoji ? 'is-emoji' : ''} ${draft.coverSel === i ? 'sel' : ''}"
+             style="left:${t.x}%; top:${t.y}%; font-size:${t.size}px; ${t.emoji ? '' : `color:${t.color}`}"
              onpointerdown="coverGrab(event,${i})" onclick="selCoverText(event,${i})">${t.texto}</div>`).join('')}
     </div>
-    <p class="hint">Arrastra el título y los textos para acomodarlos donde quieras.</p>
+    <p class="hint">Arrastra el título, textos y emojis. Tócalos para cambiar color/tamaño.</p>
 
     <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
     <div class="cover-actions">
-      <button class="chip" onclick="document.getElementById('coverFile').click()">⬆ Subir imagen</button>
-      ${draft.cover.img ? `<button class="chip" onclick="quitarPortada()">Quitar imagen</button>` : ''}
-      <button class="chip" onclick="addCoverText()">＋ Agregar texto</button>
+      <button class="chip" onclick="document.getElementById('coverFile').click()">⬆ Imagen</button>
+      ${draft.cover.img ? `<button class="chip" onclick="quitarPortada()">Quitar</button>` : ''}
+      <button class="chip" onclick="addCoverText()">＋ Texto</button>
+      <button class="chip" onclick="toggleEmojiPalette()">😀 Emoji</button>
     </div>
-    ${draft.coverSel !== null && draft.cover.textos[draft.coverSel] ? `
-      <div class="cover-text-ctrl">
-        <button onclick="editCoverText()">✎ Editar texto</button>
-        <button onclick="delCoverText()">🗑 Quitar</button>
+    <div class="emoji-palette" id="emojiPalette" style="display:none">
+      ${COVER_EMOJI_SET.map((e) => `<button onclick="addCoverEmoji('${e}')">${e}</button>`).join('')}
+    </div>
+
+    ${sel ? `
+      <div class="el-ctrl">
+        <div class="el-ctrl-head"><span>${sel.emoji ? 'Emoji' : 'Texto'} seleccionado</span></div>
+        <div class="el-ctrl-row">
+          ${sel.emoji ? '' : `<label class="color-pick">🎨<input type="color" value="${sel.color}" oninput="setCoverElColor(this.value)"></label>`}
+          <span class="el-size">Tamaño</span>
+          <button class="el-btn" onclick="resizeCoverEl(-4)">−</button>
+          <button class="el-btn" onclick="resizeCoverEl(4)">+</button>
+          ${sel.emoji ? '' : `<button class="el-btn" onclick="editCoverText()">✎</button>`}
+          <button class="el-btn del" onclick="delCoverText()">🗑</button>
+        </div>
       </div>` : ''}
 
     <div class="field" style="margin-top:14px"><div class="field-main">
@@ -554,8 +598,18 @@ function pasoPortada() {
 
     <p class="filtro-label" style="margin-top:14px">Color del nombre</p>
     <div class="name-colors">
+      <label class="name-swatch picker" title="Elige cualquier color">
+        🎨<input type="color" value="${colorPicker}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
+      </label>
       ${NAME_COLORS.map((c) => `<button class="name-swatch ${draft.cover.titleColor === c ? 'sel' : ''} ${c === 'anim' ? 'anim' : ''}"
           style="${c !== 'anim' ? `background:${c}` : ''}" onclick="setNombreColor('${c}')">${c === 'anim' ? '✨' : ''}</button>`).join('')}
+    </div>
+
+    <p class="filtro-label" style="margin-top:14px">Tamaño del título</p>
+    <div class="size-ctrl">
+      <button class="el-btn" onclick="resizeTitulo(-3)">−</button>
+      <span>${draft.cover.titleSize}px</span>
+      <button class="el-btn" onclick="resizeTitulo(3)">+</button>
     </div>`;
 }
 
@@ -577,8 +631,13 @@ function pasoDetalles() {
     <button class="maps-btn" onclick="toast('Vista en Google Maps · próximamente 🗺️')">📍 Ver el lugar en Google Maps</button>
 
     <div class="mini-toggle-row">
+      <span>✦ Marcar como “Próximamente”</span>
+      <button class="toggle ${draft.proximamente ? 'is-on' : ''}" onclick="draft.proximamente=!draft.proximamente; this.classList.toggle('is-on')"><span class="toggle-knob"></span></button>
+    </div>
+
+    <div class="mini-toggle-row">
       <span>🔞 Solo mayores (18+)</span>
-      <button class="toggle ${draft.edad.activo ? 'is-on' : ''}" onclick="toggleEdad()"><span class="toggle-knob"></span></button>
+      <button class="toggle ${draft.edad.activo ? 'is-on' : ''}" onclick="toggleEdad(this)"><span class="toggle-knob"></span></button>
     </div>
     <div id="edadRango" style="${draft.edad.activo ? '' : 'display:none'}">
       <p class="hint">El mínimo siempre es 18. Si quieres, pon una edad máxima.</p>
@@ -646,14 +705,20 @@ function pasoAvisos() {
 }
 
 // --- Nombre animado + rango de edad ---
-function toggleEdad() {
+function toggleEdad(btn) {
   draft.edad.activo = !draft.edad.activo;
   document.getElementById('edadRango').style.display = draft.edad.activo ? '' : 'none';
-  document.querySelector('.mini-toggle-row .toggle')?.classList.toggle('is-on', draft.edad.activo);
+  if (btn) btn.classList.toggle('is-on', draft.edad.activo);
 }
 
 /* --- Portada editable: color del nombre, arrastrar título y textos --- */
 function setNombreColor(c) { draft.cover.titleColor = c; pintarCrear(); }
+// Actualiza el color del título en vivo (sin re-render, mientras mueves el selector)
+function setNombreColorLive(c) {
+  draft.cover.titleColor = c;
+  const t = document.getElementById('coverTitle');
+  if (t) { t.classList.remove('name-anim'); t.style.color = c; }
+}
 
 let _coverDrag = null;  // 'title' o índice de texto
 function coverGrab(ev, target) {
@@ -675,7 +740,16 @@ function coverDrop() { _coverDrag = null; }
 function addCoverText() {
   const texto = prompt('Texto a mostrar en la portada:');
   if (!texto) return;
-  draft.cover.textos.push({ texto, x: 50, y: 72, color: '#ffffff' });
+  draft.cover.textos.push({ texto, x: 50, y: 72, color: '#ffffff', size: 16 });
+  draft.coverSel = draft.cover.textos.length - 1;
+  pintarCrear();
+}
+function toggleEmojiPalette() {
+  const p = document.getElementById('emojiPalette');
+  if (p) p.style.display = p.style.display === 'none' ? 'flex' : 'none';
+}
+function addCoverEmoji(e) {
+  draft.cover.textos.push({ texto: e, x: 50, y: 50, color: '#fff', size: 40, emoji: true });
   draft.coverSel = draft.cover.textos.length - 1;
   pintarCrear();
 }
@@ -688,6 +762,21 @@ function editCoverText() {
 function delCoverText() {
   draft.cover.textos.splice(draft.coverSel, 1);
   draft.coverSel = null;
+  pintarCrear();
+}
+function setCoverElColor(c) {
+  const t = draft.cover.textos[draft.coverSel];
+  if (t) { t.color = c; const el = document.querySelectorAll('.cover-text')[draft.coverSel]; if (el) el.style.color = c; }
+}
+function resizeCoverEl(d) {
+  const t = draft.cover.textos[draft.coverSel];
+  if (!t) return;
+  t.size = Math.max(10, Math.min(90, (t.size || 16) + d));
+  const el = document.querySelectorAll('.cover-text')[draft.coverSel];
+  if (el) el.style.fontSize = t.size + 'px';
+}
+function resizeTitulo(d) {
+  draft.cover.titleSize = Math.max(14, Math.min(48, draft.cover.titleSize + d));
   pintarCrear();
 }
 
@@ -831,7 +920,6 @@ function guardarFiesta() {
   const minPrecio = precios.length ? Math.min(...precios) : 0;
   const campos = {
     nombre: draft.nombre.trim(),
-    fecha: draft.fecha.trim() || 'Fecha por confirmar',
     lugar: draft.lugar.trim() || 'Lugar por confirmar',
     ciudad: draft.ciudad.trim() || 'Ciudad',
     organizador: DATA.usuario.nombre,
@@ -841,7 +929,10 @@ function guardarFiesta() {
     coverImg: draft.cover.img,
     nombreColor: draft.cover.titleColor,
     titlePos: { ...draft.cover.titlePos },
+    titleSize: draft.cover.titleSize,
     coverTextos: draft.cover.textos.map((t) => ({ ...t })),
+    proximamente: draft.proximamente,
+    fecha: draft.proximamente ? 'Próximamente' : (draft.fecha.trim() || 'Fecha por confirmar'),
     capacidad,
     boletos: draft.boletos.map((b) => ({ ...b })),
     edadRango: draft.edad.activo ? { min: 18, max: draft.edad.max || null } : null,
@@ -1317,17 +1408,22 @@ function pintarPerfil() {
 // --- Perfil de ORGANIZADOR ---
 function perfilOrganizador(u) {
   const mios = DATA.eventos.filter((e) => e.organizador === u.nombre);
-  const insignia = u.verificado ? `<span class="verif" title="Verificado">❄</span>` : '';
+  const popular = u.stats.seguidores >= 1000;
+  const insignia =
+    `${u.verificado ? `<span class="verif" title="Verificado">❄</span>` : ''}` +
+    `${popular ? `<span class="popular" title="Popular · +1000 seguidores">★</span>` : ''}`;
   return `
     <header class="page-head row-between">
       <h1>Perfil</h1>
       <button class="icon-btn sm" onclick="abrirAjustes()">${icon('gear')}</button>
     </header>
 
-    <section class="profile-hero">
+    <section class="profile-hero ${popular ? 'is-popular' : ''}">
+      ${popular ? '<div class="hero-spark"><i>✦</i><i>✶</i><i>✦</i><i>✶</i><i>✦</i></div>' : ''}
       <div class="hero-cover" style="background:${u.color}"></div>
       <div class="hero-body">
-        <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
+        ${popular ? '<div class="popular-flag">🔥 Cuenta popular</div>' : ''}
+        <div class="profile-avatar ${popular ? 'ring' : ''}" style="background:${u.color}">${u.avatar}</div>
         <h2 class="hero-name">${u.nombre} ${insignia}</h2>
         <p class="profile-user">${u.usuario} <span class="role-chip host">🎪 Organizador</span></p>
         <p class="profile-bio">${u.bio}</p>
@@ -1360,41 +1456,33 @@ function perfilOrganizador(u) {
           </button>`).join('')}
       </div>` : ''}
 
+    ${calendarioHTML(u)}
+
     <div class="row-between"><h3>Mis eventos</h3><span class="see-all" onclick="nuevaFiesta()">＋ Nueva</span></div>
     <div class="event-list">
       ${mios.length ? mios.map((e) => `
-        <article class="event-card">
-          <div class="event-cover" style="${coverStyle(e)}" onclick="abrirEvento('${e.id}')">
-            <span class="event-emoji">${e.emoji}</span>
-            <span class="event-price">${e.precio}</span>
-          </div>
-          <div class="event-body">
-            <h3>${e.nombre}</h3>
-            <p class="event-meta">${e.fecha}</p>
-            <p class="event-meta">📍 ${e.lugar} · ${e.ciudad}</p>
-            <div class="event-foot">
-              <span class="pill-soft">👥 ${e.asistentes} · cap. ${e.capacidad || '—'}</span>
-              <button class="edit-link" onclick="editarFiesta('${e.id}')">✎ Editar</button>
-            </div>
-          </div>
-        </article>
-      `).join('') : `<p class="empty">Aún no creas eventos. Toca “＋ Nueva” para empezar 🎉</p>`}
+        <div class="mio-wrap">
+          ${tarjetaEvento(e)}
+          <button class="mio-edit" onclick="event.stopPropagation(); editarFiesta('${e.id}')">✎ Editar</button>
+        </div>`).join('') : `<p class="empty">Aún no creas eventos. Toca “＋ Nueva” para empezar 🎉</p>`}
     </div>
 
     ${(u.eventosPasados && u.eventosPasados.length) ? `
-      <div class="row-between"><h3>📸 Eventos anteriores</h3></div>
+      <div class="row-between"><h3>Eventos anteriores</h3></div>
       <p class="hint">Revive lo que pasó en fiestas pasadas.</p>
       <div class="past-list">
-        ${u.eventosPasados.map((p, i) => `
-          <div class="past-card">
-            <div class="past-head" style="background:${p.grad}">
-              <span class="past-emoji">${p.emoji}</span>
-              <div class="past-info"><strong>${p.nombre}</strong><small>${p.fecha} · 👥 ${p.asistentes}</small></div>
+        ${u.eventosPasados.map((p) => `
+          <article class="past2">
+            <div class="past2-cover" style="background:${p.grad}">
+              <div class="past2-overlay">
+                <strong>${p.nombre}</strong>
+                <small>${p.fecha} · ${p.asistentes} asistentes</small>
+              </div>
             </div>
-            <div class="past-photos">
-              ${p.fotos.map((f) => `<button class="past-photo" onclick="toast('Foto de ${p.nombre} 📸')">${f}</button>`).join('')}
+            <div class="past2-photos">
+              ${p.fotos.map((f) => `<button class="past2-photo" onclick="toast('Foto de ${p.nombre} 📸')"><span>${f}</span></button>`).join('')}
             </div>
-          </div>`).join('')}
+          </article>`).join('')}
       </div>` : ''}
   `;
 }
@@ -1408,6 +1496,32 @@ function redesHTML(u) {
   if (r.tiktok)    items.push(`<a class="red red-tk" href="https://tiktok.com/@${r.tiktok}" target="_blank" rel="noopener">🎵 TikTok</a>`);
   if (r.web)       items.push(`<a class="red red-web" href="${r.web}" target="_blank" rel="noopener">🌐 Sitio</a>`);
   return items.length ? `<div class="redes-row">${items.join('')}</div>` : '';
+}
+
+// Calendario del mes con los eventos del organizador
+function calendarioHTML(u) {
+  const anio = 2026, mes = 5; // junio (0 = enero)
+  const primerDia = new Date(anio, mes, 1).getDay();   // 0 = domingo
+  const dias = new Date(anio, mes + 1, 0).getDate();   // 30
+  const conEvento = new Set(DATA.eventos.filter((e) => e.organizador === u.nombre && e.dia).map((e) => e.dia));
+
+  let celdas = '';
+  for (let i = 0; i < primerDia; i++) celdas += '<span class="cal-cell empty"></span>';
+  for (let d = 1; d <= dias; d++) {
+    const has = conEvento.has(d);
+    celdas += `<button class="cal-cell ${has ? 'has' : ''}" ${has ? `onclick="verDiaEventos(${d})"` : ''}>${d}${has ? '<i class="cal-dot"></i>' : ''}</button>`;
+  }
+  return `
+    <div class="row-between"><h3>📅 Calendario · Junio</h3></div>
+    <p class="hint">Los días con punto tienen evento. Tócalos para ver.</p>
+    <div class="cal">
+      <div class="cal-week"><span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span></div>
+      <div class="cal-grid">${celdas}</div>
+    </div>`;
+}
+function verDiaEventos(d) {
+  const evs = DATA.eventos.filter((e) => e.dia === d);
+  abrirSheet(`${d} de junio`, `<div class="event-list">${evs.map(tarjetaEvento).join('')}</div>`);
 }
 
 // Ver la lista de seguidores

@@ -1559,3 +1559,228 @@ body.no-scroll { overflow: hidden; }
   border: 1px solid var(--line);
 }
 .past-photo:active { transform: scale(.94); }
+
+/* ================================================================== */
+/* INICIO v2 + tarjetas editoriales                                   */
+/* ================================================================== */
+.home-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.home-brand {
+  font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em;
+  background: linear-gradient(120deg,#fff 35%, #c9b8ff);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Tarjeta editorial: título sobre la portada */
+.ev2 {
+  border-radius: var(--r-lg); overflow: hidden; cursor: pointer;
+  background: var(--bg-soft); border: 1px solid var(--line);
+  transition: transform .18s ease, border-color .2s ease, box-shadow .25s ease;
+}
+.ev2:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: 0 16px 44px rgba(0,0,0,.45); }
+.ev2-cover { position: relative; height: 168px; display: flex; align-items: flex-end; }
+.ev2-cover::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,.62) 100%);
+}
+.ev2-price {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  font-size: .82rem; font-weight: 800; color: #fff;
+  background: rgba(0,0,0,.42); backdrop-filter: blur(6px);
+  padding: 6px 12px; border-radius: var(--r-pill);
+}
+.ev2-overlay { position: relative; z-index: 2; padding: 16px; width: 100%; }
+.ev2-overlay h3 { color: #fff; font-size: 1.45rem; line-height: 1.05; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
+.ev2-when { color: rgba(255,255,255,.92); font-weight: 600; font-size: .9rem; margin-top: 4px; }
+.ev2-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; }
+.ev2-place { font-size: .88rem; color: var(--ink-soft); }
+.ev2-people {
+  font-size: .82rem; font-weight: 700; color: var(--ink-soft);
+  background: rgba(255,255,255,.05); border: 1px solid var(--line);
+  padding: 5px 11px; border-radius: var(--r-pill);
+}
+.event-list { display: flex; flex-direction: column; gap: 16px; }
+
+/* Próximamente */
+.ev2.soon .ev2-cover { height: 150px; }
+.ev2-soon-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  font-size: .76rem; font-weight: 800; color: #fff;
+  background: rgba(99,102,241,.6); backdrop-filter: blur(6px);
+  padding: 6px 12px; border-radius: var(--r-pill); letter-spacing: .02em;
+}
+.ev2-bell {
+  font-family: inherit; font-weight: 700; font-size: .82rem; cursor: pointer;
+  color: var(--cyan); background: rgba(0,212,255,.1);
+  border: 1px solid rgba(0,212,255,.35); border-radius: var(--r-pill); padding: 7px 13px;
+}
+.ev2-bell.on { color: #fff; background: var(--grad-cool); border-color: transparent; }
+
+/* "Vas a ir" (carrusel horizontal) */
+.voy-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 4px; scrollbar-width: none; }
+.voy-row::-webkit-scrollbar { display: none; }
+.voy-card {
+  position: relative; flex-shrink: 0; width: 230px; height: 130px;
+  border-radius: var(--r-lg); overflow: hidden; cursor: pointer;
+  display: flex; align-items: flex-end; text-align: left;
+  border: none; font-family: inherit;
+}
+.voy-shade { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,.6)); }
+.voy-tag {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  font-size: .7rem; font-weight: 800; color: #06231a;
+  background: #34d399; padding: 4px 10px; border-radius: var(--r-pill);
+}
+.voy-info { position: relative; z-index: 2; padding: 14px; }
+.voy-info strong { display: block; color: #fff; font-size: 1.1rem; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+.voy-info small { color: rgba(255,255,255,.9); }
+
+/* ================================================================== */
+/* Eventos anteriores v2 + insignia Popular + animación +1000         */
+/* ================================================================== */
+.past2 { background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-lg); overflow: hidden; }
+.past2-cover { position: relative; height: 110px; display: flex; align-items: flex-end; }
+.past2-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 35%, rgba(0,0,0,.55)); }
+.past2-overlay { position: relative; z-index: 2; padding: 14px 16px; }
+.past2-overlay strong { display: block; color: #fff; font-size: 1.2rem; text-shadow: 0 2px 10px rgba(0,0,0,.5); }
+.past2-overlay small { color: rgba(255,255,255,.9); }
+.past2-photos { display: flex; gap: 8px; overflow-x: auto; padding: 12px; scrollbar-width: none; }
+.past2-photos::-webkit-scrollbar { display: none; }
+.past2-photo {
+  flex-shrink: 0; width: 70px; height: 70px; border-radius: 14px; cursor: pointer; padding: 0;
+  border: 1px solid var(--line); overflow: hidden;
+  background: linear-gradient(140deg, #2a2140, #3a1a2e);
+  display: grid; place-items: center;
+}
+.past2-photo span { font-size: 1.9rem; filter: drop-shadow(0 3px 6px rgba(0,0,0,.4)); }
+.past2-photo:active { transform: scale(.94); }
+
+/* Insignia Popular (estrella dorada animada) */
+.popular {
+  display: inline-grid; place-items: center; vertical-align: middle;
+  width: 20px; height: 20px; border-radius: 50%; font-size: .7rem;
+  color: #5a3e00; background: linear-gradient(135deg,#fde68a,#f59e0b);
+  box-shadow: 0 2px 10px rgba(245,158,11,.7); margin-left: 3px;
+  position: relative; top: -2px;
+  animation: popPulse 1.8s ease-in-out infinite;
+}
+@keyframes popPulse {
+  0%,100% { transform: scale(1) rotate(0); box-shadow: 0 2px 10px rgba(245,158,11,.6); }
+  50%     { transform: scale(1.18) rotate(8deg); box-shadow: 0 2px 16px rgba(245,158,11,.95); }
+}
+
+/* Bandera de cuenta popular */
+.popular-flag {
+  display: inline-block; margin: 0 auto 10px; position: relative; z-index: 3;
+  font-size: .76rem; font-weight: 800; color: #5a3e00;
+  background: linear-gradient(135deg,#fde68a,#f59e0b);
+  padding: 5px 14px; border-radius: var(--r-pill);
+  box-shadow: 0 6px 20px rgba(245,158,11,.5);
+}
+
+/* Hero popular: portada con brillo animado + anillo dorado en avatar */
+.profile-hero.is-popular { position: relative; }
+.profile-hero.is-popular .hero-cover {
+  background-size: 200% 200% !important;
+  animation: heroGlow 6s ease infinite;
+}
+@keyframes heroGlow { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+.profile-avatar.ring {
+  box-shadow: 0 0 0 4px var(--bg-soft), 0 0 0 7px #f59e0b, 0 0 26px rgba(245,158,11,.7);
+  animation: ringGlow 2.4s ease-in-out infinite;
+}
+@keyframes ringGlow {
+  0%,100% { box-shadow: 0 0 0 4px var(--bg-soft), 0 0 0 7px #f59e0b, 0 0 18px rgba(245,158,11,.5); }
+  50%     { box-shadow: 0 0 0 4px var(--bg-soft), 0 0 0 7px #fde68a, 0 0 34px rgba(245,158,11,.95); }
+}
+/* Destellos flotando en el hero popular */
+.hero-spark { position: absolute; inset: 0; pointer-events: none; z-index: 2; overflow: hidden; }
+.hero-spark i {
+  position: absolute; color: #fde68a; font-size: 1rem; opacity: 0;
+  animation: sparkFloat 3.5s ease-in-out infinite;
+}
+.hero-spark i:nth-child(1) { left: 12%; top: 30%; animation-delay: 0s; }
+.hero-spark i:nth-child(2) { left: 80%; top: 22%; animation-delay: .7s; font-size: .8rem; }
+.hero-spark i:nth-child(3) { left: 65%; top: 55%; animation-delay: 1.4s; }
+.hero-spark i:nth-child(4) { left: 28%; top: 60%; animation-delay: 2.1s; font-size: .75rem; }
+.hero-spark i:nth-child(5) { left: 90%; top: 48%; animation-delay: 1s; }
+@keyframes sparkFloat {
+  0%   { opacity: 0; transform: translateY(6px) scale(.6); }
+  40%  { opacity: 1; transform: translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: translateY(-16px) scale(.7); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .popular, .profile-hero.is-popular .hero-cover, .profile-avatar.ring, .hero-spark i { animation: none; }
+}
+
+/* ================================================================== */
+/* Portada editable v2: color picker, emojis, tamaños + Calendario    */
+/* ================================================================== */
+.cover-text.is-emoji { text-shadow: 0 3px 8px rgba(0,0,0,.45); }
+
+/* Selector de color libre (cuadrito de color nativo) */
+.name-swatch.picker, .color-pick {
+  position: relative; overflow: hidden;
+  display: inline-grid; place-items: center; cursor: pointer; font-size: 1.1rem;
+}
+.name-swatch.picker { width: 40px; height: 40px; border-radius: 50%;
+  background: conic-gradient(#f43f5e,#f59e0b,#34d399,#00d4ff,#8b5cf6,#f43f5e); color: #fff; }
+.name-swatch.picker input, .color-pick input {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.color-pick {
+  width: 38px; height: 38px; border-radius: 10px; font-size: 1rem;
+  background: rgba(255,255,255,.06); border: 1px solid var(--line-strong);
+}
+
+/* Paleta de emojis para la portada */
+.emoji-palette {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 10px;
+}
+.emoji-palette button {
+  font-size: 1.4rem; width: 40px; height: 40px; cursor: pointer;
+  background: none; border: none; border-radius: 10px;
+}
+.emoji-palette button:hover { background: rgba(255,255,255,.08); }
+
+/* Controles del elemento de portada seleccionado */
+.el-ctrl { background: rgba(255,255,255,.03); border: 1px solid var(--line-strong); border-radius: var(--r-md); padding: 12px; margin-bottom: 10px; }
+.el-ctrl-head { font-weight: 700; font-size: .9rem; margin-bottom: 10px; }
+.el-ctrl-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.el-size { font-size: .82rem; color: var(--ink-soft); }
+.el-btn {
+  min-width: 38px; height: 38px; border-radius: 10px; cursor: pointer; padding: 0 10px;
+  font-size: 1.05rem; font-weight: 700; color: var(--ink);
+  background: rgba(255,255,255,.06); border: 1px solid var(--line-strong);
+}
+.el-btn.del { color: var(--magenta); }
+.size-ctrl { display: flex; align-items: center; gap: 12px; }
+.size-ctrl span { font-weight: 700; min-width: 50px; text-align: center; }
+
+/* Calendario */
+.cal { background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px; }
+.cal-week { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 6px; }
+.cal-week span { text-align: center; font-size: .72rem; font-weight: 700; color: var(--ink-faint); }
+.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-cell {
+  position: relative; aspect-ratio: 1; border: none; cursor: default;
+  background: none; color: var(--ink-soft); font-family: inherit; font-weight: 600; font-size: .9rem;
+  border-radius: 10px; display: grid; place-items: center;
+}
+.cal-cell.empty { visibility: hidden; }
+.cal-cell.has {
+  color: #fff; cursor: pointer;
+  background: var(--grad-party); box-shadow: 0 4px 14px rgba(139,92,246,.4);
+}
+.cal-cell.has:active { transform: scale(.92); }
+.cal-dot { position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: #fff; }
+
+/* Editar sobre la tarjeta de "Mis eventos" */
+.mio-wrap { position: relative; }
+.mio-edit {
+  position: absolute; top: 12px; left: 12px; z-index: 3;
+  font-family: inherit; font-weight: 700; font-size: .78rem; cursor: pointer;
+  color: #fff; background: rgba(0,0,0,.45); backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.2); border-radius: var(--r-pill); padding: 6px 12px;
+}

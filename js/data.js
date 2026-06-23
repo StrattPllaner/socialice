@@ -43,15 +43,16 @@ const DATA = {
       { nombre: 'Electric Garden', fecha: 'Abr 2026', emoji: '🌿', grad: 'linear-gradient(135deg,#10b981,#06b6d4)', asistentes: 180, fotos: ['🌿','🕺','🥂','🎶'] },
       { nombre: 'Purple Haze', fecha: 'Mar 2026', emoji: '🟣', grad: 'linear-gradient(135deg,#8b5cf6,#d946ef)', asistentes: 310, fotos: ['🟣','🎇','💜','🪩','🍾'] }
     ],
-    stats: { eventos: 8, asistentes: 1240, seguidores: 357, amigos: 24, fueA: 36 }
+    stats: { eventos: 8, asistentes: 1240, seguidores: 1840, amigos: 24, fueA: 36 }
   },
 
   // Fiestas. Campos: edad ('18+', solo mayores) y cuando ('hoy','semana','mes').
   eventos: [
-    { id:'e1', nombre:'Neon Nights',    fecha:'Vie 27 jun · 9:00 pm', lugar:'Terraza Skyline', ciudad:'Polanco',    edad:'18+', cuando:'semana', organizador:'Andrea Ríos', emoji:'🌃', grad:'linear-gradient(135deg,#7c3aed,#db2777)', precio:'$250',  asistentes:184, cat:['semana','populares','cerca'] },
-    { id:'e2', nombre:'Glow Party',     fecha:'Sáb 28 jun · 10:00 pm',lugar:'Club Aurora',     ciudad:'Roma Norte', edad:'18+', cuando:'semana', organizador:'Pulse Crew',  emoji:'✨', grad:'linear-gradient(135deg,#0ea5e9,#7c3aed)', precio:'$300',  asistentes:320, cat:['semana','populares'] },
-    { id:'e3', nombre:'Rooftop Sunset', fecha:'Dom 29 jun · 6:00 pm', lugar:'Hotel Mirage',    ciudad:'Condesa',    edad:'18+', cuando:'hoy',    organizador:'Andrea Ríos', emoji:'🌇', grad:'linear-gradient(135deg,#f59e0b,#ef4444)', precio:'Gratis',asistentes:95,  cat:['semana','cerca'] },
-    { id:'e4', nombre:'Bass Drop',      fecha:'Vie 4 jul · 11:00 pm', lugar:'Underground 21',  ciudad:'Centro',     edad:'18+', cuando:'mes',    organizador:'Pulse Crew',  emoji:'🔊', grad:'linear-gradient(135deg,#ec4899,#6366f1)', precio:'$280',  asistentes:210, cat:['populares'] }
+    { id:'e1', nombre:'Neon Nights',    fecha:'Vie 27 jun · 9:00 pm', dia:27, lugar:'Terraza Skyline', ciudad:'Polanco',    edad:'18+', cuando:'semana', organizador:'Andrea Ríos', emoji:'🌃', grad:'linear-gradient(135deg,#7c3aed,#db2777)', precio:'$250',  asistentes:184, cat:['semana','populares','cerca'] },
+    { id:'e2', nombre:'Glow Party',     fecha:'Sáb 28 jun · 10:00 pm',dia:28, lugar:'Club Aurora',     ciudad:'Roma Norte', edad:'18+', cuando:'semana', organizador:'Pulse Crew',  emoji:'✨', grad:'linear-gradient(135deg,#0ea5e9,#7c3aed)', precio:'$300',  asistentes:320, cat:['semana','populares'] },
+    { id:'e3', nombre:'Rooftop Sunset', fecha:'Dom 29 jun · 6:00 pm', dia:29, lugar:'Hotel Mirage',    ciudad:'Condesa',    edad:'18+', cuando:'hoy',    organizador:'Andrea Ríos', emoji:'🌇', grad:'linear-gradient(135deg,#f59e0b,#ef4444)', precio:'Gratis',asistentes:95,  cat:['semana','cerca'], voy:true },
+    { id:'e4', nombre:'Bass Drop',      fecha:'Vie 4 jul · 11:00 pm', dia:4,  lugar:'Underground 21',  ciudad:'Centro',     edad:'18+', cuando:'mes',    organizador:'Pulse Crew',  emoji:'🔊', grad:'linear-gradient(135deg,#ec4899,#6366f1)', precio:'$280',  asistentes:210, cat:['populares'], voy:true },
+    { id:'e5', nombre:'Aurora Fest',    fecha:'Próximamente',         dia:null,lugar:'Por anunciar',    ciudad:'CDMX',       edad:'18+', cuando:'mes',    organizador:'Andrea Ríos', emoji:'🌌', grad:'linear-gradient(135deg,#6366f1,#22d3ee)', precio:'Pronto', asistentes:0, cat:['populares'], proximamente:true }
   ],
 
   destacadoId: 'e1',
