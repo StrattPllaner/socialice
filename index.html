@@ -128,16 +128,16 @@
             <button class="field-eye" type="button" onclick="verPass('loginPass', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
           </div>
 
-          <button class="link-right" onclick="alert('Te enviaremos un correo para restablecerla (pendiente de conectar).')">¿Olvidaste tu contraseña?</button>
+          <button class="link-right" onclick="toast('Te enviaremos un correo para restablecerla 📧')">¿Olvidaste tu contraseña?</button>
 
           <button class="btn full" onclick="irA('home')">Entrar</button>
 
           <div class="divider"><span>o continúa con</span></div>
           <div class="social-row">
-            <button class="social-btn" onclick="alert('Acceso con Google: lo conectamos con Firebase después.')">
+            <button class="social-btn" onclick="toast('Acceso con Google · pronto 🔗')">
               <span class="social-g">G</span> Google
             </button>
-            <button class="social-btn" onclick="alert('Acceso con Apple: lo conectamos después.')">
+            <button class="social-btn" onclick="toast('Acceso con Apple · pronto 🔗')">
                Apple
             </button>
           </div>
@@ -248,10 +248,13 @@
     <!-- 3) Crear evento (solo organizador · placeholder por ahora) -->
     <section id="screen-create" class="screen" data-name="create"></section>
 
-    <!-- 4) Amigos (solo asistente) -->
+    <!-- 4) Buscar fiestas -->
+    <section id="screen-search" class="screen" data-name="search"></section>
+
+    <!-- 5) Amigos (solo asistente) -->
     <section id="screen-friends" class="screen" data-name="friends"></section>
 
-    <!-- 5) Perfil -->
+    <!-- 6) Perfil -->
     <section id="screen-profile" class="screen" data-name="profile"></section>
 
     <!-- =========================================================
@@ -261,6 +264,24 @@
     <nav class="bottom-nav" id="bottomNav"></nav>
 
   </div>
+
+  <!-- =========================================================
+       PANEL DESLIZABLE (sheet) + AVISOS (toast)
+       Se usan para ajustes, editar perfil, ver evento, etc.
+       Viven fuera de .app-shell para cubrir toda la pantalla.
+       ========================================================= -->
+  <div id="sheetOverlay" class="sheet-overlay" onclick="cerrarSheet(event)">
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head">
+        <h3 id="sheetTitle"></h3>
+        <button class="icon-btn sm" onclick="cerrarSheet()" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="sheet-body" id="sheetBody"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
 
   <!-- Primero los datos de ejemplo, luego la lógica que los usa -->
   <script src="js/data.js"></script>
