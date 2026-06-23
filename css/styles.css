@@ -1420,3 +1420,75 @@ body.no-scroll { overflow: hidden; }
 .post-head small { color: var(--ink-faint); }
 .post-text { margin-bottom: 10px; line-height: 1.45; color: var(--ink); }
 .post-media { width: 100%; border-radius: 12px; display: block; max-height: 360px; object-fit: cover; }
+
+/* ================================================================== */
+/* CREAR v3: asistente por pasos, portada editable, equipo            */
+/* ================================================================== */
+
+/* Indicador de pasos */
+.wizard-dots { display: flex; gap: 6px; margin-bottom: 20px; }
+.wizard-dots i {
+  flex: 1; height: 5px; border-radius: var(--r-pill);
+  background: var(--line-strong); cursor: pointer; transition: background .25s ease;
+}
+.wizard-dots i.on { background: var(--grad-party); }
+
+/* Navegación del asistente */
+.wizard-nav { display: flex; gap: 10px; margin-top: 24px; align-items: center; }
+.wnav-back { padding: 15px 20px; white-space: nowrap; }
+
+/* Portada editable (título y textos arrastrables) */
+.cover-preview { position: relative; height: 180px; user-select: none; touch-action: none; }
+.cover-title {
+  position: absolute; transform: translate(-50%,-50%);
+  font-weight: 800; font-size: 1.5rem; color: #fff; cursor: grab;
+  text-shadow: 0 2px 14px rgba(0,0,0,.55); white-space: nowrap; max-width: 92%;
+  overflow: hidden; text-overflow: ellipsis; padding: 4px 8px;
+}
+.cover-title:active { cursor: grabbing; }
+.cover-text {
+  position: absolute; transform: translate(-50%,-50%);
+  font-weight: 600; font-size: 1rem; cursor: grab;
+  text-shadow: 0 2px 10px rgba(0,0,0,.5); padding: 4px 8px; border-radius: 8px;
+  white-space: nowrap;
+}
+.cover-text.sel { outline: 2px dashed rgba(255,255,255,.8); }
+.cover-text-ctrl { display: flex; gap: 10px; margin-bottom: 6px; }
+.cover-text-ctrl button {
+  flex: 1; font-family: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
+  color: var(--ink); background: rgba(255,255,255,.05);
+  border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 10px;
+}
+
+/* Paleta de color del nombre */
+.name-colors { display: flex; gap: 10px; flex-wrap: wrap; }
+.name-swatch {
+  width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+  border: 2px solid var(--line-strong); display: grid; place-items: center; font-size: 1.1rem;
+  transition: transform .15s ease, box-shadow .2s ease;
+}
+.name-swatch:active { transform: scale(.9); }
+.name-swatch.sel { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--violet); }
+.name-swatch.anim { background: linear-gradient(90deg,#8b5cf6,#f43f5e,#00d4ff,#f59e0b); }
+
+/* Organizadores (editor) */
+.org-row {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 10px 14px; margin-bottom: 8px;
+}
+.org-ava { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 1.3rem; background: rgba(255,255,255,.06); }
+.org-name { flex: 1; font-weight: 600; }
+
+/* Organizadores (vista en el detalle) */
+.org-strip { display: flex; gap: 10px; flex-wrap: wrap; }
+.org-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: .88rem; font-weight: 600;
+  background: rgba(255,255,255,.05); border: 1px solid var(--line);
+  border-radius: var(--r-pill); padding: 6px 12px 6px 6px;
+}
+.org-chip-ava { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 1rem; background: rgba(255,255,255,.08); }
+
+/* Plano con imagen de fondo: atenúa la cuadrícula */
+.venue-inner.has-bg .venue-grid { opacity: .3; }
