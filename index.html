@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <!-- Mobile-first: la app se ve y se siente como app de celular -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#06070a">
+  <meta name="description" content="Socialice · Crea, organiza y promociona tus fiestas">
+
+  <!-- Que se sienta app instalada (PWA) en iOS -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Socialice">
+
+  <title>Socialice</title>
+
+  <!-- PWA: manifest e iconos -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+
+  <!-- Fuente redondeada y amigable (la misma de tu otra app) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Nuestro ADN visual -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<!-- data-screen lo usamos para saber qué pantalla está activa
+     (y por ejemplo ocultar la nav inferior en el splash) -->
+<body data-screen="splash">
+
+  <!-- La app vive dentro de esta "columna" centrada -->
+  <div class="app-shell">
+
+    <!-- =========================================================
+         PANTALLAS
+         Cada <section class="screen"> es una pantalla completa.
+         Solo la que tenga la clase "is-active" se ve.
+         Por ahora están vacías: las llenamos paso a paso.
+         ========================================================= -->
+
+    <!-- 1) Splash + Registro  (Paso 2)
+         Dentro del splash hay "sub-pantallas" (bienvenida, login y los
+         3 pasos del registro). Solo una tiene .is-shown a la vez. -->
+    <section id="screen-splash" class="screen is-active" data-name="splash">
+
+      <!-- a) Bienvenida -->
+      <div class="splash-page is-shown" data-page="welcome">
+        <div class="splash-top">
+          <div class="splash-logo anim-glow">S</div>
+          <h1 class="splash-title text-grad">Socialice</h1>
+          <p class="splash-sub">Crea, organiza y promociona<br>tus fiestas desde un solo lugar.</p>
+        </div>
+        <div class="splash-bottom">
+          <button class="btn" onclick="splashIr('reg1')">Crear cuenta</button>
+          <button class="btn btn-ghost" onclick="splashIr('login')">Ya tengo cuenta</button>
+        </div>
+      </div>
+
+      <!-- b) Iniciar sesión -->
+      <div class="splash-page" data-page="login">
+        <button class="back-btn" onclick="splashIr('welcome')">‹</button>
+        <div class="splash-form-top">
+          <h2>Hola de nuevo 👋</h2>
+          <p class="splash-sub">Entra para seguir armando la fiesta.</p>
+        </div>
+        <label class="splash-field-wrap">
+          <span class="splash-label">Correo</span>
+          <input type="email" class="splash-input" placeholder="tu@correo.com" autocomplete="email">
+        </label>
+        <label class="splash-field-wrap">
+          <span class="splash-label">Contraseña</span>
+          <input type="password" class="splash-input" placeholder="••••••••" autocomplete="current-password">
+        </label>
+        <div class="splash-bottom">
+          <button class="btn" onclick="irA('home')">Entrar</button>
+        </div>
+      </div>
+
+      <!-- c) Registro · paso 1 de 3 (cuenta) -->
+      <div class="splash-page" data-page="reg1">
+        <button class="back-btn" onclick="splashIr('welcome')">‹</button>
+        <div class="step-dots"><i class="is-on"></i><i></i><i></i></div>
+        <div class="splash-form-top">
+          <small class="step-count">Paso 1 de 3</small>
+          <h2>Crea tu cuenta</h2>
+        </div>
+        <label class="splash-field-wrap">
+          <span class="splash-label">Correo</span>
+          <input type="email" class="splash-input" placeholder="tu@correo.com" autocomplete="email">
+        </label>
+        <label class="splash-field-wrap">
+          <span class="splash-label">Contraseña</span>
+          <input type="password" class="splash-input" placeholder="Crea una contraseña" autocomplete="new-password">
+        </label>
+        <div class="splash-bottom">
+          <button class="btn" onclick="splashIr('reg2')">Continuar</button>
+        </div>
+      </div>
+
+      <!-- d) Registro · paso 2 de 3 (perfil) -->
+      <div class="splash-page" data-page="reg2">
+        <button class="back-btn" onclick="splashIr('reg1')">‹</button>
+        <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i></i></div>
+        <div class="splash-form-top">
+          <small class="step-count">Paso 2 de 3</small>
+          <h2>¿Quién organiza?</h2>
+        </div>
+        <label class="splash-field-wrap">
+          <span class="splash-label">Nombre del organizador</span>
+          <input type="text" class="splash-input" placeholder="Ej: Limitless Events">
+        </label>
+        <label class="splash-field-wrap">
+          <span class="splash-label">Usuario</span>
+          <input type="text" class="splash-input" placeholder="@tuusuario">
+        </label>
+        <div class="splash-bottom">
+          <button class="btn" onclick="splashIr('reg3')">Continuar</button>
+        </div>
+      </div>
+
+      <!-- e) Registro · paso 3 de 3 (listo) -->
+      <div class="splash-page" data-page="reg3">
+        <button class="back-btn" onclick="splashIr('reg2')">‹</button>
+        <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></div>
+        <div class="splash-form-top">
+          <small class="step-count">Paso 3 de 3</small>
+          <h2>Una bio corta</h2>
+        </div>
+        <label class="splash-field-wrap">
+          <span class="splash-label">Bio</span>
+          <input type="text" class="splash-input" placeholder="Las mejores fiestas de la ciudad 🎉">
+        </label>
+        <div class="splash-ready">
+          <div class="splash-ready-emoji anim-float">🎉</div>
+          <p class="splash-sub">¡Todo listo! Tu cuenta de organizador está creada.</p>
+        </div>
+        <div class="splash-bottom">
+          <button class="btn" onclick="irA('home')">Empezar</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 2) Inicio / feed de eventos  (Paso 3) -->
+    <section id="screen-home" class="screen" data-name="home"></section>
+
+    <!-- 3) Crear evento (placeholder por ahora, Sesión 2) -->
+    <section id="screen-create" class="screen" data-name="create"></section>
+
+    <!-- 4) Perfil del organizador  (Paso 4) -->
+    <section id="screen-profile" class="screen" data-name="profile"></section>
+
+    <!-- =========================================================
+         NAVEGACIÓN INFERIOR (Paso 5)
+         Fija abajo. La pintamos desde app.js para no repetir HTML.
+         ========================================================= -->
+    <nav class="bottom-nav" id="bottomNav"></nav>
+
+  </div>
+
+  <!-- Primero los datos de ejemplo, luego la lógica que los usa -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- Registro del Service Worker (PWA / offline) -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .catch(err => console.warn('[PWA] No se pudo registrar el SW:', err));
+      });
+    }
+  </script>
+</body>
+</html>

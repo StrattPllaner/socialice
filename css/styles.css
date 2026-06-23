@@ -1,0 +1,360 @@
+/* =====================================================================
+   SOCIALICE · ADN visual
+   ---------------------------------------------------------------------
+   Aquí vive el "estilo base" de toda la app: la paleta de colores,
+   la fuente, el fondo nocturno y las piezas que se repiten en todas
+   las pantallas (tarjetas con glow, botones, chips, badges...).
+   La idea: definirlo UNA vez aquí y reutilizarlo en todos lados.
+   ===================================================================== */
+
+/* ------------------------------------------------------------------ */
+/* 1. Variables: cambia un color aquí y se actualiza toda la app       */
+/* ------------------------------------------------------------------ */
+:root {
+  /* Fondos (de más oscuro a "menos" oscuro) */
+  --bg:            #06070a;   /* fondo general, casi negro */
+  --bg-soft:       #0c0e14;   /* fondo de tarjetas/paneles */
+  --bg-soft-2:     #141823;   /* fondo de campos e inputs */
+
+  /* Paleta de fiesta (acentos neón) */
+  --violet:        #8b5cf6;   /* color principal: morado */
+  --magenta:       #f43f5e;   /* acento rosa/magenta */
+  --cyan:          #00d4ff;   /* acento cian */
+  --gold:          #f59e0b;   /* dorado para destacados */
+
+  /* Texto */
+  --ink:           #f4f5fb;   /* texto principal (casi blanco) */
+  --ink-soft:      #aab0c4;   /* texto secundario (gris azulado) */
+  --ink-faint:     #6b7186;   /* texto tenue (placeholders, notas) */
+
+  /* Líneas y bordes */
+  --line:          rgba(255,255,255,.08);  /* borde sutil */
+  --line-strong:   rgba(255,255,255,.16);  /* borde más visible */
+
+  /* Degradados estrella (los uso en botones y badges) */
+  --grad-party:    linear-gradient(135deg, var(--violet), var(--magenta));
+  --grad-cool:     linear-gradient(135deg, var(--cyan), var(--violet));
+  --grad-gold:     linear-gradient(135deg, var(--gold), var(--magenta));
+
+  /* Glow: el "brillo" alrededor de las cosas importantes */
+  --glow-violet:   0 0 0 1px rgba(139,92,246,.35), 0 10px 40px rgba(139,92,246,.25);
+  --glow-magenta:  0 0 0 1px rgba(244,63,94,.35),  0 10px 40px rgba(244,63,94,.22);
+  --glow-cyan:     0 0 0 1px rgba(0,212,255,.30),  0 10px 40px rgba(0,212,255,.20);
+
+  /* Esquinas redondeadas (consistencia en toda la app) */
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 26px;
+  --r-pill: 999px;
+
+  /* Ancho máximo: la app es mobile-first, así que la "centramos"
+     en una columna estrecha aunque la pantalla sea enorme. */
+  --app-max: 460px;
+}
+
+/* ------------------------------------------------------------------ */
+/* 2. Reset suave: quitamos márgenes raros del navegador               */
+/* ------------------------------------------------------------------ */
+*,
+*::before,
+*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: 'Baloo Bhaijaan 2', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+  /* Un par de luces de colores difuminadas al fondo, para que NO se
+     vea plano. Son degradados radiales fijos, muy sutiles. */
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(139,92,246,.18), transparent 60%),
+    radial-gradient(1000px 500px at -10% 10%, rgba(0,212,255,.10), transparent 55%),
+    radial-gradient(900px 600px at 50% 120%, rgba(244,63,94,.12), transparent 60%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  /* Evita el "rebote" azul al tocar botones en el celular */
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+/* La app vive en una columna centrada (mobile-first) */
+.app-shell {
+  max-width: var(--app-max);
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+}
+
+/* ------------------------------------------------------------------ */
+/* 3. Tipografía: títulos con peso, todo redondeado y legible          */
+/* ------------------------------------------------------------------ */
+h1, h2, h3 { font-weight: 800; line-height: 1.1; letter-spacing: -.01em; }
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.35rem; }
+h3 { font-size: 1.05rem; }
+p  { color: var(--ink-soft); line-height: 1.5; }
+small { color: var(--ink-faint); }
+
+/* Texto con degradado (para títulos llamativos) */
+.text-grad {
+  background: var(--grad-party);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* ------------------------------------------------------------------ */
+/* 4. Piezas reutilizables                                             */
+/* ------------------------------------------------------------------ */
+
+/* --- Tarjeta base (la base de casi todo) --- */
+.card {
+  background: linear-gradient(180deg, var(--bg-soft), #0a0c12);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* --- Botón principal (relleno, con degradado y glow) --- */
+.btn {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  border: none;
+  border-radius: var(--r-pill);
+  padding: 15px 22px;
+  cursor: pointer;
+  background: var(--grad-party);
+  box-shadow: var(--glow-violet);
+  transition: transform .15s ease, box-shadow .25s ease, filter .2s ease;
+}
+.btn:active { transform: scale(.97); }
+.btn:hover  { filter: brightness(1.07); }
+
+/* --- Botón secundario (contorno, sin relleno) --- */
+.btn-ghost {
+  background: var(--bg-soft-2);
+  color: var(--ink);
+  box-shadow: none;
+  border: 1px solid var(--line-strong);
+}
+.btn-ghost:hover { filter: brightness(1.15); }
+
+/* --- Chip / pastilla (filtros, etiquetas) --- */
+.chip {
+  font-family: inherit;
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--ink-soft);
+  background: var(--bg-soft-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 8px 15px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s ease;
+}
+.chip.is-active {
+  color: #fff;
+  background: var(--grad-party);
+  border-color: transparent;
+  box-shadow: 0 6px 20px rgba(139,92,246,.35);
+}
+
+/* --- Badge (insignia pequeña con degradado, como las monedas/xp
+       de la otra app, pero adaptado a fiestas) --- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: .8rem;
+  color: #fff;
+  border-radius: var(--r-pill);
+  padding: 6px 12px;
+  background: var(--grad-cool);
+  box-shadow: var(--glow-cyan);
+}
+
+/* ------------------------------------------------------------------ */
+/* 5. Animaciones sutiles (el toque "vivo" de la app)                  */
+/* ------------------------------------------------------------------ */
+
+/* Flotar: la tarjeta sube y baja muy poquito */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.anim-float { animation: float 5s ease-in-out infinite; }
+
+/* Glow pulsante: el brillo "respira" */
+@keyframes glowPulse {
+  0%, 100% { box-shadow: var(--glow-violet); }
+  50%      { box-shadow: 0 0 0 1px rgba(139,92,246,.5), 0 14px 55px rgba(139,92,246,.45); }
+}
+.anim-glow { animation: glowPulse 3.5s ease-in-out infinite; }
+
+/* Aparecer: las pantallas entran con un fundido + leve subida */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Respeta a quien prefiere menos movimiento (accesibilidad) */
+@media (prefers-reduced-motion: reduce) {
+  .anim-float, .anim-glow { animation: none; }
+  * { transition: none !important; }
+}
+
+/* ------------------------------------------------------------------ */
+/* 6. Sistema de pantallas: solo una visible a la vez                  */
+/* ------------------------------------------------------------------ */
+.screen { display: none; }
+.screen.is-active {
+  display: block;
+  animation: fadeUp .35s ease both;
+  /* Espacio abajo para que la nav inferior no tape el contenido */
+  padding-bottom: 96px;
+}
+
+/* La nav inferior se oculta en el splash/registro */
+body[data-screen="splash"] .bottom-nav { display: none; }
+/* En el splash no queremos el espacio extra de abajo */
+#screen-splash.is-active { padding-bottom: 0; }
+
+/* ================================================================== */
+/* SPLASH + REGISTRO                                                   */
+/* ================================================================== */
+
+/* Cada sub-pantalla ocupa todo el alto y se centra verticalmente.
+   Solo se ve la que tenga .is-shown */
+.splash-page {
+  display: none;
+  min-height: 100dvh;
+  padding: 28px 24px calc(28px + env(safe-area-inset-bottom));
+  flex-direction: column;
+}
+.splash-page.is-shown {
+  display: flex;
+  animation: fadeUp .4s ease both;
+}
+
+/* --- Bienvenida --- */
+.splash-top {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 14px;
+}
+.splash-logo {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  display: grid;
+  place-items: center;
+  font-size: 3.4rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--grad-party);
+}
+.splash-title { font-size: 2.6rem; }
+.splash-sub { color: var(--ink-soft); font-size: 1.02rem; }
+
+/* Zona de botones, siempre pegada abajo */
+.splash-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+/* --- Formularios (login y registro) --- */
+.splash-form-top { margin: 8px 0 22px; }
+.splash-form-top h2 { margin-top: 4px; }
+.step-count { color: var(--violet); font-weight: 700; letter-spacing: .03em; }
+
+/* Campo de texto con etiqueta arriba; el borde brilla al enfocar */
+.splash-field-wrap {
+  display: block;
+  background: var(--bg-soft-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  transition: border-color .2s ease, box-shadow .25s ease;
+}
+.splash-field-wrap:focus-within {
+  border-color: var(--violet);
+  box-shadow: var(--glow-violet);
+}
+.splash-label {
+  display: block;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ink-faint);
+}
+.splash-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 500;
+  padding: 4px 0 2px;
+}
+.splash-input::placeholder { color: var(--ink-faint); }
+
+/* Empuja los botones del formulario hacia abajo */
+.splash-page[data-page="login"] .splash-bottom,
+.splash-page[data-page^="reg"]  .splash-bottom { margin-top: auto; }
+
+/* --- Indicador de pasos (puntitos 1-2-3) --- */
+.step-dots { display: flex; gap: 8px; margin: 6px 0 4px; }
+.step-dots i {
+  height: 6px;
+  width: 26px;
+  border-radius: var(--r-pill);
+  background: var(--line-strong);
+  transition: background .3s ease, box-shadow .3s ease;
+}
+.step-dots i.is-on {
+  background: var(--grad-party);
+  box-shadow: 0 0 12px rgba(139,92,246,.6);
+}
+
+/* --- Pantalla de "todo listo" del paso 3 --- */
+.splash-ready { text-align: center; margin-top: 26px; }
+.splash-ready-emoji { font-size: 3.4rem; }
+
+/* --- Botón "atrás" (flecha), reutilizable en paneles --- */
+.back-btn {
+  position: absolute;
+  top: 22px;
+  left: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--ink);
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: filter .2s ease, transform .15s ease;
+}
+.back-btn:hover  { filter: brightness(1.3); }
+.back-btn:active { transform: scale(.92); }
