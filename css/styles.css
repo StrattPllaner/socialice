@@ -1760,12 +1760,12 @@ body.no-scroll { overflow: hidden; }
 .size-ctrl span { font-weight: 700; min-width: 50px; text-align: center; }
 
 /* Calendario */
-.cal { background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px; }
-.cal-week { display: grid; grid-template-columns: repeat(7,1fr); margin-bottom: 6px; }
+.cal { background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 14px; overflow: hidden; }
+.cal-week { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; margin-bottom: 6px; }
 .cal-week span { text-align: center; font-size: .72rem; font-weight: 700; color: var(--ink-faint); }
-.cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 4px; }
 .cal-cell {
-  position: relative; aspect-ratio: 1; border: none; cursor: default;
+  position: relative; aspect-ratio: 1; min-width: 0; border: none; cursor: default;
   background: none; color: var(--ink-soft); font-family: inherit; font-weight: 600; font-size: .9rem;
   border-radius: 10px; display: grid; place-items: center;
 }
@@ -1823,11 +1823,12 @@ body.no-scroll { overflow: hidden; }
 .name-dot:active { transform: scale(.9); }
 .name-dot.sel { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--violet); }
 .name-dot.on  { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--cyan); }
-/* Botón "otro color" (selector nativo, limpio) */
+/* Botón "+" para elegir/agregar otro color (selector nativo) */
 .name-dot.custom {
-  overflow: hidden; border-style: dashed;
-  background-image: conic-gradient(#f43f5e,#f59e0b,#34d399,#00d4ff,#8b5cf6,#f43f5e);
+  overflow: hidden; border-style: dashed; border-color: var(--line-strong);
+  background: rgba(255,255,255,.05); color: var(--ink-soft);
 }
+.name-dot.custom span { font-size: 1.2rem; font-weight: 700; line-height: 1; }
 .name-dot.custom input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
 .anim-clear {
   font-family: inherit; font-weight: 700; font-size: .82rem; cursor: pointer;
@@ -1851,3 +1852,63 @@ body.no-scroll { overflow: hidden; }
   75%     { transform: rotate(12deg) scale(1.12); }
 }
 @media (prefers-reduced-motion: reduce) { .verif { animation: none; } }
+
+/* ================================================================== */
+/* MICRO-INTERACCIONES (sutiles, para que la app se sienta viva)      */
+/* ================================================================== */
+.btn, .chip, .icon-btn, .top-avatar, .name-dot, .grad-swatch,
+.add-btn, .rol-tile, .colab, .red, .cal-link, .ev2-bell, .filter-btn, .f-chip {
+  transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, filter .2s ease, background .2s ease;
+}
+
+@media (hover: hover) {
+  .btn:hover            { transform: translateY(-1px) scale(1.015); }
+  .chip:hover:not(.is-active) { transform: translateY(-1px); }
+  .icon-btn:hover       { transform: scale(1.08); }
+  .top-avatar:hover     { transform: scale(1.06); }
+  .name-dot:hover       { transform: scale(1.14); }
+  .grad-swatch:hover    { transform: scale(1.1); }
+  .colab:hover          { transform: translateY(-3px); }
+  .red:hover            { transform: translateY(-2px); }
+  .cal-link:hover, .filter-btn:hover, .add-btn:hover { transform: translateY(-1px); }
+  /* La rueda de ajustes gira al pasar el cursor */
+  .icon-btn.sm:hover svg { transform: rotate(60deg); }
+}
+
+/* La rueda de ajustes gira más al hacer clic */
+.icon-btn.sm svg { transition: transform .5s cubic-bezier(.2,.8,.2,1); }
+.icon-btn.sm:active svg { transform: rotate(200deg); }
+
+/* Compresión al presionar (feedback táctil) */
+.btn:active, .chip:active, .add-btn:active, .cal-link:active,
+.red:active, .colab:active, .ev2-bell:active, .filter-btn:active { transform: scale(.95); }
+.ev2:active, .voy-card:active, .friend-card:active, .mini-card:active,
+.event-card:active, .past2:active, .rol-tile:active { transform: scale(.985); }
+
+/* Rebote del icono al cambiar de pestaña en la barra inferior */
+.nav-btn.is-active .nav-icon svg { animation: navPop .42s cubic-bezier(.2,.8,.2,1); }
+@keyframes navPop {
+  0%   { transform: scale(.7); }
+  55%  { transform: scale(1.22) translateY(-2px); }
+  100% { transform: scale(1) translateY(-1px); }
+}
+
+/* El botón principal "respira" muy levemente al pasar el cursor (CTA) */
+@media (hover: hover) {
+  .btn.full:hover { box-shadow: 0 0 0 1px rgba(139,92,246,.5), 0 12px 34px rgba(139,92,246,.4); }
+}
+
+/* Las tarjetas de evento entran escalonadas (sutil) */
+.event-list > * { animation: cardIn .4s ease both; }
+.event-list > *:nth-child(2) { animation-delay: .05s; }
+.event-list > *:nth-child(3) { animation-delay: .1s; }
+.event-list > *:nth-child(4) { animation-delay: .15s; }
+.event-list > *:nth-child(n+5) { animation-delay: .2s; }
+@keyframes cardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-btn.is-active .nav-icon svg, .event-list > * { animation: none; }
+  .btn:hover, .icon-btn:hover, .top-avatar:hover, .name-dot:hover,
+  .grad-swatch:hover, .colab:hover, .red:hover { transform: none; }
+  .icon-btn.sm:hover svg, .icon-btn.sm:active svg { transform: none; }
+}

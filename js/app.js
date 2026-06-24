@@ -215,9 +215,18 @@ function tarjetaProximamente(e) {
       </div>
       <div class="ev2-foot">
         <span class="ev2-place">Aún sin fecha</span>
-        <button class="ev2-bell" onclick="event.stopPropagation(); this.classList.toggle('on'); this.textContent=this.classList.contains('on')?'🔔 Avisarme ✓':'🔔 Avísame'">🔔 Avísame</button>
+        <button class="ev2-bell ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)">${e._interesado ? '⭐ Interesado ✓' : '⭐ Interesado'}</button>
       </div>
     </article>`;
+}
+
+// Marca/quita interés en un evento (para recibir avisos)
+function interesado(id, btn) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  e._interesado = !e._interesado;
+  btn.classList.toggle('on', e._interesado);
+  btn.textContent = e._interesado ? '⭐ Interesado ✓' : '⭐ Interesado';
+  toast(e._interesado ? `¡Listo! Te avisaremos de ${e.nombre} 🔔` : 'Ya no recibirás avisos');
 }
 
 /* ===================================================================
@@ -619,8 +628,8 @@ function pasoPortada() {
     <div class="name-colors">
       ${NAME_COLORS.map((c) => `<button class="name-dot ${(!anim && draft.cover.titleColor === c) ? 'sel' : ''}"
           style="background:${c}" onclick="setNombreColor('${c}')"></button>`).join('')}
-      <label class="name-dot custom ${(!anim && !NAME_COLORS.includes(draft.cover.titleColor)) ? 'sel' : ''}" title="Otro color"
-             style="background:${(!anim && !NAME_COLORS.includes(draft.cover.titleColor)) ? draft.cover.titleColor : 'transparent'}">
+      <label class="name-dot custom ${(!anim && !NAME_COLORS.includes(draft.cover.titleColor)) ? 'sel' : ''}" title="Otro color">
+        <span>+</span>
         <input type="color" value="${anim ? '#8b5cf6' : draft.cover.titleColor}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
       </label>
     </div>
@@ -631,8 +640,12 @@ function pasoPortada() {
       <span class="anim-hint">${anim ? 'activo' : 'elige 2 o más'}</span>
     </div>
     <div class="name-colors">
-      ${NAME_COLORS.filter((c) => c !== '#ffffff').map((c) => `<button class="name-dot ${draft.cover.anim.includes(c) ? 'on' : ''}"
+      ${NAME_COLORS.map((c) => `<button class="name-dot ${draft.cover.anim.includes(c) ? 'on' : ''}"
           style="background:${c}" onclick="toggleAnimColor('${c}')">${draft.cover.anim.includes(c) ? '✓' : ''}</button>`).join('')}
+      <label class="name-dot custom" title="Agregar otro color">
+        <span>+</span>
+        <input type="color" value="#8b5cf6" onchange="addAnimColor(this.value)">
+      </label>
       ${draft.cover.anim.length ? `<button class="anim-clear" onclick="limpiarAnim()">Quitar</button>` : ''}
     </div>`;
 }
@@ -751,6 +764,8 @@ function toggleAnimColor(c) {
   pintarCrear();
 }
 function limpiarAnim() { draft.cover.anim = []; pintarCrear(); }
+// Agrega un color personalizado a la animación
+function addAnimColor(c) { if (!draft.cover.anim.includes(c)) draft.cover.anim.push(c); pintarCrear(); }
 
 let _coverDrag = null;  // 'title' o índice de texto
 function coverGrab(ev, target) {
@@ -1812,7 +1827,9 @@ function abrirEvento(id) {
     <div class="sheet-actions">
       ${esMio
         ? `<button class="btn full" onclick="cerrarSheet(); editarFiesta('${e.id}')">✎ Editar evento</button>`
-        : `<button class="btn full ${voy ? 'is-going' : ''}" onclick="asistir('${e.id}', this)">${voy ? '✓ Voy a ir' : 'Asistir a esta fiesta'}</button>`}
+        : e.proximamente
+          ? `<button class="btn full ${e._interesado ? 'is-going' : ''}" onclick="interesado('${e.id}', this)">${e._interesado ? '⭐ Interesado ✓' : '⭐ Me interesa'}</button>`
+          : `<button class="btn full ${voy ? 'is-going' : ''}" onclick="asistir('${e.id}', this)">${voy ? '✓ Voy a ir' : 'Asistir a esta fiesta'}</button>`}
       <button class="icon-btn" onclick="compartir('${e.nombre}')" aria-label="Compartir">${icon('share')}</button>
     </div>
   `);
@@ -2001,6 +2018,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'editar')  editarPerfil();
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('paso')) { draft.paso = +p.get('paso'); pintarCrear(); }
+  if (p.get('cal')) verCalendario();
   if (p.get('seedvenue')) {
     draft.paso = 4; pintarCrear();
     const add = (tipo, x, y, w, h) => { const t = VENUE_TOOLS[tipo]; pisoActual().items.push({ id: ++draft.seq, tipo, x, y, w: w || t.w, h: h || t.h, rot: 0 }); };
