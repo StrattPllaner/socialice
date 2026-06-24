@@ -20,7 +20,7 @@ const ICON_PATHS = {
   ticket: '<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v2a1.5 1.5 0 0 0 0 5v2A1.5 1.5 0 0 1 18.5 18h-13A1.5 1.5 0 0 1 4 16.5v-2a1.5 1.5 0 0 0 0-5Z"/><path d="M14 6.5v11" stroke-dasharray="1.5 2.6"/>',
   mic:    '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/>',
   search: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-3.4-3.4"/>',
-  gear:   '<circle cx="12" cy="12" r="3"/><path d="M19.1 13.4a7.7 7.7 0 0 0 0-2.8l1.8-1.4-2-3.4-2.1.9a7.5 7.5 0 0 0-2.4-1.4L12 3h-4 .1L7.6 5.3a7.5 7.5 0 0 0-2.4 1.4l-2.1-.9-2 3.4 1.8 1.4a7.7 7.7 0 0 0 0 2.8l-1.8 1.4 2 3.4 2.1-.9a7.5 7.5 0 0 0 2.4 1.4L8 21h4l.4-2.3a7.5 7.5 0 0 0 2.4-1.4l2.1.9 2-3.4Z"/>',
+  gear:   '<circle cx="12" cy="12" r="3"/><path d="M19.4 13a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 0 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 0 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34H9a1.7 1.7 0 0 0 1-1.55V3a2 2 0 0 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87V9a1.7 1.7 0 0 0 1.55 1H21a2 2 0 0 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z"/>',
   share:  '<path d="M12 3.5v11"/><path d="m8 7 4-4 4 4"/><path d="M6 12v6.5A1.5 1.5 0 0 0 7.5 20h9a1.5 1.5 0 0 0 1.5-1.5V12"/>',
   chev:   '<path d="m9 5 7 7-7 7"/>',
   mail:   '<rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 8 8 5.5L20 8"/>',
@@ -171,12 +171,18 @@ function pintarEventos() {
     : `<p class="empty">No hay fiestas en esta categoría 🙈</p>`;
 }
 
+// ¿El evento está casi lleno? (85% o más del cupo)
+function casiLleno(e) {
+  return e.capacidad && !e.proximamente && (e.asistentes / e.capacidad) >= 0.85;
+}
+
 // Tarjeta de evento (estilo editorial: título sobre la portada). Clicable.
 function tarjetaEvento(e) {
   return `
     <article class="ev2" onclick="abrirEvento('${e.id}')">
       <div class="ev2-cover" style="${coverStyle(e)}">
         <span class="ev2-price">${e.precio}</span>
+        ${casiLleno(e) ? `<span class="ev2-warn">🔥 ¡Últimos lugares!</span>` : ''}
         <div class="ev2-overlay">
           <h3 ${nombreAttrs(e)}>${e.nombre}</h3>
           <p class="ev2-when">${e.fecha}</p>
@@ -184,7 +190,7 @@ function tarjetaEvento(e) {
       </div>
       <div class="ev2-foot">
         <span class="ev2-place">📍 ${e.lugar} · ${e.ciudad}</span>
-        <span class="ev2-people">👥 ${e.asistentes}</span>
+        <span class="ev2-people ${casiLleno(e) ? 'full' : ''}">👥 ${e.asistentes}${e.capacidad ? '/' + e.capacidad : ''}</span>
       </div>
     </article>`;
 }
@@ -202,6 +208,11 @@ function tarjetaVoy(e) {
     </button>`;
 }
 
+// Cuántos interesados tiene un evento (con tu interés incluido)
+function totalInteresados(e) {
+  return (e.interesados || 0) + (e._interesado ? 1 : 0);
+}
+
 // Tarjeta "Próximamente"
 function tarjetaProximamente(e) {
   return `
@@ -214,7 +225,7 @@ function tarjetaProximamente(e) {
         </div>
       </div>
       <div class="ev2-foot">
-        <span class="ev2-place">Aún sin fecha</span>
+        <span class="ev2-place" id="int-${e.id}">👀 ${totalInteresados(e)} interesados</span>
         <button class="ev2-bell ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)">${e._interesado ? '⭐ Interesado ✓' : '⭐ Interesado'}</button>
       </div>
     </article>`;
@@ -226,6 +237,9 @@ function interesado(id, btn) {
   e._interesado = !e._interesado;
   btn.classList.toggle('on', e._interesado);
   btn.textContent = e._interesado ? '⭐ Interesado ✓' : '⭐ Interesado';
+  // Actualiza el contador de interesados si está visible
+  const c = document.getElementById('int-' + id);
+  if (c) c.textContent = `👀 ${totalInteresados(e)} interesados`;
   toast(e._interesado ? `¡Listo! Te avisaremos de ${e.nombre} 🔔` : 'Ya no recibirás avisos');
 }
 
@@ -634,19 +648,19 @@ function pasoPortada() {
       </label>
     </div>
 
-    <!-- Color animado: el organizador elige 2+ colores -->
+    <!-- Color animado: el organizador AGREGA los colores que quiere -->
     <div class="row-mini" style="margin-top:14px">
       <span class="filtro-label" style="margin:0">✨ Color animado</span>
-      <span class="anim-hint">${anim ? 'activo' : 'elige 2 o más'}</span>
+      <span class="anim-hint">${anim ? 'activo' : 'agrega 2 o más'}</span>
     </div>
     <div class="name-colors">
-      ${NAME_COLORS.map((c) => `<button class="name-dot ${draft.cover.anim.includes(c) ? 'on' : ''}"
-          style="background:${c}" onclick="toggleAnimColor('${c}')">${draft.cover.anim.includes(c) ? '✓' : ''}</button>`).join('')}
-      <label class="name-dot custom" title="Agregar otro color">
-        <span>+</span>
-        <input type="color" value="#8b5cf6" onchange="addAnimColor(this.value)">
-      </label>
-      ${draft.cover.anim.length ? `<button class="anim-clear" onclick="limpiarAnim()">Quitar</button>` : ''}
+      ${draft.cover.anim.map((c) => `<button class="name-dot on" style="background:${c}" onclick="removeAnimColor('${c}')" title="Quitar">×</button>`).join('')}
+      <button class="name-dot add-anim" onclick="toggleAnimPalette()" title="Agregar color"><span>+</span></button>
+      ${draft.cover.anim.length ? `<button class="anim-clear" onclick="limpiarAnim()">Vaciar</button>` : ''}
+    </div>
+    <div class="anim-palette ${_animOpen ? 'open' : ''}" id="animPalette">
+      ${NAME_COLORS.filter((c) => !draft.cover.anim.includes(c)).map((c) => `<button class="name-dot" style="background:${c}" onclick="addAnimColor('${c}')"></button>`).join('')}
+      <label class="name-dot custom" title="Otro color"><span>+</span><input type="color" value="#22d3ee" onchange="addAnimColor(this.value)"></label>
     </div>`;
 }
 
@@ -756,16 +770,22 @@ function setNombreColorLive(c) {
   const t = document.getElementById('coverTitle');
   if (t) { t.classList.remove('name-anim'); t.style.backgroundImage = ''; t.style.color = c; }
 }
-// Agrega/quita un color de la animación del nombre
-function toggleAnimColor(c) {
-  const i = draft.cover.anim.indexOf(c);
-  if (i >= 0) draft.cover.anim.splice(i, 1);
-  else draft.cover.anim.push(c);
+// Abre/cierra la paleta para agregar colores a la animación
+let _animOpen = false;
+function toggleAnimPalette() { _animOpen = !_animOpen; pintarCrear(); }
+// Agrega un color a la animación (y deja la paleta abierta)
+function addAnimColor(c) {
+  if (!draft.cover.anim.includes(c)) draft.cover.anim.push(c);
+  _animOpen = true;
   pintarCrear();
 }
-function limpiarAnim() { draft.cover.anim = []; pintarCrear(); }
-// Agrega un color personalizado a la animación
-function addAnimColor(c) { if (!draft.cover.anim.includes(c)) draft.cover.anim.push(c); pintarCrear(); }
+// Quita un color de la animación
+function removeAnimColor(c) {
+  const i = draft.cover.anim.indexOf(c);
+  if (i >= 0) draft.cover.anim.splice(i, 1);
+  pintarCrear();
+}
+function limpiarAnim() { draft.cover.anim = []; _animOpen = false; pintarCrear(); }
 
 let _coverDrag = null;  // 'title' o índice de texto
 function coverGrab(ev, target) {
@@ -1480,7 +1500,7 @@ function perfilOrganizador(u) {
           <span class="stat-sep"></span>
           <div class="stat"><strong>${kilo(u.stats.asistentes)} 🔥</strong><small>asistentes</small></div>
           <span class="stat-sep"></span>
-          <button class="stat as-btn" onclick="verSeguidores()"><strong>${u.stats.seguidores}</strong><small>seguidores</small></button>
+          <button class="stat as-btn" onclick="verSeguidores()"><strong class="name-anim" style="background-image:${animGrad(['#8b5cf6','#f43f5e','#00d4ff','#f59e0b'])}">${u.stats.seguidores}</strong><small>seguidores</small></button>
         </div>
 
         ${redesHTML(u)}
@@ -1493,7 +1513,7 @@ function perfilOrganizador(u) {
     </section>
 
     ${(u.colaboradores && u.colaboradores.length) ? `
-      <div class="row-between"><h3>🤝 Colaboradores</h3></div>
+      <div class="row-between"><h3>👥 Organizadores</h3></div>
       <div class="colab-row">
         ${u.colaboradores.map((c) => `
           <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
@@ -1761,8 +1781,39 @@ function cerrarSheet(ev) {
   // Si se hizo clic dentro del panel (no en el fondo), no cerrar
   if (ev && ev.target.closest('.sheet') && ev.type === 'click' &&
       ev.currentTarget.id === 'sheetOverlay' && ev.target !== ev.currentTarget) return;
+  const s = document.getElementById('sheet');
+  s.style.transition = ''; s.style.transform = '';
   document.getElementById('sheetOverlay').classList.remove('is-on');
   document.body.classList.remove('no-scroll');
+}
+
+// --- Arrastrar el panel hacia abajo para cerrarlo ---
+let _sheetY = null;
+function sheetDragStart(ev) {
+  _sheetY = ev.clientY;
+  const s = document.getElementById('sheet');
+  s.style.transition = 'none';
+  window.addEventListener('pointermove', sheetDragMove);
+  window.addEventListener('pointerup', sheetDragEnd);
+}
+function sheetDragMove(ev) {
+  if (_sheetY == null) return;
+  const dy = Math.max(0, ev.clientY - _sheetY);
+  const s = document.getElementById('sheet');
+  s.style.transform = `translateY(${dy}px)`;
+  // El fondo se aclara conforme arrastras
+  document.getElementById('sheetOverlay').style.opacity = Math.max(.3, 1 - dy / 500);
+}
+function sheetDragEnd(ev) {
+  const dy = Math.max(0, ev.clientY - (_sheetY ?? ev.clientY));
+  window.removeEventListener('pointermove', sheetDragMove);
+  window.removeEventListener('pointerup', sheetDragEnd);
+  _sheetY = null;
+  const s = document.getElementById('sheet');
+  const ov = document.getElementById('sheetOverlay');
+  s.style.transition = ''; ov.style.opacity = '';
+  if (dy > 110) cerrarSheet();          // si arrastraste suficiente, cierra
+  else s.style.transform = '';          // si no, regresa a su lugar
 }
 
 // --- Ver detalle de un evento ---
@@ -1787,8 +1838,12 @@ function abrirEvento(id) {
     <div class="ev-rows">
       <div class="ev-row">${icon('pin','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
       <div class="ev-row">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Edad: ${edadTxt}</small></div></div>
-      <div class="ev-row">${icon('users','mute')}<div><strong>${cupo} boletos</strong><small>Capacidad del lugar</small></div></div>
+      ${e.proximamente
+        ? `<div class="ev-row">${icon('users','mute')}<div><strong>👀 ${totalInteresados(e)} interesados</strong><small>Sé de los primeros en enterarte</small></div></div>`
+        : `<div class="ev-row">${icon('users','mute')}<div><strong>${cupo} boletos</strong><small>Capacidad del lugar</small></div></div>`}
     </div>
+
+    ${casiLleno(e) ? `<div class="warn-full">🔥 ¡Casi se agotan los lugares! Quedan pocos.</div>` : ''}
 
     <!-- Organizadores del evento -->
     <div class="row-between"><h3>👥 Organizan</h3></div>

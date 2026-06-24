@@ -272,8 +272,11 @@
        ========================================================= -->
   <div id="sheetOverlay" class="sheet-overlay" onclick="cerrarSheet(event)">
     <div class="sheet" id="sheet" role="dialog" aria-modal="true">
-      <div class="sheet-grip"></div>
-      <div class="sheet-head">
+      <!-- Manija: arrástrala hacia abajo para cerrar -->
+      <div class="sheet-handle" onpointerdown="sheetDragStart(event)">
+        <div class="sheet-grip"></div>
+      </div>
+      <div class="sheet-head" onpointerdown="sheetDragStart(event)">
         <h3 id="sheetTitle"></h3>
         <button class="icon-btn sm" onclick="cerrarSheet()" aria-label="Cerrar">✕</button>
       </div>
