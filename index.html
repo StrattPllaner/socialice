@@ -25,8 +25,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <!-- Nuestro ADN visual -->
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- Nuestro ADN visual (con versión para evitar caché vieja) -->
+  <link rel="stylesheet" href="css/styles.css?v=12">
 </head>
 
 <!-- data-screen lo usamos para saber qué pantalla está activa
@@ -287,15 +287,27 @@
   <div id="toast" class="toast"></div>
 
   <!-- Primero los datos de ejemplo, luego la lógica que los usa -->
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data.js?v=12"></script>
+  <script src="js/app.js?v=12"></script>
 
-  <!-- Registro del Service Worker (PWA / offline) -->
+  <!-- Service Worker: registra el nuevo (que ya NO cachea) y recarga al actualizar -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .catch(err => console.warn('[PWA] No se pudo registrar el SW:', err));
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+          reg.update();
+          reg.addEventListener('updatefound', () => {
+            const nuevo = reg.installing;
+            nuevo && nuevo.addEventListener('statechange', () => {
+              if (nuevo.state === 'activated') location.reload();
+            });
+          });
+        }).catch(() => {});
+      });
+      // Si cambia el SW que controla la página, recarga una vez para tomar lo nuevo
+      let _recargado = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (_recargado) return; _recargado = true; location.reload();
       });
     }
   </script>
