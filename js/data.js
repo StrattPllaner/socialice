@@ -49,11 +49,11 @@ const DATA = {
 
   // Fiestas. Campos: edad ('18+', solo mayores) y cuando ('hoy','semana','mes').
   eventos: [
-    { id:'e1', nombre:'Neon Nights',    fecha:'Vie 27 jun · 9:00 pm', dia:27, lugar:'Terraza Skyline', ciudad:'Polanco',    edad:'18+', cuando:'semana', organizador:'Andrea Ríos', emoji:'🌃', grad:'linear-gradient(135deg,#2f7bff,#38bdf8)', precio:'$250',  asistentes:184, capacidad:200, cat:['semana','populares','cerca'] },
-    { id:'e2', nombre:'Glow Party',     fecha:'Sáb 28 jun · 10:00 pm',dia:28, lugar:'Club Aurora',     ciudad:'Roma Norte', edad:'18+', cuando:'semana', organizador:'Pulse Crew',  emoji:'✨', grad:'linear-gradient(135deg,#0ea5e9,#2563eb)', precio:'$300',  asistentes:332, capacidad:350, cat:['semana','populares'] },
-    { id:'e3', nombre:'Rooftop Sunset', fecha:'Dom 29 jun · 6:00 pm', dia:29, lugar:'Hotel Mirage',    ciudad:'Condesa',    edad:'18+', cuando:'hoy',    organizador:'Andrea Ríos', emoji:'🌇', grad:'linear-gradient(135deg,#38bdf8,#1d4ed8)', precio:'Gratis',asistentes:95,  capacidad:300, cat:['semana','cerca'], voy:true },
-    { id:'e4', nombre:'Bass Drop',      fecha:'Vie 4 jul · 11:00 pm', dia:4,  lugar:'Underground 21',  ciudad:'Centro',     edad:'18+', cuando:'mes',    organizador:'Pulse Crew',  emoji:'🔊', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', precio:'$280',  asistentes:210, capacidad:250, cat:['populares'], voy:true },
-    { id:'e5', nombre:'Aurora Fest',    fecha:'Próximamente',         dia:null,lugar:'Por anunciar',    ciudad:'CDMX',       edad:'18+', cuando:'mes',    organizador:'Andrea Ríos', emoji:'🌌', grad:'linear-gradient(135deg,#6366f1,#22d3ee)', precio:'Pronto', asistentes:0, interesados:312, cat:['populares'], proximamente:true }
+    { id:'e1', fechaISO:'2026-06-27T21:00', nombre:'Neon Nights',    fecha:'Vie 27 jun · 9:00 pm', dia:27, lugar:'Terraza Skyline', ciudad:'Polanco',    edad:'18+', cuando:'semana', organizador:'Andrea Ríos', emoji:'🌃', grad:'linear-gradient(135deg,#2f7bff,#38bdf8)', precio:'$250',  asistentes:184, capacidad:200, cat:['semana','populares','cerca'] },
+    { id:'e2', fechaISO:'2026-06-28T22:00', nombre:'Glow Party',     fecha:'Sáb 28 jun · 10:00 pm',dia:28, lugar:'Club Aurora',     ciudad:'Roma Norte', edad:'18+', cuando:'semana', organizador:'Pulse Crew',  emoji:'✨', grad:'linear-gradient(135deg,#0ea5e9,#2563eb)', precio:'$300',  asistentes:332, capacidad:350, cat:['semana','populares'] },
+    { id:'e3', fechaISO:'2026-06-29T18:00', nombre:'Rooftop Sunset', fecha:'Dom 29 jun · 6:00 pm', dia:29, lugar:'Hotel Mirage',    ciudad:'Condesa',    edad:'18+', cuando:'hoy',    organizador:'Andrea Ríos', emoji:'🌇', grad:'linear-gradient(135deg,#38bdf8,#1d4ed8)', precio:'Gratis',asistentes:95,  capacidad:300, cat:['semana','cerca'], voy:true },
+    { id:'e4', fechaISO:'2026-07-04T23:00', nombre:'Bass Drop',      fecha:'Vie 4 jul · 11:00 pm', dia:4,  lugar:'Underground 21',  ciudad:'Centro',     edad:'18+', cuando:'mes',    organizador:'Pulse Crew',  emoji:'🔊', grad:'linear-gradient(135deg,#06b6d4,#3b82f6)', precio:'$280',  asistentes:210, capacidad:250, cat:['populares'], voy:true },
+    { id:'e5', fechaISO:'', nombre:'Aurora Fest',    fecha:'Próximamente',         dia:null,lugar:'Por anunciar',    ciudad:'CDMX',       edad:'18+', cuando:'mes',    organizador:'Andrea Ríos', emoji:'🌌', grad:'linear-gradient(135deg,#6366f1,#22d3ee)', precio:'Pronto', asistentes:0, interesados:312, cat:['populares'], proximamente:true }
   ],
 
   destacadoId: 'e1',
@@ -88,5 +88,21 @@ const DATA = {
     { nombre:'Camila Reyes', usuario:'@cami', avatar:'🐱', color:'linear-gradient(135deg,#22d3ee,#818cf8)', enComun:3 },
     { nombre:'Tomás Vega',   usuario:'@tomv', avatar:'🛹', color:'linear-gradient(135deg,#fb7185,#f59e0b)', enComun:1 },
     { nombre:'Renata Gil',   usuario:'@ren',  avatar:'🌙', color:'linear-gradient(135deg,#a78bfa,#f472b6)', enComun:5 }
+  ],
+
+  // Gente para las listas de invitados ("quién va")
+  gente: [
+    { nombre:'Mateo Lara',    avatar:'🐺', color:'linear-gradient(135deg,#06b6d4,#3b82f6)' },
+    { nombre:'Sofía Mendez',  avatar:'🌸', color:'linear-gradient(135deg,#ec4899,#f43f5e)' },
+    { nombre:'Valeria Ortiz', avatar:'🦋', color:'linear-gradient(135deg,#f59e0b,#ec4899)' },
+    { nombre:'Diego Cruz',    avatar:'🎧', color:'linear-gradient(135deg,#8b5cf6,#06b6d4)' },
+    { nombre:'Camila Reyes',  avatar:'🐱', color:'linear-gradient(135deg,#22d3ee,#818cf8)' },
+    { nombre:'Tomás Vega',    avatar:'🛹', color:'linear-gradient(135deg,#fb7185,#f59e0b)' },
+    { nombre:'Renata Gil',    avatar:'🌙', color:'linear-gradient(135deg,#a78bfa,#f472b6)' },
+    { nombre:'Iker Solís',    avatar:'🦊', color:'linear-gradient(135deg,#0ea5e9,#6366f1)' },
+    { nombre:'Lucía Paz',     avatar:'🐬', color:'linear-gradient(135deg,#22d3ee,#3b82f6)' },
+    { nombre:'Bruno Díaz',    avatar:'🦁', color:'linear-gradient(135deg,#f59e0b,#ef4444)' },
+    { nombre:'Ana Torres',    avatar:'🦄', color:'linear-gradient(135deg,#a78bfa,#22d3ee)' },
+    { nombre:'Pablo Marín',   avatar:'🐧', color:'linear-gradient(135deg,#38bdf8,#2563eb)' }
   ]
 };

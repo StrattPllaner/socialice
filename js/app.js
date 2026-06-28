@@ -1817,41 +1817,107 @@ function sheetDragEnd(ev) {
 }
 
 // --- Ver detalle de un evento ---
+/* ============ Página de evento (estilo Partiful) ============ */
+
+// Cuenta regresiva legible
+function cuentaRegresiva(e) {
+  if (!e.fechaISO) return e.proximamente ? 'Próximamente' : '';
+  const ev = new Date(e.fechaISO); const hoy = new Date();
+  const a = new Date(ev.getFullYear(), ev.getMonth(), ev.getDate());
+  const b = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const d = Math.round((a - b) / 86400000);
+  if (d < 0) return 'Ya pasó';
+  if (d === 0) return '¡Es hoy!';
+  if (d === 1) return 'Mañana';
+  if (d <= 7) return `Faltan ${d} días`;
+  return `En ${Math.ceil(d / 7)} semanas`;
+}
+
+// Conteo de respuestas (van / tal vez / no), con tu respuesta incluida
+function rsvpCounts(e) {
+  const base = e.asistentes || 0;
+  let van = base, tal = Math.round(base * 0.18), no = Math.round(base * 0.06);
+  if (e._rsvp === 'voy') van += 1;
+  else if (e._rsvp === 'tal') tal += 1;
+  else if (e._rsvp === 'no') no += 1;
+  return { van, tal, no };
+}
+
+// Muestra deterministe de invitados desde el pool
+function invitadosMuestra(e, n) {
+  const pool = DATA.gente || [];
+  if (!pool.length) return [];
+  const seed = e.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
+  const start = seed % pool.length;
+  const rot = pool.slice(start).concat(pool.slice(0, start));
+  const lista = [];
+  if (e._rsvp === 'voy') lista.push({ nombre: DATA.usuario.nombre + ' (tú)', avatar: DATA.usuario.avatar, color: DATA.usuario.color, yo: true });
+  return lista.concat(rot.slice(0, n));
+}
+
 function abrirEvento(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   if (!e) return;
-  const voy = !!e._voy;
+  if (!e._comentarios) e._comentarios = (COMENTARIOS_SEED[e.id] || []).map((c) => ({ ...c }));
   const esMio = e.organizador === DATA.usuario.nombre && DATA.usuario.rol === 'organizador';
-  const cupo = e.capacidad ? `${e.asistentes}/${e.capacidad}` : `${e.asistentes}`;
-
-  const edadTxt = (e.edadRango && e.edadRango.max)
-    ? `18–${e.edadRango.max} años`
-    : '18+';
-  const orgs = [{ nombre: e.organizador, avatar: DATA.usuario.avatar }].concat(e.organizadores || []);
+  const edadTxt = (e.edadRango && e.edadRango.max) ? `18–${e.edadRango.max} años` : '18+';
+  const orgs = [{ nombre: e.organizador, avatar: DATA.usuario.avatar, color: DATA.usuario.color }].concat(e.organizadores || []);
+  const c = rsvpCounts(e);
+  const cuenta = cuentaRegresiva(e);
+  const muestra = invitadosMuestra(e, 7);
 
   abrirSheet(e.nombre, `
+    <!-- Portada (no se toca) -->
     <div class="ev-cover" style="${coverStyle(e)}">
       <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
       <span class="event-price">${e.precio}</span>
     </div>
     ${((e.animColors && e.animColors.length >= 2) || (e.nombreColor && e.nombreColor !== '#ffffff')) ? `<div class="ev-title-wrap"><h2 ${nombreAttrs(e)}>${e.nombre}</h2></div>` : ''}
-    <div class="ev-rows">
-      <div class="ev-row">${icon('pin','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
-      <div class="ev-row">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Edad: ${edadTxt}</small></div></div>
-      ${e.proximamente
-        ? `<div class="ev-row">${icon('users','mute')}<div><strong>👀 ${totalInteresados(e)} interesados</strong><small>Sé de los primeros en enterarte</small></div></div>`
-        : `<div class="ev-row">${icon('users','mute')}<div><strong>${cupo} boletos</strong><small>Capacidad del lugar</small></div></div>`}
+
+    ${cuenta ? `<div class="ev-count ${cuenta === '¡Es hoy!' ? 'today' : ''}">⏳ ${cuenta}</div>` : ''}
+
+    <!-- Anfitrión -->
+    <div class="ev-host">
+      <div class="ev-host-avas">${orgs.slice(0, 3).map((o) => `<span class="ev-host-ava" style="background:${o.color || 'var(--grad-cool)'}">${o.avatar || '🎤'}</span>`).join('')}</div>
+      <div><small>Organiza</small><strong>${orgs.map((o) => o.nombre.split(' ')[0]).join(', ')}</strong></div>
+    </div>
+
+    <!-- Fecha y lugar con acciones -->
+    <div class="ev-line">
+      <div class="ev-line-main">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Edad: ${edadTxt}</small></div></div>
+      ${e.fechaISO ? `<button class="ev-line-act" onclick="addCalendario('${e.id}')">＋ Calendario</button>` : ''}
+    </div>
+    <div class="ev-line">
+      <div class="ev-line-main">${icon('pin','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
+      <button class="ev-line-act" onclick="toast('Mapa · próximamente 🗺️')">Ver mapa</button>
     </div>
 
     ${casiLleno(e) ? `<div class="warn-full">🔥 ¡Casi se agotan los lugares! Quedan pocos.</div>` : ''}
 
-    <!-- Organizadores del evento -->
-    <div class="row-between"><h3>👥 Organizan</h3></div>
-    <div class="org-strip">
-      ${orgs.map((o) => `<div class="org-chip"><span class="org-chip-ava">${o.avatar || '🎤'}</span>${o.nombre.split(' ')[0]}</div>`).join('')}
-    </div>
+    ${esMio ? '' : `
+      <!-- RSVP: ¿vas a ir? -->
+      <div class="rsvp">
+        <p class="rsvp-q">${e.proximamente ? '¿Te interesa?' : '¿Vas a ir?'}</p>
+        ${e.proximamente
+          ? `<button class="rsvp-btn solo ${e._interesado ? 'on' : ''}" onclick="interesadoPage('${e.id}')">${e._interesado ? '⭐ Interesado ✓' : '⭐ Me interesa'}</button>`
+          : `<div class="rsvp-row">
+              <button class="rsvp-btn voy ${e._rsvp === 'voy' ? 'on' : ''}" onclick="setRsvp('${e.id}','voy')">✅<span>Voy</span></button>
+              <button class="rsvp-btn tal ${e._rsvp === 'tal' ? 'on' : ''}" onclick="setRsvp('${e.id}','tal')">🤔<span>Tal vez</span></button>
+              <button class="rsvp-btn no ${e._rsvp === 'no' ? 'on' : ''}" onclick="setRsvp('${e.id}','no')">🙅<span>No puedo</span></button>
+            </div>`}
+      </div>`}
 
-    <button class="maps-btn" onclick="toast('Vista en Google Maps · próximamente 🗺️')">📍 Ver el lugar en Google Maps</button>
+    <!-- Quién va -->
+    <div class="row-between"><h3>Quién va</h3><span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span></div>
+    <div class="rsvp-counts">
+      <span class="rc voy">✅ ${c.van}</span>
+      <span class="rc tal">🤔 ${c.tal}</span>
+      <span class="rc no">🙅 ${c.no}</span>
+    </div>
+    <div class="ava-stack" onclick="verListaInvitados('${e.id}')">
+      ${muestra.map((g) => `<span class="ava-mini" style="background:${g.color}">${g.avatar}</span>`).join('')}
+      ${c.van > muestra.length ? `<span class="ava-more">+${c.van - muestra.length}</span>` : ''}
+    </div>
 
     ${(e.boletos && e.boletos.length) ? `
       <div class="row-between"><h3>🎟️ Boletos</h3></div>
@@ -1861,8 +1927,15 @@ function abrirEvento(id) {
             <div><strong>${b.nombre || 'Boleto'}</strong><small>${b.cantidad} disponibles</small></div>
             <span class="zona-precio">${(+b.precio) > 0 ? '$' + b.precio : 'Gratis'}</span>
           </div>`).join('')}
-      </div>
-    ` : ''}
+      </div>` : ''}
+
+    <p class="ev-desc">Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía 🎶</p>
+
+    <!-- Invitar -->
+    <div class="invite-row">
+      <button class="btn full" onclick="copiarInvitacion('${e.id}')">🔗 Copiar invitación</button>
+      <button class="icon-btn" onclick="compartir('${e.nombre}')" aria-label="Compartir">${icon('share')}</button>
+    </div>
 
     ${(e.noticias && e.noticias.length) ? `
       <div class="row-between"><h3>📰 Publicaciones</h3></div>
@@ -1876,28 +1949,117 @@ function abrirEvento(id) {
             ${n.texto ? `<p class="post-text">${n.texto}</p>` : ''}
             ${mediaHTML(n)}
           </div>`).join('')}
-      </div>
-    ` : `<p class="ev-desc">Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía 🎶</p>`}
+      </div>` : ''}
 
-    <div class="sheet-actions">
-      ${esMio
-        ? `<button class="btn full" onclick="cerrarSheet(); editarFiesta('${e.id}')">✎ Editar evento</button>`
-        : e.proximamente
-          ? `<button class="btn full ${e._interesado ? 'is-going' : ''}" onclick="interesado('${e.id}', this)">${e._interesado ? '⭐ Interesado ✓' : '⭐ Me interesa'}</button>`
-          : `<button class="btn full ${voy ? 'is-going' : ''}" onclick="asistir('${e.id}', this)">${voy ? '✓ Voy a ir' : 'Asistir a esta fiesta'}</button>`}
-      <button class="icon-btn" onclick="compartir('${e.nombre}')" aria-label="Compartir">${icon('share')}</button>
+    <!-- Muro de comentarios -->
+    <div class="row-between"><h3>💬 Comentarios</h3></div>
+    <div class="post-compose">
+      <textarea id="evComInput" placeholder="Escribe un comentario…" rows="1"></textarea>
+      <div class="post-compose-bar">
+        <span class="post-attach-info"></span>
+        <button class="add-btn" onclick="addComentario('${e.id}')">Enviar</button>
+      </div>
     </div>
+    <div class="com-list" id="evComList">${comentariosHTML(e)}</div>
+
+    ${esMio ? `<div class="sheet-actions"><button class="btn full" onclick="cerrarSheet(); editarFiesta('${e.id}')">✎ Editar evento</button></div>` : ''}
   `);
 }
 
-// Confirmar/cancelar asistencia
-function asistir(id, btn) {
-  const e = DATA.eventos.find((ev) => ev.id === id);
-  e._voy = !e._voy;
-  btn.classList.toggle('is-going', e._voy);
-  btn.textContent = e._voy ? '✓ Voy a ir' : 'Asistir a esta fiesta';
-  toast(e._voy ? `¡Confirmado! Vas a ${e.nombre} 🎉` : 'Cancelaste tu asistencia');
+// Comentarios → HTML
+function comentariosHTML(e) {
+  if (!e._comentarios || !e._comentarios.length) return `<p class="empty">Sé el primero en comentar 💬</p>`;
+  return e._comentarios.map((c) => `
+    <div class="com-item">
+      <span class="com-ava" style="background:${c.color}">${c.avatar}</span>
+      <div class="com-body"><strong>${c.nombre} <small>${c.fecha || ''}</small></strong><p>${c.texto}</p></div>
+    </div>`).join('');
 }
+function addComentario(id) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  const inp = document.getElementById('evComInput');
+  const texto = inp.value.trim();
+  if (!texto) return;
+  const u = DATA.usuario;
+  e._comentarios.unshift({ nombre: u.nombre.split(' ')[0], avatar: u.avatar, color: u.color, texto, fecha: 'ahora' });
+  inp.value = '';
+  document.getElementById('evComList').innerHTML = comentariosHTML(e);
+}
+
+// RSVP (Voy / Tal vez / No puedo)
+function setRsvp(id, estado) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  e._rsvp = (e._rsvp === estado) ? null : estado;
+  e._voy = e._rsvp === 'voy';
+  const msg = { voy: `¡Confirmado! Vas a ${e.nombre} 🎉`, tal: 'Quedaste como "tal vez" 🤔', no: 'Marcaste que no puedes 🙅' };
+  toast(e._rsvp ? msg[e._rsvp] : 'Quitaste tu respuesta');
+  abrirEvento(id);
+}
+// Interés desde la página
+function interesadoPage(id) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  e._interesado = !e._interesado;
+  toast(e._interesado ? `¡Listo! Te avisaremos de ${e.nombre} 🔔` : 'Ya no recibirás avisos');
+  abrirEvento(id);
+}
+
+// Lista completa de invitados (agrupada por respuesta)
+function verListaInvitados(id) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  const c = rsvpCounts(e);
+  const van = invitadosMuestra(e, Math.min(c.van, 12));
+  const tal = (DATA.gente || []).slice(2, 2 + Math.min(c.tal, 6));
+  abrirSheet(`Invitados · ${e.nombre}`, `
+    <div class="rsvp-counts big">
+      <span class="rc voy">✅ ${c.van} van</span>
+      <span class="rc tal">🤔 ${c.tal}</span>
+      <span class="rc no">🙅 ${c.no}</span>
+    </div>
+    <div class="row-between"><h3>✅ Van (${c.van})</h3></div>
+    <div class="friend-list">
+      ${van.map((g) => `<article class="friend-card"><div class="friend-ava" style="background:${g.color}">${g.avatar}</div><div class="friend-main"><strong>${g.nombre}</strong></div></article>`).join('')}
+      ${c.van > van.length ? `<p class="empty">y ${c.van - van.length} más…</p>` : ''}
+    </div>
+    ${tal.length ? `<div class="row-between"><h3>🤔 Tal vez (${c.tal})</h3></div>
+      <div class="friend-list">${tal.map((g) => `<article class="friend-card"><div class="friend-ava" style="background:${g.color}">${g.avatar}</div><div class="friend-main"><strong>${g.nombre}</strong></div></article>`).join('')}</div>` : ''}
+    <div class="sheet-actions"><button class="btn full" onclick="abrirEvento('${e.id}')">‹ Volver al evento</button></div>
+  `);
+}
+
+// Copiar link de invitación (abre el evento al entrar)
+function copiarInvitacion(id) {
+  const url = location.href.split('?')[0] + '?evento=' + id;
+  if (navigator.clipboard) navigator.clipboard.writeText(url).catch(() => {});
+  toast('🔗 Link de invitación copiado');
+}
+
+// Agregar al calendario (descarga un .ics real)
+function addCalendario(id) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e.fechaISO) { toast('Aún sin fecha'); return; }
+  const pad = (n) => String(n).padStart(2, '0');
+  const fmt = (x) => `${x.getFullYear()}${pad(x.getMonth() + 1)}${pad(x.getDate())}T${pad(x.getHours())}${pad(x.getMinutes())}00`;
+  const ini = new Date(e.fechaISO); const fin = new Date(ini.getTime() + 4 * 3600000);
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Socialice//ES', 'BEGIN:VEVENT',
+    `UID:${e.id}@socialice`, `SUMMARY:${e.nombre}`, `LOCATION:${e.lugar}\\, ${e.ciudad}`,
+    `DTSTART:${fmt(ini)}`, `DTEND:${fmt(fin)}`, 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+  a.download = `${e.nombre}.ics`;
+  a.click();
+  toast('📅 Agregado al calendario');
+}
+
+// Comentarios de ejemplo por evento
+const COMENTARIOS_SEED = {
+  e1: [
+    { nombre: 'Mateo', avatar: '🐺', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)', texto: '¡Ya tengo mis boletos! 🔥', fecha: 'hace 2 h' },
+    { nombre: 'Sofía', avatar: '🌸', color: 'linear-gradient(135deg,#ec4899,#f43f5e)', texto: '¿Hay lista para entrar antes de las 10?', fecha: 'ayer' }
+  ],
+  e3: [
+    { nombre: 'Valeria', avatar: '🦋', color: 'linear-gradient(135deg,#f59e0b,#ec4899)', texto: 'El atardecer desde esa terraza es brutal 🌇', fecha: 'hace 5 h' }
+  ]
+};
 
 // --- Editar perfil ---
 const AVATARES = ['🦄','🐺','🌸','🎧','🦋','🐱','🌙','🔥','😎','👑','🎈','🪩'];
@@ -2069,6 +2231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     irA(p.get('screen'));
   }
   if (p.get('sheet') === 'evento')  abrirEvento('e1');
+  if (p.get('evento')) { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); abrirEvento(p.get('evento')); }
   if (p.get('sheet') === 'ajustes') abrirAjustes();
   if (p.get('sheet') === 'editar')  editarPerfil();
   if (p.get('openf')) abrirFiltrosInline();

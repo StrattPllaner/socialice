@@ -2007,3 +2007,82 @@ body.no-scroll { overflow: hidden; }
   display: flex; padding: 12px;
   background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: var(--r-md);
 }
+
+/* ================================================================== */
+/* PÁGINA DE EVENTO (estilo Partiful, en nuestro tema azul)           */
+/* ================================================================== */
+
+/* Cuenta regresiva */
+.ev-count {
+  text-align: center; font-weight: 800; font-size: 1.05rem; color: #fff;
+  background: var(--grad-party); border-radius: var(--r-pill);
+  padding: 10px 16px; margin: 14px 0 4px;
+  box-shadow: 0 8px 24px rgba(47,123,255,.4);
+}
+.ev-count.today { background: linear-gradient(135deg,#ef4444,#f59e0b); box-shadow: 0 8px 24px rgba(239,68,68,.4); animation: warnPulse 1.6s ease-in-out infinite; }
+
+/* Anfitrión */
+.ev-host { display: flex; align-items: center; gap: 12px; margin: 16px 0 8px; }
+.ev-host-avas { display: flex; }
+.ev-host-ava { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-size: 1.2rem; border: 2px solid var(--bg-soft); margin-left: -10px; }
+.ev-host-ava:first-child { margin-left: 0; }
+.ev-host small { display: block; color: var(--ink-faint); font-size: .76rem; }
+.ev-host strong { font-size: 1rem; }
+
+/* Líneas de fecha/lugar con acción */
+.ev-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.ev-line-main { display: flex; align-items: center; gap: 12px; }
+.ev-line-main svg { width: 22px; height: 22px; flex-shrink: 0; }
+.ev-line-main strong { display: block; font-size: .98rem; }
+.ev-line-main small { color: var(--ink-faint); }
+.ev-line-act {
+  flex-shrink: 0; font-family: inherit; font-weight: 700; font-size: .82rem; cursor: pointer;
+  color: var(--violet); background: rgba(47,123,255,.1);
+  border: 1px solid rgba(47,123,255,.3); border-radius: var(--r-pill); padding: 7px 12px;
+}
+
+/* RSVP */
+.rsvp { margin: 22px 0 6px; }
+.rsvp-q { text-align: center; font-weight: 800; font-size: 1.15rem; color: var(--ink); margin-bottom: 12px; }
+.rsvp-row { display: flex; gap: 10px; }
+.rsvp-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  font-family: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
+  color: var(--ink); background: rgba(255,255,255,.04);
+  border: 1.5px solid var(--line-strong); border-radius: var(--r-md); padding: 14px 8px;
+  transition: transform .15s ease, border-color .2s ease, background .2s ease;
+}
+.rsvp-btn span { font-size: .82rem; }
+.rsvp-btn:active { transform: scale(.95); }
+.rsvp-btn:first-line { font-size: 1.5rem; }
+.rsvp-btn.voy.on { border-color: #34d399; background: rgba(52,211,153,.16); color: #34d399; }
+.rsvp-btn.tal.on { border-color: #f59e0b; background: rgba(245,158,11,.16); color: #f5b301; }
+.rsvp-btn.no.on  { border-color: #ef4444; background: rgba(239,68,68,.16); color: #ff7088; }
+.rsvp-btn.solo { width: 100%; flex-direction: row; justify-content: center; font-size: 1rem; padding: 15px; }
+.rsvp-btn.solo.on { border-color: var(--violet); background: var(--grad-party); color: #fff; }
+
+/* Conteo de respuestas */
+.rsvp-counts { display: flex; gap: 10px; margin: 6px 0 12px; flex-wrap: wrap; }
+.rsvp-counts.big { margin-bottom: 18px; }
+.rc { font-weight: 700; font-size: .85rem; padding: 6px 12px; border-radius: var(--r-pill); border: 1px solid var(--line); }
+.rc.voy { color: #34d399; background: rgba(52,211,153,.1); }
+.rc.tal { color: #f5b301; background: rgba(245,158,11,.1); }
+.rc.no  { color: #ff7088; background: rgba(239,68,68,.1); }
+
+/* Pila de avatares */
+.ava-stack { display: flex; align-items: center; cursor: pointer; padding: 4px 0; }
+.ava-mini { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; border: 2px solid var(--bg-soft); margin-left: -10px; }
+.ava-mini:first-child { margin-left: 0; }
+.ava-more { margin-left: 8px; font-weight: 700; font-size: .85rem; color: var(--ink-soft); }
+
+/* Invitar */
+.invite-row { display: flex; gap: 10px; margin: 20px 0 4px; }
+
+/* Comentarios */
+.com-list { display: flex; flex-direction: column; gap: 14px; margin-top: 4px; }
+.com-item { display: flex; gap: 12px; }
+.com-ava { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: 1.1rem; }
+.com-body { flex: 1; }
+.com-body strong { font-size: .92rem; }
+.com-body strong small { color: var(--ink-faint); font-weight: 400; margin-left: 6px; }
+.com-body p { color: var(--ink); margin-top: 2px; line-height: 1.4; }
