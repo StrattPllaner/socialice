@@ -11,35 +11,37 @@
 /* 1. Variables: cambia un color aquí y se actualiza toda la app       */
 /* ------------------------------------------------------------------ */
 :root {
-  /* Fondos (de más oscuro a "menos" oscuro) */
-  --bg:            #06070a;   /* fondo general, casi negro */
-  --bg-soft:       #0c0e14;   /* fondo de tarjetas/paneles */
-  --bg-soft-2:     #141823;   /* fondo de campos e inputs */
+  /* Fondos (azul muy oscuro, como el fondo del logo) */
+  --bg:            #04070f;   /* fondo general, casi negro azulado */
+  --bg-soft:       #0a0f1c;   /* fondo de tarjetas/paneles */
+  --bg-soft-2:     #111a2e;   /* fondo de campos e inputs */
 
-  /* Paleta de fiesta (acentos neón) */
-  --violet:        #8b5cf6;   /* color principal: morado */
-  --magenta:       #f43f5e;   /* acento rosa/magenta */
-  --cyan:          #00d4ff;   /* acento cian */
-  --gold:          #f59e0b;   /* dorado para destacados */
+  /* Paleta azul eléctrico / cian helado (combina con el logo)
+     Mantengo los nombres de variables para no romper nada. */
+  --violet:        #2f7bff;   /* color principal: azul eléctrico */
+  --magenta:       #38bdf8;   /* acento: cian cielo */
+  --cyan:          #7dd3fc;   /* acento: azul hielo claro */
+  --gold:          #38e1ff;   /* destacados: cian brillante */
+  --danger:        #ef4444;   /* rojo para avisos/peligro */
 
   /* Texto */
-  --ink:           #f4f5fb;   /* texto principal (casi blanco) */
-  --ink-soft:      #aab0c4;   /* texto secundario (gris azulado) */
-  --ink-faint:     #6b7186;   /* texto tenue (placeholders, notas) */
+  --ink:           #eef4ff;   /* texto principal (blanco azulado) */
+  --ink-soft:      #9fb1cf;   /* texto secundario */
+  --ink-faint:     #66769a;   /* texto tenue (placeholders, notas) */
 
   /* Líneas y bordes */
-  --line:          rgba(255,255,255,.08);  /* borde sutil */
-  --line-strong:   rgba(255,255,255,.16);  /* borde más visible */
+  --line:          rgba(125,190,255,.10);  /* borde sutil azulado */
+  --line-strong:   rgba(125,190,255,.20);  /* borde más visible */
 
-  /* Degradados estrella (los uso en botones y badges) */
+  /* Degradados estrella (azul → cian, como el logo) */
   --grad-party:    linear-gradient(135deg, var(--violet), var(--magenta));
   --grad-cool:     linear-gradient(135deg, var(--cyan), var(--violet));
-  --grad-gold:     linear-gradient(135deg, var(--gold), var(--magenta));
+  --grad-gold:     linear-gradient(135deg, #22d3ee, var(--violet));
 
-  /* Glow: el "brillo" alrededor de las cosas importantes */
-  --glow-violet:   0 0 0 1px rgba(139,92,246,.35), 0 10px 40px rgba(139,92,246,.25);
-  --glow-magenta:  0 0 0 1px rgba(244,63,94,.35),  0 10px 40px rgba(244,63,94,.22);
-  --glow-cyan:     0 0 0 1px rgba(0,212,255,.30),  0 10px 40px rgba(0,212,255,.20);
+  /* Glow: el "brillo" azul alrededor de las cosas importantes */
+  --glow-violet:   0 0 0 1px rgba(47,123,255,.40), 0 10px 40px rgba(47,123,255,.30);
+  --glow-magenta:  0 0 0 1px rgba(56,189,248,.40), 0 10px 40px rgba(56,189,248,.26);
+  --glow-cyan:     0 0 0 1px rgba(125,211,252,.34),0 10px 40px rgba(125,211,252,.24);
 
   /* Esquinas redondeadas (consistencia en toda la app) */
   --r-sm: 12px;
@@ -71,9 +73,9 @@ body {
   /* Un par de luces de colores difuminadas al fondo, para que NO se
      vea plano. Son degradados radiales fijos, muy sutiles. */
   background-image:
-    radial-gradient(1200px 600px at 80% -10%, rgba(139,92,246,.18), transparent 60%),
-    radial-gradient(1000px 500px at -10% 10%, rgba(0,212,255,.10), transparent 55%),
-    radial-gradient(900px 600px at 50% 120%, rgba(244,63,94,.12), transparent 60%);
+    radial-gradient(1200px 600px at 80% -10%, rgba(47,123,255,.20), transparent 60%),
+    radial-gradient(1000px 500px at -10% 10%, rgba(56,189,248,.14), transparent 55%),
+    radial-gradient(900px 600px at 50% 120%, rgba(125,211,252,.12), transparent 60%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   /* Evita el "rebote" azul al tocar botones en el celular */
@@ -165,7 +167,7 @@ small { color: var(--ink-faint); }
   color: #fff;
   background: var(--grad-party);
   border-color: transparent;
-  box-shadow: 0 6px 20px rgba(139,92,246,.35);
+  box-shadow: 0 6px 20px rgba(47,123,255,.35);
 }
 
 /* --- Badge (insignia pequeña con degradado, como las monedas/xp
@@ -197,7 +199,7 @@ small { color: var(--ink-faint); }
 /* Glow pulsante: el brillo "respira" */
 @keyframes glowPulse {
   0%, 100% { box-shadow: var(--glow-violet); }
-  50%      { box-shadow: 0 0 0 1px rgba(139,92,246,.5), 0 14px 55px rgba(139,92,246,.45); }
+  50%      { box-shadow: 0 0 0 1px rgba(47,123,255,.5), 0 14px 55px rgba(47,123,255,.45); }
 }
 .anim-glow { animation: glowPulse 3.5s ease-in-out infinite; }
 
@@ -323,9 +325,17 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   background: var(--grad-party);
 }
 .brand-logo.sm { width: 56px; height: 56px; border-radius: 18px; font-size: 1.9rem; margin-bottom: 16px; box-shadow: var(--glow-violet); }
+
+/* Logo en imagen (el logo real de la app) */
+.brand-logo-img {
+  width: 116px; height: 116px; border-radius: 50%;
+  object-fit: cover; display: block;
+  filter: drop-shadow(0 0 26px rgba(47,123,255,.55));
+}
+.brand-logo-img.sm { width: 62px; height: 62px; margin-bottom: 16px; }
 .brand-name {
   font-size: 2.8rem; letter-spacing: -.02em;
-  background: linear-gradient(135deg,#fff 30%, #c9b8ff);
+  background: linear-gradient(135deg,#fff 30%, #bfe3ff);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 .brand-tag { color: var(--ink-soft); font-size: 1.05rem; }
@@ -347,8 +357,8 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 }
 .field:focus-within {
   border-color: var(--violet);
-  background: rgba(139,92,246,.06);
-  box-shadow: 0 0 0 3px rgba(139,92,246,.16);
+  background: rgba(47,123,255,.06);
+  box-shadow: 0 0 0 3px rgba(47,123,255,.16);
 }
 .field-icon {
   width: 26px; text-align: center;
@@ -404,7 +414,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   background: var(--line-strong);
   transition: background .3s ease, box-shadow .3s ease, width .3s ease;
 }
-.step-dots i.is-on { background: var(--grad-party); width: 28px; box-shadow: 0 0 10px rgba(139,92,246,.5); }
+.step-dots i.is-on { background: var(--grad-party); width: 28px; box-shadow: 0 0 10px rgba(47,123,255,.5); }
 
 /* ============== TARJETAS DE ROL (diferenciadas) ============== */
 .eyebrow {
@@ -428,10 +438,10 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .role-tile::before {
   content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
 }
-.role-tile.host::before  { background: linear-gradient(180deg,#8b5cf6,#f43f5e); }
-.role-tile.guest::before { background: linear-gradient(180deg,#00d4ff,#8b5cf6); }
-.role-tile.host:hover  { border-color: rgba(244,63,94,.45);  background: linear-gradient(120deg, rgba(139,92,246,.10), rgba(244,63,94,.06)); transform: translateY(-2px); }
-.role-tile.guest:hover { border-color: rgba(0,212,255,.45);  background: linear-gradient(120deg, rgba(0,212,255,.10), rgba(139,92,246,.06)); transform: translateY(-2px); }
+.role-tile.host::before  { background: linear-gradient(180deg,#2f7bff,#38bdf8); }
+.role-tile.guest::before { background: linear-gradient(180deg,#00d4ff,#2f7bff); }
+.role-tile.host:hover  { border-color: rgba(56,189,248,.45);  background: linear-gradient(120deg, rgba(47,123,255,.10), rgba(56,189,248,.06)); transform: translateY(-2px); }
+.role-tile.guest:hover { border-color: rgba(0,212,255,.45);  background: linear-gradient(120deg, rgba(0,212,255,.10), rgba(47,123,255,.06)); transform: translateY(-2px); }
 
 /* Caja del icono: gradiente propio según el rol */
 .role-ic {
@@ -439,8 +449,8 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   display: grid; place-items: center; border-radius: 15px; color: #fff;
 }
 .role-ic svg { width: 26px; height: 26px; }
-.host  .role-ic { background: linear-gradient(135deg,#8b5cf6,#f43f5e); box-shadow: 0 8px 22px rgba(244,63,94,.28); }
-.guest .role-ic { background: linear-gradient(135deg,#00d4ff,#7c3aed); box-shadow: 0 8px 22px rgba(0,212,255,.24); }
+.host  .role-ic { background: linear-gradient(135deg,#2f7bff,#38bdf8); box-shadow: 0 8px 22px rgba(56,189,248,.28); }
+.guest .role-ic { background: linear-gradient(135deg,#00d4ff,#2563eb); box-shadow: 0 8px 22px rgba(0,212,255,.24); }
 
 .role-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
 .role-body strong { font-size: 1.18rem; letter-spacing: -.01em; }
@@ -501,7 +511,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   color: #fff;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 16px 50px rgba(139,92,246,.35);
+  box-shadow: 0 16px 50px rgba(47,123,255,.35);
   margin-bottom: 22px;
 }
 /* Un brillo encima para que el degradado no se vea plano */
@@ -625,7 +635,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   display: inline-block; font-size: .76rem; font-weight: 700;
   padding: 3px 10px; border-radius: var(--r-pill); margin-left: 4px; vertical-align: middle;
 }
-.role-chip.host  { color: #c4b5fd; background: rgba(139,92,246,.18); }
+.role-chip.host  { color: #c4b5fd; background: rgba(47,123,255,.18); }
 .role-chip.guest { color: #7dd3fc; background: rgba(0,212,255,.16); }
 .profile-bio { margin-top: 10px; }
 .profile-stats {
@@ -935,7 +945,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .photo-cell {
   aspect-ratio: 1; border-radius: 14px;
   display: grid; place-items: center; font-size: 1.8rem;
-  background: linear-gradient(140deg, rgba(139,92,246,.18), rgba(244,63,94,.14));
+  background: linear-gradient(140deg, rgba(47,123,255,.18), rgba(56,189,248,.14));
   border: 1px solid var(--line);
 }
 
@@ -1034,7 +1044,7 @@ body.no-scroll { overflow: hidden; }
   border-radius: 14px; transition: border-color .2s ease, transform .15s ease;
 }
 .avatar-opt:active { transform: scale(.9); }
-.avatar-opt.is-sel { border-color: var(--violet); background: rgba(139,92,246,.16); }
+.avatar-opt.is-sel { border-color: var(--violet); background: rgba(47,123,255,.16); }
 
 /* --- Ajustes --- */
 .set-list {
@@ -1057,8 +1067,8 @@ body.no-scroll { overflow: hidden; }
 .set-link svg { width: 18px; height: 18px; }
 .btn-logout {
   width: 100%; font-family: inherit; font-weight: 700; font-size: 1rem;
-  color: var(--magenta); cursor: pointer;
-  background: rgba(244,63,94,.1); border: 1px solid rgba(244,63,94,.3);
+  color: var(--danger); cursor: pointer;
+  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
   border-radius: var(--r-pill); padding: 14px; margin-top: 6px;
 }
 .btn-logout:active { transform: scale(.98); }
@@ -1104,7 +1114,7 @@ body.no-scroll { overflow: hidden; }
   transition: border-color .2s ease, background .2s ease, transform .15s ease;
 }
 .tool:active { transform: scale(.95); }
-.tool.is-active { border-color: var(--violet); background: rgba(139,92,246,.14); color: var(--ink); }
+.tool.is-active { border-color: var(--violet); background: rgba(47,123,255,.14); color: var(--ink); }
 .tool-emoji { font-size: 1.5rem; }
 
 /* Pisos / niveles */
@@ -1118,7 +1128,7 @@ body.no-scroll { overflow: hidden; }
 .floor-tab.is-active { color: #fff; background: var(--grad-party); border-color: transparent; }
 .floor-add {
   flex-shrink: 0; font-family: inherit; font-weight: 700; font-size: .85rem; color: var(--violet);
-  background: rgba(139,92,246,.1); border: 1px dashed rgba(139,92,246,.4);
+  background: rgba(47,123,255,.1); border: 1px dashed rgba(47,123,255,.4);
   border-radius: var(--r-pill); padding: 8px 14px; cursor: pointer;
 }
 
@@ -1154,19 +1164,19 @@ body.no-scroll { overflow: hidden; }
 .v-item b { display: none; font-size: .56rem; font-weight: 700; color: rgba(255,255,255,.8); }
 .v-item.lg b { display: block; }
 /* Elemento seleccionado: resaltado */
-.v-item.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--violet), 0 8px 22px rgba(139,92,246,.5); z-index: 5; }
+.v-item.sel { border-color: #fff; box-shadow: 0 0 0 2px var(--violet), 0 8px 22px rgba(47,123,255,.5); z-index: 5; }
 
 /* Colores por tipo (pensados para antros) */
-.v-mesa     { background: rgba(139,92,246,.22); border-color: rgba(139,92,246,.55); }
+.v-mesa     { background: rgba(47,123,255,.22); border-color: rgba(47,123,255,.55); }
 .v-silla    { background: rgba(0,212,255,.18);  border-color: rgba(0,212,255,.5); font-size: 1rem; }
 .v-barra    { background: rgba(245,158,11,.2);  border-color: rgba(245,158,11,.55); }
-.v-dj       { background: rgba(236,72,153,.22); border-color: rgba(236,72,153,.6); }
-.v-pista    { background: linear-gradient(135deg, rgba(139,92,246,.22), rgba(0,212,255,.18)); border-color: rgba(139,92,246,.5); border-style: dashed; }
+.v-dj       { background: rgba(56,189,248,.22); border-color: rgba(56,189,248,.6); }
+.v-pista    { background: linear-gradient(135deg, rgba(47,123,255,.22), rgba(0,212,255,.18)); border-color: rgba(47,123,255,.5); border-style: dashed; }
 .v-vip      { background: rgba(245,158,11,.16); border-color: rgba(245,158,11,.6); border-style: dashed; }
-.v-lounge   { background: rgba(124,58,237,.2);  border-color: rgba(124,58,237,.5); }
+.v-lounge   { background: rgba(37,99,235,.2);  border-color: rgba(37,99,235,.5); }
 .v-bano     { background: rgba(99,102,241,.2);  border-color: rgba(99,102,241,.5); }
 .v-entrada  { background: rgba(52,211,153,.2);  border-color: rgba(52,211,153,.55); }
-.v-salida   { background: rgba(244,63,94,.2);   border-color: rgba(244,63,94,.6); }
+.v-salida   { background: rgba(56,189,248,.2);   border-color: rgba(56,189,248,.6); }
 .v-taquilla { background: rgba(52,211,153,.16); border-color: rgba(52,211,153,.5); }
 .v-bocina   { background: rgba(255,255,255,.08); border-color: var(--line-strong); }
 
@@ -1199,7 +1209,7 @@ body.no-scroll { overflow: hidden; }
   border-radius: var(--r-pill); padding: 12px; border: 1px solid var(--line-strong);
   background: rgba(255,255,255,.05); color: var(--ink);
 }
-.vc-del { color: var(--magenta); background: rgba(244,63,94,.1); border-color: rgba(244,63,94,.3); }
+.vc-del { color: var(--danger); background: rgba(239,68,68,.1); border-color: rgba(239,68,68,.3); }
 
 /* Lista de ingreso */
 .guest-add { display: flex; gap: 10px; margin-bottom: 14px; }
@@ -1255,7 +1265,7 @@ body.no-scroll { overflow: hidden; }
   font-size: 1.4rem; width: 44px; height: 44px; cursor: pointer;
   background: rgba(255,255,255,.04); border: 2px solid transparent; border-radius: 12px;
 }
-.emoji-pick.sel { border-color: var(--violet); background: rgba(139,92,246,.16); }
+.emoji-pick.sel { border-color: var(--violet); background: rgba(47,123,255,.16); }
 
 /* Capacidad */
 .cap-card {
@@ -1376,8 +1386,8 @@ body.no-scroll { overflow: hidden; }
 .zona-f input:focus { border-color: var(--violet); }
 .add-zone {
   width: 100%; font-family: inherit; font-weight: 700; font-size: .92rem; cursor: pointer;
-  color: var(--violet); background: rgba(139,92,246,.1);
-  border: 1px dashed rgba(139,92,246,.4); border-radius: var(--r-md); padding: 13px; margin-top: 2px;
+  color: var(--violet); background: rgba(47,123,255,.1);
+  border: 1px dashed rgba(47,123,255,.4); border-radius: var(--r-md); padding: 13px; margin-top: 2px;
 }
 
 /* Boletos (vista en el detalle) */
@@ -1453,7 +1463,7 @@ body.no-scroll { overflow: hidden; }
   white-space: nowrap;
 }
 /* Selección de un elemento de portada: brillo suave (NADA de líneas blancas) */
-.cover-text.sel { filter: drop-shadow(0 0 8px rgba(139,92,246,.95)); }
+.cover-text.sel { filter: drop-shadow(0 0 8px rgba(47,123,255,.95)); }
 .cover-text-ctrl { display: flex; gap: 10px; margin-bottom: 6px; }
 .cover-text-ctrl button {
   flex: 1; font-family: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
@@ -1470,7 +1480,7 @@ body.no-scroll { overflow: hidden; }
 }
 .name-swatch:active { transform: scale(.9); }
 .name-swatch.sel { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--violet); }
-.name-swatch.anim { background: linear-gradient(90deg,#8b5cf6,#f43f5e,#00d4ff,#f59e0b); }
+.name-swatch.anim { background: linear-gradient(90deg,#2f7bff,#38bdf8,#00d4ff,#f59e0b); }
 
 /* Organizadores (editor) */
 .org-row {
@@ -1556,7 +1566,7 @@ body.no-scroll { overflow: hidden; }
 .past-photo {
   flex-shrink: 0; width: 64px; height: 64px; border-radius: 12px; cursor: pointer;
   display: grid; place-items: center; font-size: 1.8rem;
-  background: linear-gradient(140deg, rgba(139,92,246,.2), rgba(244,63,94,.15));
+  background: linear-gradient(140deg, rgba(47,123,255,.2), rgba(56,189,248,.15));
   border: 1px solid var(--line);
 }
 .past-photo:active { transform: scale(.94); }
@@ -1567,7 +1577,7 @@ body.no-scroll { overflow: hidden; }
 .home-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
 .home-brand {
   font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em;
-  background: linear-gradient(120deg,#fff 35%, #c9b8ff);
+  background: linear-gradient(120deg,#fff 35%, #bfe3ff);
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 
@@ -1724,7 +1734,7 @@ body.no-scroll { overflow: hidden; }
   display: inline-grid; place-items: center; cursor: pointer; font-size: 1.1rem;
 }
 .name-swatch.picker { width: 40px; height: 40px; border-radius: 50%;
-  background: conic-gradient(#f43f5e,#f59e0b,#34d399,#00d4ff,#8b5cf6,#f43f5e); color: #fff; }
+  background: conic-gradient(#38bdf8,#f59e0b,#34d399,#00d4ff,#2f7bff,#38bdf8); color: #fff; }
 .name-swatch.picker input, .color-pick input {
   position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
 }
@@ -1755,7 +1765,7 @@ body.no-scroll { overflow: hidden; }
   font-size: 1.05rem; font-weight: 700; color: var(--ink);
   background: rgba(255,255,255,.06); border: 1px solid var(--line-strong);
 }
-.el-btn.del { color: var(--magenta); }
+.el-btn.del { color: var(--danger); }
 .size-ctrl { display: flex; align-items: center; gap: 12px; }
 .size-ctrl span { font-weight: 700; min-width: 50px; text-align: center; }
 
@@ -1780,8 +1790,8 @@ body.no-scroll { overflow: hidden; }
 /* Link "Calendario" junto a Mis eventos */
 .cal-link {
   font-family: inherit; font-weight: 700; font-size: .85rem; cursor: pointer;
-  color: var(--violet); background: rgba(139,92,246,.1);
-  border: 1px solid rgba(139,92,246,.3); border-radius: var(--r-pill); padding: 7px 13px;
+  color: var(--violet); background: rgba(47,123,255,.1);
+  border: 1px solid rgba(47,123,255,.3); border-radius: var(--r-pill); padding: 7px 13px;
 }
 
 /* Iniciales como logo cuando no hay imagen */
@@ -1895,7 +1905,7 @@ body.no-scroll { overflow: hidden; }
 
 /* El botón principal "respira" muy levemente al pasar el cursor (CTA) */
 @media (hover: hover) {
-  .btn.full:hover { box-shadow: 0 0 0 1px rgba(139,92,246,.5), 0 12px 34px rgba(139,92,246,.4); }
+  .btn.full:hover { box-shadow: 0 0 0 1px rgba(47,123,255,.5), 0 12px 34px rgba(47,123,255,.4); }
 }
 
 /* Las tarjetas de evento entran escalonadas (sutil) */
@@ -1935,17 +1945,17 @@ body.no-scroll { overflow: hidden; }
 .ev2-warn {
   position: absolute; top: 12px; left: 12px; z-index: 2;
   font-size: .76rem; font-weight: 800; color: #fff;
-  background: rgba(244,63,94,.85); backdrop-filter: blur(6px);
+  background: rgba(239,68,68,.92); backdrop-filter: blur(6px);
   padding: 6px 11px; border-radius: var(--r-pill);
   animation: warnPulse 1.6s ease-in-out infinite;
 }
-@keyframes warnPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,.5); } 50% { box-shadow: 0 0 0 6px rgba(244,63,94,0); } }
-.ev2-people.full { color: #ff7088; background: rgba(244,63,94,.14); border-color: rgba(244,63,94,.4); }
+@keyframes warnPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.5); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+.ev2-people.full { color: #ff7088; background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.4); }
 
 /* Aviso "casi lleno" dentro del detalle */
 .warn-full {
   text-align: center; font-weight: 800; color: #ff7088;
-  background: rgba(244,63,94,.12); border: 1px solid rgba(244,63,94,.4);
+  background: rgba(239,68,68,.12); border: 1px solid rgba(239,68,68,.4);
   border-radius: var(--r-md); padding: 12px; margin-top: 14px;
 }
 

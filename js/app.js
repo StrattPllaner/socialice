@@ -387,17 +387,17 @@ function pintarResultados() {
 // --- Borrador de la fiesta (lo que se está creando o editando) ---
 // Si draft.id existe, estamos EDITANDO un evento ya creado.
 const GRADS = [
-  'linear-gradient(135deg,#7c3aed,#db2777)',
-  'linear-gradient(135deg,#0ea5e9,#7c3aed)',
-  'linear-gradient(135deg,#f59e0b,#ef4444)',
-  'linear-gradient(135deg,#ec4899,#6366f1)',
+  'linear-gradient(135deg,#2f7bff,#38bdf8)',
+  'linear-gradient(135deg,#1e3a8a,#38bdf8)',
+  'linear-gradient(135deg,#06b6d4,#3b82f6)',
+  'linear-gradient(135deg,#7dd3fc,#2563eb)',
   'linear-gradient(135deg,#22d3ee,#818cf8)',
-  'linear-gradient(135deg,#10b981,#06b6d4)'
+  'linear-gradient(135deg,#0ea5e9,#1d4ed8)'
 ];
 const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','👑','🔥'];
 
 // Paleta simple de colores para el nombre
-const NAME_COLORS = ['#ffffff', '#8b5cf6', '#f43f5e', '#00d4ff', '#f59e0b', '#34d399', '#f472b6'];
+const NAME_COLORS = ['#ffffff', '#2f7bff', '#38bdf8', '#7dd3fc', '#22d3ee', '#818cf8', '#0ea5e9'];
 // Emojis sugeridos para poner en la portada
 const COVER_EMOJI_SET = ['🎉','🪩','🔥','✨','🌙','🌃','💜','🍸','🎶','👑','🌌','⚡','🦋','🌴','💎','🎈'];
 
@@ -1500,7 +1500,7 @@ function perfilOrganizador(u) {
           <span class="stat-sep"></span>
           <div class="stat"><strong>${kilo(u.stats.asistentes)} 🔥</strong><small>asistentes</small></div>
           <span class="stat-sep"></span>
-          <button class="stat as-btn" onclick="verSeguidores()"><strong class="name-anim" style="background-image:${animGrad(['#8b5cf6','#f43f5e','#00d4ff','#f59e0b'])}">${u.stats.seguidores}</strong><small>seguidores</small></button>
+          <button class="stat as-btn" onclick="verSeguidores()"><strong class="name-anim" style="background-image:${animGrad(['#2f7bff','#38bdf8','#7dd3fc','#22d3ee'])}">${u.stats.seguidores}</strong><small>seguidores</small></button>
         </div>
 
         ${redesHTML(u)}
