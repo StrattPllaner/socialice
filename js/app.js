@@ -115,7 +115,9 @@ function pintarInicio() {
 
   cont.innerHTML = `
     <header class="home-top">
-      <div class="home-brand">Socialice</div>
+      <button class="home-logo" onclick="abrirConectados(this)" aria-label="Socialice">
+        <img src="icons/logo-figure.png" alt="Socialice">
+      </button>
       <button class="top-avatar" style="${avatarFondo(u)}" onclick="irA('profile')">${avatarContenido(u)}</button>
     </header>
 
@@ -161,9 +163,9 @@ function filtrar(catId) {
 function pintarEventos() {
   const lista = document.getElementById('eventList');
   if (!lista) return;
-  // Recomendaciones: ni "próximamente" ni las que ya vas
+  // Recomendaciones: públicas, ni "próximamente" ni las que ya vas
   const eventos = DATA.eventos.filter((e) =>
-    !e.proximamente && (categoriaActiva === 'todos' || e.cat.includes(categoriaActiva))
+    e.publico !== false && !e.proximamente && (categoriaActiva === 'todos' || e.cat.includes(categoriaActiva))
   );
 
   lista.innerHTML = eventos.length
@@ -437,6 +439,7 @@ function nuevoDraft() {
       textos: []                  // elementos libres: {texto, x, y, color, size, emoji?}
     },
     proximamente: false,          // marca la fiesta como "próximamente"
+    publico: true,                // público (en el feed) o privado (solo invitación)
     // rango de edad (si se restringe, el mínimo SIEMPRE es 18)
     edad: { activo: false, max: null },
     // tipos de boleto (zonas/precios)
@@ -1022,6 +1025,7 @@ function guardarFiesta() {
     titleSize: draft.cover.titleSize,
     coverTextos: draft.cover.textos.map((t) => ({ ...t })),
     proximamente: draft.proximamente,
+    publico: draft.publico !== false,
     fecha: draft.proximamente ? 'Próximamente' : (draft.fecha.trim() || 'Fecha por confirmar'),
     capacidad,
     boletos: draft.boletos.map((b) => ({ ...b })),
@@ -1856,11 +1860,60 @@ function pintarNav() {
   const actual = document.body.dataset.screen;
   nav.innerHTML = items.map((it) => `
     <button class="nav-btn ${it.go === actual ? 'is-active' : ''}"
-            data-go="${it.go}" onclick="irA('${it.go}')">
+            data-go="${it.go}" onclick="${it.go === 'create' ? 'abrirCrearMenu()' : `irA('${it.go}')`}">
       <span class="nav-icon">${icon(it.ic)}</span>
       <span class="nav-text">${it.texto}</span>
     </button>
   `).join('');
+}
+
+// Panel al tocar "Crear": elegir evento público o privado (antes de crear)
+function abrirCrearMenu() {
+  abrirSheet('Crear', `
+    <button class="crear-card publico" onclick="nuevaFiestaTipo(true)">
+      <span class="crear-plus">＋</span>
+      <span class="crear-txt"><strong>Evento público</strong><small>Cualquiera puede verlo y unirse · recopila confirmaciones</small></span>
+    </button>
+    <button class="crear-card privado" onclick="nuevaFiestaTipo(false)">
+      <span class="crear-plus">＋</span>
+      <span class="crear-txt"><strong>Evento privado</strong><small>Solo por invitación · no aparece en el feed</small></span>
+    </button>
+  `);
+}
+function nuevaFiestaTipo(publico) {
+  cerrarSheet();
+  draft = nuevoDraft();
+  draft.publico = publico;
+  irA('create');
+}
+
+// Logo del inicio: gira 360° y abre el panel "Mantente conectado"
+function abrirConectados(btn) {
+  const img = btn && btn.querySelector('img');
+  if (img) { img.classList.remove('spin'); void img.offsetWidth; img.classList.add('spin'); }
+  const red = (u) => `https://${u}`;
+  abrirSheet('Mantente conectado', `
+    <div class="conect-logo"><img src="icons/logo-figure.png" alt="Socialice"></div>
+
+    <div class="set-list">
+      <button class="set-row link" onclick="toast('Newsletter · pronto 📩')">
+        <div><strong>Hazte insider</strong><small>Recibe nuestro newsletter de fiestas</small></div>
+        ${icon('mail','mute')}
+      </button>
+      <button class="set-row link" onclick="toast('Comunidad · pronto ✦')">
+        <div><strong>La lista VIP</strong><small>Entérate primero de cada evento</small></div>
+        ${icon('spark','mute')}
+      </button>
+    </div>
+
+    <div class="set-list">
+      <a class="set-link conect-social" href="${red('instagram.com')}" target="_blank" rel="noopener">📸 Instagram <span>↗</span></a>
+      <a class="set-link conect-social" href="${red('tiktok.com')}" target="_blank" rel="noopener">🎵 TikTok <span>↗</span></a>
+      <a class="set-link conect-social" href="${red('x.com')}" target="_blank" rel="noopener">✖ Twitter / X <span>↗</span></a>
+    </div>
+
+    <p class="set-version">Socialice · versión 0.1</p>
+  `);
 }
 
 /* ===================================================================
@@ -2379,6 +2432,8 @@ document.addEventListener('DOMContentLoaded', () => {
     irA(p.get('screen'));
   }
   if (p.get('sheet') === 'evento')  abrirEvento('e1');
+  if (p.get('sheet') === 'crear')   abrirCrearMenu();
+  if (p.get('sheet') === 'conect')  abrirConectados();
   if (p.get('evento')) { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); abrirEvento(p.get('evento')); }
   if (p.get('sheet') === 'ajustes') abrirAjustes();
   if (p.get('sheet') === 'editar')  editarPerfil();
