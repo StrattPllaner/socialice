@@ -2267,3 +2267,97 @@ body {
 .soc-ic { width: 24px; height: 24px; flex-shrink: 0; }
 .conect-social { display: flex; align-items: center; }
 .conect-social > span { margin-left: auto; }
+
+/* ================================================================== */
+/* Tanda nueva: bell, notis, grupos, redes simples, privado plateado, */
+/* fondo animado arriba, crear más chico, buscar amigos               */
+/* ================================================================== */
+
+/* Fondo animado SOLO arriba, con degradado hacia abajo (estético) */
+body::before {
+  content: ''; position: fixed; top: 0; left: 0; right: 0; height: 340px;
+  background:
+    radial-gradient(60% 85% at 18% 0%, rgba(47,123,255,.38), transparent 70%),
+    radial-gradient(55% 85% at 82% 0%, rgba(56,189,248,.30), transparent 70%),
+    radial-gradient(50% 70% at 50% 0%, rgba(125,211,252,.18), transparent 70%);
+  -webkit-mask: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+          mask: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+  pointer-events: none; z-index: 0; opacity: .85;
+  animation: auroraMove 13s ease-in-out infinite;
+}
+@keyframes auroraMove {
+  0%,100% { transform: translateX(0) scale(1); }
+  50%     { transform: translateX(-26px) scale(1.12); }
+}
+@media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
+.app-shell { z-index: 1; }
+
+/* Campana de notificaciones */
+.bell-btn {
+  position: relative; width: 46px; height: 46px; border-radius: 50%;
+  background: rgba(255,255,255,.05); border: 1px solid var(--line-strong);
+  cursor: pointer; display: grid; place-items: center; color: var(--ink);
+}
+.bell-btn svg { width: 22px; height: 22px; }
+.bell-dot { position: absolute; top: 10px; right: 11px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); border: 2px solid var(--bg); }
+
+/* Notificaciones */
+.noti-list { display: flex; flex-direction: column; gap: 4px; }
+.noti-item { display: flex; gap: 12px; align-items: center; padding: 12px 4px; border-bottom: 1px solid var(--line); }
+.noti-item:last-child { border-bottom: none; }
+.noti-ava { width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: 1.2rem; }
+.noti-body p { color: var(--ink); line-height: 1.35; }
+.noti-body small { color: var(--ink-faint); }
+
+/* Grupos de organizadores */
+.grupo-list { display: flex; flex-direction: column; gap: 10px; }
+.grupo-card {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  font-family: inherit; color: var(--ink); cursor: pointer;
+  background: rgba(255,255,255,.03); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 12px 14px;
+}
+.grupo-emoji { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 1.4rem; flex-shrink: 0; }
+.grupo-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.grupo-main small { color: var(--ink-faint); }
+.grupo-avas { display: flex; }
+.grupo-ava { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: .9rem; border: 2px solid var(--bg-soft); margin-left: -8px; }
+.grupo-ava:first-child { margin-left: 0; }
+.pick-check { font-size: 1.3rem; color: var(--ink-faint); }
+.friend-card.picked { border-color: var(--violet); background: rgba(47,123,255,.1); }
+.friend-card.picked .pick-check { color: var(--violet); }
+
+/* Redes del perfil (iconos compactos) */
+.redes-row2 { display: flex; gap: 10px; justify-content: center; margin: 16px 0 4px; }
+.red2 {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  color: #fff; text-decoration: none; transition: transform .15s ease, filter .2s ease;
+}
+.red2:active { transform: scale(.92); }
+.red2 .soc-ic { width: 22px; height: 22px; }
+.red2.wa { background: #25d366; }
+.red2.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
+.red2.tk { background: #111; border: 1px solid var(--line-strong); }
+
+/* Evento PRIVADO con animación plateada */
+.crear-card.privado {
+  position: relative; overflow: hidden;
+  background: linear-gradient(120deg, #1b2130, #12151d);
+  border-color: rgba(200,210,230,.25);
+}
+.crear-card.privado::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 35%, rgba(225,232,245,.22) 50%, transparent 65%);
+  background-size: 220% 100%; animation: silverSweep 3.2s linear infinite;
+}
+@keyframes silverSweep { from { background-position: 120% 0; } to { background-position: -120% 0; } }
+@media (prefers-reduced-motion: reduce) { .crear-card.privado::after { animation: none; } }
+
+/* "Crear" más compacto */
+.crear-card { padding: 16px 16px; margin-bottom: 12px; border-radius: 18px; gap: 12px; }
+.crear-plus { font-size: 1.6rem; width: 30px; }
+.crear-txt strong { font-size: 1.2rem; }
+.crear-txt small { font-size: .85rem; }
+
+/* Buscar amigos (barra que aparece) */
+.friend-search { margin-bottom: 12px; }

@@ -29,7 +29,8 @@ const ICON_PATHS = {
   spark:  '<path d="M12 3.5 13.8 9 19 10.8 13.8 12.6 12 18l-1.8-5.4L5 10.8 10.2 9Z"/>',
   eye:    '<path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
   eyeOff: '<path d="m3 3 18 18"/><path d="M10.5 6.1A9.6 9.6 0 0 1 12 6c6 0 9.5 6 9.5 6a16.8 16.8 0 0 1-3 3.6"/><path d="M6.4 7.8A16.5 16.5 0 0 0 2.5 12S6 18 12 18a9.4 9.4 0 0 0 3-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
-  pin:    '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>'
+  pin:    '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
+  bell:   '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>'
 };
 
 // Devuelve el SVG de un icono. cls = clases CSS extra (opcional).
@@ -118,7 +119,10 @@ function pintarInicio() {
       <button class="home-logo" onclick="abrirConectados(this)" aria-label="Socialice">
         <img src="icons/logo-figure.png" alt="Socialice">
       </button>
-      <button class="top-avatar" style="${avatarFondo(u)}" onclick="irA('profile')">${avatarContenido(u)}</button>
+      <button class="bell-btn" onclick="abrirNotificaciones()" aria-label="Notificaciones">
+        ${icon('bell')}
+        <span class="bell-dot"></span>
+      </button>
     </header>
 
     ${vas.length ? `
@@ -1318,36 +1322,26 @@ function delGuest(i) { draft.guests.splice(i, 1); pintarGuests(); }
 
 function pintarAmigos() {
   const cont = document.getElementById('screen-friends');
-  // Solo "en vivo" los que puedo ver (los privados no-mejores-amigos se ocultan)
-  const enVivo = DATA.amigos.filter((a) => a.ahora && puedeVer(a));
+  const grupos = DATA.grupos || [];
 
   cont.innerHTML = `
-    <header class="page-head">
+    <header class="page-head row-between">
       <h1>Amigos</h1>
-      <p class="page-sub">Mira a dónde va tu gente.</p>
+      <button class="icon-btn sm" onclick="toggleBuscarAmigos()" aria-label="Buscar">${icon('search')}</button>
     </header>
 
-    <div class="search-bar">
+    <!-- Búsqueda (oculta hasta tocar el botón) -->
+    <div class="search-bar friend-search" id="friendSearchBar" style="display:none">
       ${icon('search', 'mute')}
       <input id="friendSearch" placeholder="Busca por nombre o @usuario" oninput="filtrarAmigos(this.value)">
     </div>
 
-    ${enVivo.length ? `
-      <div class="row-between">
-        <h3><span class="live-dot"></span> En la fiesta ahora</h3>
-      </div>
-      <div class="live-row">
-        ${enVivo.map((a) => `
-          <div class="live-card">
-            <div class="live-ava" style="background:${a.color}">${a.avatar}
-              <span class="live-ping"></span>
-            </div>
-            <strong>${a.nombre.split(' ')[0]}</strong>
-            <small>${a.ahora}</small>
-          </div>
-        `).join('')}
-      </div>
-    ` : ''}
+    <!-- Grupos de organizadores -->
+    <div class="row-between"><h3>Grupos</h3><button class="cal-link" onclick="crearGrupo()">＋ Crear grupo</button></div>
+    <p class="hint">Junta a tu equipo para crear fiestas; todos pueden editarlas.</p>
+    <div class="grupo-list">
+      ${grupos.length ? grupos.map(tarjetaGrupo).join('') : `<p class="empty">Aún no tienes grupos. Crea uno con tus amigos 👥</p>`}
+    </div>
 
     <div class="row-between"><h3>Tus amigos</h3><span class="see-all">${DATA.amigos.length}</span></div>
     <div class="friend-list" id="friendList">
@@ -1359,6 +1353,82 @@ function pintarAmigos() {
       ${DATA.sugerencias.map(tarjetaSugerencia).join('')}
     </div>
   `;
+}
+
+// Mostrar/ocultar la barra de búsqueda de amigos
+function toggleBuscarAmigos() {
+  const bar = document.getElementById('friendSearchBar');
+  if (!bar) return;
+  const abrir = bar.style.display === 'none';
+  bar.style.display = abrir ? 'flex' : 'none';
+  if (abrir) setTimeout(() => document.getElementById('friendSearch')?.focus(), 50);
+}
+
+// Tarjeta de un grupo de organizadores
+function tarjetaGrupo(g) {
+  return `
+    <button class="grupo-card" onclick="abrirGrupo('${g.id}')">
+      <span class="grupo-emoji" style="background:${g.color}">${g.emoji}</span>
+      <span class="grupo-main">
+        <strong>${g.nombre}</strong>
+        <small>${g.miembros.length} organizadores</small>
+      </span>
+      <span class="grupo-avas">${g.miembros.slice(0, 3).map((m) => `<span class="grupo-ava" style="background:${m.color}">${m.avatar}</span>`).join('')}</span>
+    </button>`;
+}
+
+// Crear un grupo (elige nombre y amigos)
+let _grupoSel = [];
+function crearGrupo() {
+  _grupoSel = [];
+  abrirSheet('Nuevo grupo', `
+    <div class="field"><div class="field-main">
+      <label class="field-label">Nombre del grupo</label>
+      <input class="field-input" id="grupoNombre" placeholder="Ej: La Crew">
+    </div></div>
+    <p class="form-label">Agrega organizadores</p>
+    <div class="friend-list" id="grupoPick">
+      ${DATA.amigos.map((a, i) => `
+        <article class="friend-card" onclick="togglePickGrupo(${i}, this)">
+          <div class="friend-ava" style="background:${a.color}">${a.avatar}</div>
+          <div class="friend-main"><strong>${a.nombre}</strong><small>${a.usuario}</small></div>
+          <span class="pick-check">○</span>
+        </article>`).join('')}
+    </div>
+    <div class="sheet-actions"><button class="btn full" onclick="guardarGrupo()">Crear grupo</button></div>
+  `);
+}
+function togglePickGrupo(i, el) {
+  const idx = _grupoSel.indexOf(i);
+  if (idx >= 0) _grupoSel.splice(idx, 1); else _grupoSel.push(i);
+  el.classList.toggle('picked', _grupoSel.includes(i));
+  el.querySelector('.pick-check').textContent = _grupoSel.includes(i) ? '✓' : '○';
+}
+function guardarGrupo() {
+  const nombre = document.getElementById('grupoNombre').value.trim() || 'Mi grupo';
+  const miembros = [{ nombre: DATA.usuario.nombre, avatar: DATA.usuario.avatar, color: DATA.usuario.color }]
+    .concat(_grupoSel.map((i) => ({ nombre: DATA.amigos[i].nombre, avatar: DATA.amigos[i].avatar, color: DATA.amigos[i].color })));
+  DATA.grupos = DATA.grupos || [];
+  DATA.grupos.push({ id: 'g' + Date.now(), nombre, emoji: '🎪', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', miembros });
+  cerrarSheet();
+  pintarAmigos();
+  toast(`Grupo "${nombre}" creado 🎉`);
+}
+function abrirGrupo(id) {
+  const g = (DATA.grupos || []).find((x) => x.id === id);
+  if (!g) return;
+  abrirSheet(g.nombre, `
+    <div class="amigo-top">
+      <div class="amigo-ava" style="background:${g.color}">${g.emoji}</div>
+      <strong>${g.nombre}</strong><small>${g.miembros.length} organizadores</small>
+    </div>
+    <p class="hint" style="text-align:center">Todos los del grupo pueden crear y <b>editar</b> las fiestas del equipo.</p>
+    <div class="row-between"><h3>Organizadores</h3></div>
+    <div class="friend-list">
+      ${g.miembros.map((m) => `<article class="friend-card"><div class="friend-ava" style="background:${m.color}">${m.avatar}</div><div class="friend-main"><strong>${m.nombre}</strong></div></article>`).join('')}
+    </div>
+    <div class="sheet-actions"><button class="btn full" onclick="cerrarSheet(); nuevaFiestaTipo(true)">＋ Crear fiesta del grupo</button></div>
+  `);
 }
 
 // ¿Puedo ver la actividad de este amigo?
@@ -1382,9 +1452,10 @@ function tarjetaAmigo(a) {
         </div>
       </article>`;
   }
-  const estado = a.ahora
-    ? `<span class="friend-now">🔴 En ${a.ahora} ahora</span>`
-    : (a.fue[0] ? `<span class="friend-was">Última: ${a.fue[0]}</span>` : `<span class="friend-was">Sin fiestas aún</span>`);
+  // (Se quitó la ubicación en tiempo real "en X ahora")
+  const estado = a.fue[0]
+    ? `<span class="friend-was">Última: ${a.fue[0]}</span>`
+    : `<span class="friend-was">Sin fiestas aún</span>`;
   return `
     <article class="friend-card ${best}" onclick="abrirAmigo('${a.usuario}')">
       <div class="friend-ava ${best}" style="background:${a.color}">${a.avatar}${estrella}</div>
@@ -1427,7 +1498,6 @@ function abrirAmigo(usuario) {
       <div class="amigo-ava ${a.mejorAmigo ? 'best' : ''}" style="background:${a.color}">${a.avatar}</div>
       <strong>${a.nombre}</strong><small>${a.usuario}</small>
       ${a.mejorAmigo ? '<span class="best-tag">★ Mejor amigo</span>' : ''}
-      ${a.ahora ? `<span class="friend-now">🔴 En ${a.ahora} ahora</span>` : ''}
     </div>
     <div class="row-between"><h3>Fiestas a las que fue</h3></div>
     ${a.fue.length ? `<div class="chips-row wrap">${a.fue.map((f) => `<span class="chip">${f}</span>`).join('')}</div>`
@@ -1671,14 +1741,14 @@ function perfilOrganizador(u) {
 }
 
 // Fila de redes sociales / contacto
+// Redes del perfil: iconos limpios y compactos (sin sitio web)
 function redesHTML(u) {
   const r = u.redes || {};
   const items = [];
-  if (r.whatsapp)  items.push(`<a class="red red-wa" href="https://wa.me/${r.whatsapp}" target="_blank" rel="noopener">💬 WhatsApp</a>`);
-  if (r.instagram) items.push(`<a class="red red-ig" href="https://instagram.com/${r.instagram}" target="_blank" rel="noopener">📸 Instagram</a>`);
-  if (r.tiktok)    items.push(`<a class="red red-tk" href="https://tiktok.com/@${r.tiktok}" target="_blank" rel="noopener">🎵 TikTok</a>`);
-  if (r.web)       items.push(`<a class="red red-web" href="${r.web}" target="_blank" rel="noopener">🌐 Sitio</a>`);
-  return items.length ? `<div class="redes-row">${items.join('')}</div>` : '';
+  if (r.whatsapp)  items.push(`<a class="red2 wa" href="https://wa.me/${r.whatsapp}" target="_blank" rel="noopener" title="WhatsApp">${WA_SVG}</a>`);
+  if (r.instagram) items.push(`<a class="red2 ig" href="https://instagram.com/${r.instagram}" target="_blank" rel="noopener" title="Instagram">${IG_SVG}</a>`);
+  if (r.tiktok)    items.push(`<a class="red2 tk" href="https://tiktok.com/@${r.tiktok}" target="_blank" rel="noopener" title="TikTok">${TT_SVG}</a>`);
+  return items.length ? `<div class="redes-row2">${items.join('')}</div>` : '';
 }
 
 // Iniciales para usar como "logo" cuando no hay imagen
@@ -1888,6 +1958,7 @@ function nuevaFiestaTipo(publico) {
 }
 
 // Iconos SVG limpios para redes
+const WA_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.4-4A8 8 0 1 1 8 19.1l-4.5 1.4Z"/><path d="M9 9.5c.3 2 2.5 4.2 4.5 4.5l1-1.2 1.7.8c.1 1.2-1 2-2 1.9-2.7-.3-5.2-2.8-5.5-5.5-.1-1 .7-2.1 1.9-2l.8 1.7-1.2 1Z" fill="currentColor" stroke="none"/></svg>';
 const IG_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>';
 const TT_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M15.4 3h-2.6v12.1a2.6 2.6 0 1 1-2.2-2.6v-2.7a5.3 5.3 0 1 0 4.8 5.3V9.2a6.6 6.6 0 0 0 4 1.3V7.9A3.9 3.9 0 0 1 15.4 3z"/></svg>';
 
@@ -1915,6 +1986,25 @@ function mostrarConectados() {
     <p class="set-version">Socialice · versión 0.1</p>
   `);
 }
+// Panel de notificaciones
+function abrirNotificaciones() {
+  const notis = [
+    { ava: '🐺', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)', txt: '<b>Mateo</b> confirmó que va a Neon Nights', t: 'hace 10 min' },
+    { ava: '🌸', color: 'linear-gradient(135deg,#ec4899,#f43f5e)', txt: '<b>Sofía</b> comentó en Rooftop Sunset', t: 'hace 1 h' },
+    { ava: '🎪', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', txt: 'Aurora Fest ya tiene fecha — ¡revísala!', t: 'hace 3 h' },
+    { ava: '⭐', color: 'linear-gradient(135deg,#f59e0b,#ef4444)', txt: '<b>Valeria</b> te marcó como mejor amigo', t: 'ayer' }
+  ];
+  abrirSheet('Notificaciones', `
+    <div class="noti-list">
+      ${notis.map((n) => `
+        <div class="noti-item">
+          <span class="noti-ava" style="background:${n.color}">${n.ava}</span>
+          <div class="noti-body"><p>${n.txt}</p><small>${n.t}</small></div>
+        </div>`).join('')}
+    </div>
+  `);
+}
+
 // Logo del inicio: gira y luego abre el panel (para que el giro se vea)
 function abrirConectados(btn) {
   const img = btn && btn.querySelector('img');
@@ -2321,10 +2411,6 @@ function editarPerfil() {
       <label class="field-label">TikTok (usuario)</label>
       <input class="field-input" id="edTk" value="${(u.redes||{}).tiktok||''}" placeholder="tuusuario">
     </div></div>
-    <div class="field"><span class="field-icon">🌐</span><div class="field-main">
-      <label class="field-label">Sitio web</label>
-      <input class="field-input" id="edWeb" value="${(u.redes||{}).web||''}" placeholder="https://…">
-    </div></div>
 
     <div class="sheet-actions">
       <button class="btn full" onclick="guardarPerfil()">Guardar cambios</button>
@@ -2358,7 +2444,6 @@ function guardarPerfil() {
   u.redes.whatsapp  = document.getElementById('edWa').value.trim().replace(/[^\d]/g, '');
   u.redes.instagram = document.getElementById('edIg').value.trim().replace(/^@/, '');
   u.redes.tiktok    = document.getElementById('edTk').value.trim().replace(/^@/, '');
-  u.redes.web       = document.getElementById('edWeb').value.trim();
   cerrarSheet();
   pintarPerfil();
   toast('Perfil actualizado ✓');
