@@ -2086,3 +2086,17 @@ body.no-scroll { overflow: hidden; }
 .com-body strong { font-size: .92rem; }
 .com-body strong small { color: var(--ink-faint); font-weight: 400; margin-left: 6px; }
 .com-body p { color: var(--ink); margin-top: 2px; line-height: 1.4; }
+
+/* RSVP: traer invitados + nota */
+.rsvp-extra {
+  background: rgba(47,123,255,.07); border: 1px solid rgba(47,123,255,.25);
+  border-radius: var(--r-md); padding: 14px; margin-top: 12px;
+}
+.rsvp-extra-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.rsvp-extra-row span { font-weight: 600; }
+.rsvp-extra .nota {
+  width: 100%; background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 11px 14px; color: var(--ink);
+  font-family: inherit; font-size: .95rem; outline: none;
+}
+.rsvp-extra .nota:focus { border-color: var(--violet); }

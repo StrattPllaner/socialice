@@ -1837,7 +1837,7 @@ function cuentaRegresiva(e) {
 function rsvpCounts(e) {
   const base = e.asistentes || 0;
   let van = base, tal = Math.round(base * 0.18), no = Math.round(base * 0.06);
-  if (e._rsvp === 'voy') van += 1;
+  if (e._rsvp === 'voy') van += 1 + (e._rsvpExtra || 0);
   else if (e._rsvp === 'tal') tal += 1;
   else if (e._rsvp === 'no') no += 1;
   return { van, tal, no };
@@ -1859,6 +1859,7 @@ function abrirEvento(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   if (!e) return;
   if (!e._comentarios) e._comentarios = (COMENTARIOS_SEED[e.id] || []).map((c) => ({ ...c }));
+  if (e._rsvp === undefined && e.voy) e._rsvp = 'voy';   // ya estabas confirmado
   const esMio = e.organizador === DATA.usuario.nombre && DATA.usuario.rol === 'organizador';
   const edadTxt = (e.edadRango && e.edadRango.max) ? `18–${e.edadRango.max} años` : '18+';
   const orgs = [{ nombre: e.organizador, avatar: DATA.usuario.avatar, color: DATA.usuario.color }].concat(e.organizadores || []);
@@ -1905,12 +1906,28 @@ function abrirEvento(id) {
               <button class="rsvp-btn tal ${e._rsvp === 'tal' ? 'on' : ''}" onclick="setRsvp('${e.id}','tal')">🤔<span>Tal vez</span></button>
               <button class="rsvp-btn no ${e._rsvp === 'no' ? 'on' : ''}" onclick="setRsvp('${e.id}','no')">🙅<span>No puedo</span></button>
             </div>`}
+        ${e._rsvp === 'voy' ? `
+          <div class="rsvp-extra">
+            <div class="rsvp-extra-row">
+              <span>¿Traes invitados?</span>
+              <div class="cap-control">
+                <button onclick="acomp('${e.id}',-1)">−</button>
+                <b id="acompN">+${e._rsvpExtra || 0}</b>
+                <button onclick="acomp('${e.id}',1)">+</button>
+              </div>
+            </div>
+            <input class="field-input nota" placeholder="Deja una nota (opcional)" value="${e._rsvpNota || ''}" onchange="DATA.eventos.find(x=>x.id==='${e.id}')._rsvpNota=this.value">
+          </div>` : ''}
+        <div class="mini-toggle-row">
+          <span>🔔 Recordármelo</span>
+          <button class="toggle ${e._recordar ? 'is-on' : ''}" onclick="toggleRecordar('${e.id}', this)"><span class="toggle-knob"></span></button>
+        </div>
       </div>`}
 
     <!-- Quién va -->
     <div class="row-between"><h3>Quién va</h3><span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span></div>
     <div class="rsvp-counts">
-      <span class="rc voy">✅ ${c.van}</span>
+      <span class="rc voy" id="rcVoy">✅ ${c.van}</span>
       <span class="rc tal">🤔 ${c.tal}</span>
       <span class="rc no">🙅 ${c.no}</span>
     </div>
@@ -1995,6 +2012,21 @@ function setRsvp(id, estado) {
   toast(e._rsvp ? msg[e._rsvp] : 'Quitaste tu respuesta');
   abrirEvento(id);
 }
+// + / − invitados que traes (actualiza el conteo en vivo)
+function acomp(id, d) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  e._rsvpExtra = Math.max(0, (e._rsvpExtra || 0) + d);
+  const n = document.getElementById('acompN'); if (n) n.textContent = '+' + e._rsvpExtra;
+  const rc = document.getElementById('rcVoy'); if (rc) rc.textContent = '✅ ' + rsvpCounts(e).van;
+}
+// Recordatorio del evento
+function toggleRecordar(id, btn) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  e._recordar = !e._recordar;
+  btn.classList.toggle('is-on', e._recordar);
+  toast(e._recordar ? '🔔 Te recordaremos antes del evento' : 'Recordatorio quitado');
+}
+
 // Interés desde la página
 function interesadoPage(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
