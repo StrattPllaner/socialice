@@ -339,11 +339,10 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .brand-logo-img {
   width: 150px; height: 150px;
   object-fit: contain; display: block;
-  animation: logoFloat 5s ease-in-out infinite, logoGlow 3.2s ease-in-out infinite;
+  animation: logoFloat 5s ease-in-out infinite;
 }
 .brand-logo-img.sm {
   width: 76px; height: 76px; margin-bottom: 16px;
-  animation: logoGlow 3.2s ease-in-out infinite;
 }
 @keyframes logoFloat {
   0%, 100% { transform: translateY(0) rotate(-2deg); }
@@ -354,7 +353,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   50%      { filter: drop-shadow(0 0 24px rgba(125,211,252,.9)) drop-shadow(0 0 54px rgba(47,123,255,.6)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .brand-logo-img { animation: none; filter: drop-shadow(0 0 20px rgba(56,189,248,.6)); }
+  .brand-logo-img { animation: none; }
 }
 .brand-name {
   font-size: 2.8rem; letter-spacing: -.02em;
@@ -2245,15 +2244,16 @@ body {
 .crear-card.publico .crear-txt strong { color: #fff; }
 .crear-txt small { color: var(--ink-soft); font-size: .9rem; line-height: 1.35; }
 
-/* Logo del inicio (gira al tocar) */
+/* Logo del inicio (gira al pasar el mouse / al tocar; sin glow cuadrado) */
 .home-logo { background: none; border: none; padding: 0; cursor: pointer; display: grid; place-items: center; }
-.home-logo img { width: 46px; height: 46px; object-fit: contain; filter: drop-shadow(0 0 12px rgba(56,189,248,.55)); }
-.home-logo img.spin { animation: spin360 .7s cubic-bezier(.3,.7,.3,1); }
+.home-logo img { width: 46px; height: 46px; object-fit: contain; }
+.home-logo:hover img { animation: spin360 .7s cubic-bezier(.3,.7,.3,1); }
+.home-logo img.spin { animation: spin360 .6s cubic-bezier(.3,.7,.3,1); }
 @keyframes spin360 { from { transform: rotate(0); } to { transform: rotate(360deg); } }
 
-/* Panel "Mantente conectado" */
+/* Panel "Mantente conectado" (logo sin brillos/cuadrado) */
 .conect-logo { display: grid; place-items: center; margin: 2px 0 18px; }
-.conect-logo img { width: 84px; height: 84px; object-fit: contain; filter: drop-shadow(0 0 22px rgba(56,189,248,.6)); animation: logoFloat 5s ease-in-out infinite; }
+.conect-logo img { width: 84px; height: 84px; object-fit: contain; }
 .set-row.link { width: 100%; text-align: left; font-family: inherit; }
 .set-row.link svg { width: 22px; height: 22px; }
 .conect-social {
@@ -2261,3 +2261,9 @@ body {
   font-weight: 700; font-size: 1.05rem; text-decoration: none; color: var(--ink);
 }
 .conect-social span { color: var(--ink-faint); font-size: 1rem; }
+
+/* Iconos de redes en "Mantente conectado" */
+.conect-social { gap: 12px; }
+.soc-ic { width: 24px; height: 24px; flex-shrink: 0; }
+.conect-social { display: flex; align-items: center; }
+.conect-social > span { margin-left: auto; }

@@ -1887,11 +1887,12 @@ function nuevaFiestaTipo(publico) {
   irA('create');
 }
 
-// Logo del inicio: gira 360° y abre el panel "Mantente conectado"
-function abrirConectados(btn) {
-  const img = btn && btn.querySelector('img');
-  if (img) { img.classList.remove('spin'); void img.offsetWidth; img.classList.add('spin'); }
-  const red = (u) => `https://${u}`;
+// Iconos SVG limpios para redes
+const IG_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>';
+const TT_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M15.4 3h-2.6v12.1a2.6 2.6 0 1 1-2.2-2.6v-2.7a5.3 5.3 0 1 0 4.8 5.3V9.2a6.6 6.6 0 0 0 4 1.3V7.9A3.9 3.9 0 0 1 15.4 3z"/></svg>';
+
+// Abre el panel "Mantente conectado" (con el giro del logo antes de abrir)
+function mostrarConectados() {
   abrirSheet('Mantente conectado', `
     <div class="conect-logo"><img src="icons/logo-figure.png" alt="Socialice"></div>
 
@@ -1907,13 +1908,22 @@ function abrirConectados(btn) {
     </div>
 
     <div class="set-list">
-      <a class="set-link conect-social" href="${red('instagram.com')}" target="_blank" rel="noopener">📸 Instagram <span>↗</span></a>
-      <a class="set-link conect-social" href="${red('tiktok.com')}" target="_blank" rel="noopener">🎵 TikTok <span>↗</span></a>
-      <a class="set-link conect-social" href="${red('x.com')}" target="_blank" rel="noopener">✖ Twitter / X <span>↗</span></a>
+      <a class="set-link conect-social" href="https://www.instagram.com/socialice.mx/" target="_blank" rel="noopener">${IG_SVG} Instagram <span>↗</span></a>
+      <a class="set-link conect-social" href="https://www.tiktok.com/@socialice.mx" target="_blank" rel="noopener">${TT_SVG} TikTok <span>↗</span></a>
     </div>
 
     <p class="set-version">Socialice · versión 0.1</p>
   `);
+}
+// Logo del inicio: gira y luego abre el panel (para que el giro se vea)
+function abrirConectados(btn) {
+  const img = btn && btn.querySelector('img');
+  if (img) {
+    img.classList.remove('spin'); void img.offsetWidth; img.classList.add('spin');
+    setTimeout(mostrarConectados, 380);
+  } else {
+    mostrarConectados();
+  }
 }
 
 /* ===================================================================
