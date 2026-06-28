@@ -132,7 +132,7 @@ function pintarInicio() {
     <div class="event-list" id="eventList"></div>
 
     ${pronto.length ? `
-      <div class="row-between" style="margin-top:24px"><h3>✦ Próximamente</h3></div>
+      <div class="row-between" style="margin-top:24px"><h3>Próximamente</h3></div>
       <p class="hint">Fiestas en preparación. Activa el aviso para no perdértelas.</p>
       <div class="event-list">
         ${pronto.map(tarjetaProximamente).join('')}
@@ -552,12 +552,12 @@ function pasoHTML(paso) {
   if (paso === 0) return pasoPortada();
   if (paso === 1) return pasoDetalles();
   if (paso === 2) return `
-    <div class="row-between"><h3>🎟️ Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>
+    <div class="row-between"><h3>Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>
     <p class="hint">Crea distintos boletos: general, VIP, zonas exclusivas…</p>
     <div id="boletosList"></div>
     <button class="add-zone" onclick="addBoleto()">＋ Agregar tipo de boleto</button>`;
   if (paso === 3) return `
-    <div class="row-between"><h3>👥 Organizadores</h3></div>
+    <div class="row-between"><h3>Organizadores</h3></div>
     <p class="hint">Agrega a tu equipo para que la gente vea qué perfiles organizan.</p>
     <div class="guest-add">
       <input id="orgInput" placeholder="Nombre del organizador" onkeydown="if(event.key==='Enter') addOrganizador()">
@@ -650,7 +650,7 @@ function pasoPortada() {
 
     <!-- Color animado: el organizador AGREGA los colores que quiere -->
     <div class="row-mini" style="margin-top:14px">
-      <span class="filtro-label" style="margin:0">✨ Color animado</span>
+      <span class="filtro-label" style="margin:0">Color animado</span>
       <span class="anim-hint">${anim ? 'activo' : 'agrega 2 o más'}</span>
     </div>
     <div class="name-colors">
@@ -682,12 +682,12 @@ function pasoDetalles() {
     <button class="maps-btn" onclick="toast('Vista en Google Maps · próximamente 🗺️')">📍 Ver el lugar en Google Maps</button>
 
     <div class="mini-toggle-row">
-      <span>✦ Marcar como “Próximamente”</span>
+      <span>Marcar como “Próximamente”</span>
       <button class="toggle ${draft.proximamente ? 'is-on' : ''}" onclick="draft.proximamente=!draft.proximamente; this.classList.toggle('is-on')"><span class="toggle-knob"></span></button>
     </div>
 
     <div class="mini-toggle-row">
-      <span>🔞 Solo mayores (18+)</span>
+      <span>Solo mayores (18+)</span>
       <button class="toggle ${draft.edad.activo ? 'is-on' : ''}" onclick="toggleEdad(this)"><span class="toggle-knob"></span></button>
     </div>
     <div id="edadRango" style="${draft.edad.activo ? '' : 'display:none'}">
@@ -702,7 +702,7 @@ function pasoDetalles() {
 // --- Paso 5: Plano ---
 function pasoPlano() {
   return `
-    <div class="row-between"><h3>🗺️ Plano del antro</h3><span class="see-all" onclick="limpiarVenue()">Vaciar piso</span></div>
+    <div class="row-between"><h3>Plano del antro</h3><span class="see-all" onclick="limpiarVenue()">Vaciar piso</span></div>
     <div class="floor-tabs" id="floorTabs"></div>
 
     <input type="file" accept="image/*" id="planoBgFile" hidden onchange="subirPlanoBg(event)">
@@ -734,14 +734,14 @@ function pasoPlano() {
 // --- Paso 6: Avisos (ingreso + publicaciones) ---
 function pasoAvisos() {
   return `
-    <div class="row-between"><h3>📋 Lista de ingreso</h3><span class="see-all" id="guestCount"></span></div>
+    <div class="row-between"><h3>Lista de ingreso</h3><span class="see-all" id="guestCount"></span></div>
     <div class="guest-add">
       <input id="guestInput" placeholder="Nombre del invitado" onkeydown="if(event.key==='Enter') addGuest()">
       <button class="add-btn" onclick="addGuest()">Añadir</button>
     </div>
     <div class="guest-list" id="guestList"></div>
 
-    <div class="row-between" style="margin-top:24px"><h3>📰 Publicaciones del evento</h3></div>
+    <div class="row-between" style="margin-top:24px"><h3>Publicaciones del evento</h3></div>
     <p class="hint">Comparte novedades como en Instagram: texto, fotos o videos.</p>
     <div class="post-compose">
       <textarea id="newsInput" placeholder="Escribe una publicación…" rows="2"></textarea>
@@ -1465,15 +1465,107 @@ function filtrarAmigos(texto) {
    5. PERFIL (distinto para organizador y asistente)
    =================================================================== */
 
+// --- Perfil ÚNICO (todo en una cuenta) ---
 function pintarPerfil() {
   const cont = document.getElementById('screen-profile');
   const u = DATA.usuario;
-  const esOrg = u.rol === 'organizador';
+  const mios = DATA.eventos.filter((e) => e.organizador === u.nombre);
+  const voy = DATA.eventos.filter((e) => (e.voy || e._voy) && !e.proximamente);
+  const historial = (u.eventosPasados || []);
+  const popular = u.stats.seguidores >= 1000;
+  const insignia =
+    `${u.verificado ? `<span class="verif" title="Verificado">❄</span>` : ''}` +
+    `${popular ? `<span class="popular" title="Popular · +1000 seguidores">★</span>` : ''}`;
 
-  cont.innerHTML = esOrg ? perfilOrganizador(u) : perfilAsistente(u);
+  cont.innerHTML = `
+    <header class="page-head row-between">
+      <h1>Perfil</h1>
+      <button class="icon-btn sm" onclick="abrirAjustes()">${icon('gear')}</button>
+    </header>
+
+    <section class="profile-hero ${popular ? 'is-popular' : ''}">
+      ${popular ? '<div class="hero-spark"><i>✦</i><i>✶</i><i>✦</i><i>✶</i><i>✦</i></div>' : ''}
+      <div class="hero-cover" style="${u.logo ? `background-image:url(${u.logo});background-size:cover;background-position:center` : `background:${u.color}`}"></div>
+      <div class="hero-body">
+        <div class="profile-avatar ${popular ? 'ring' : ''}" style="${avatarFondo(u)}">${avatarContenido(u)}</div>
+        <h2 class="hero-name">${u.nombre} ${insignia}</h2>
+        <p class="profile-user">${u.usuario}</p>
+        <p class="profile-bio">${u.bio}</p>
+
+        <div class="profile-stats">
+          <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
+          <span class="stat-sep"></span>
+          <div class="stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
+          <span class="stat-sep"></span>
+          <button class="stat as-btn" onclick="irA('friends')"><strong>${u.stats.amigos}</strong><small>amigos</small></button>
+          <span class="stat-sep"></span>
+          <button class="stat as-btn" onclick="verSeguidores()"><strong class="name-anim" style="background-image:${animGrad(['#2f7bff','#38bdf8','#7dd3fc','#22d3ee'])}">${u.stats.seguidores}</strong><small>seguidores</small></button>
+        </div>
+
+        ${redesHTML(u)}
+
+        <div class="profile-actions">
+          <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
+          <button class="icon-btn" onclick="compartir('mi perfil')">${icon('share')}</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Privacidad -->
+    <div class="privacy-card">
+      <div class="privacy-text">
+        <strong>${u.privado ? 'Perfil privado' : 'Perfil público'}</strong>
+        <small>${u.privado ? 'Solo tus amigos ven a qué fiestas vas.' : 'Cualquiera puede ver a qué fiestas vas.'}</small>
+      </div>
+      <button class="toggle ${u.privado ? '' : 'is-on'}" onclick="alternarPrivacidad()"><span class="toggle-knob"></span></button>
+    </div>
+
+    ${(u.colaboradores && u.colaboradores.length) ? `
+      <div class="row-between"><h3>Organizadores</h3></div>
+      <div class="colab-row">
+        ${u.colaboradores.map((c) => `
+          <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
+            <span class="colab-ava" style="background:${c.color}">${c.avatar}</span>
+            <span class="colab-name">${c.nombre.split(' ')[0]}</span>
+            <span class="colab-user">${c.usuario}</span>
+          </button>`).join('')}
+      </div>` : ''}
+
+    <div class="row-between"><h3>Mis eventos</h3><button class="cal-link" onclick="verCalendario()">Calendario</button></div>
+    <div class="event-list">
+      ${mios.length ? mios.map((e) => `
+        <div class="mio-wrap">
+          ${tarjetaEvento(e)}
+          <button class="mio-edit" onclick="event.stopPropagation(); editarFiesta('${e.id}')">Editar</button>
+        </div>`).join('') : `<button class="empty-cta" onclick="nuevaFiesta()">Aún no creas eventos · Crear uno</button>`}
+    </div>
+
+    ${voy.length ? `
+      <div class="row-between"><h3>Voy a ir</h3><span class="see-all">${voy.length}</span></div>
+      <div class="mini-list">${voy.map((e) => filaFiesta(e, 'voy')).join('')}</div>` : ''}
+
+    ${historial.length ? `
+      <div class="row-between"><h3>Eventos anteriores</h3></div>
+      <div class="past-list">
+        ${historial.map((p) => `
+          <article class="past2">
+            <div class="past2-cover" style="background:${p.grad}">
+              <div class="past2-overlay"><strong>${p.nombre}</strong><small>${p.fecha} · ${p.asistentes} asistentes</small></div>
+            </div>
+            <div class="past2-photos">
+              ${p.fotos.map((f) => `<button class="past2-photo" onclick="toast('Foto de ${p.nombre}')"><span>${f}</span></button>`).join('')}
+            </div>
+          </article>`).join('')}
+      </div>` : ''}
+
+    <div class="row-between"><h3>Mis fotos</h3><span class="see-all" onclick="toast('Subir foto · próximamente')">Subir</span></div>
+    <div class="photo-grid">
+      ${['🌃','🪩','🥂','💃','✨','🎉'].map((f) => `<button class="photo-cell" onclick="toast('Foto de fiesta')">${f}</button>`).join('')}
+    </div>
+  `;
 }
 
-// --- Perfil de ORGANIZADOR ---
+// (sin uso — se conserva por compatibilidad)
 function perfilOrganizador(u) {
   const mios = DATA.eventos.filter((e) => e.organizador === u.nombre);
   const popular = u.stats.seguidores >= 1000;
@@ -1513,7 +1605,7 @@ function perfilOrganizador(u) {
     </section>
 
     ${(u.colaboradores && u.colaboradores.length) ? `
-      <div class="row-between"><h3>👥 Organizadores</h3></div>
+      <div class="row-between"><h3>Organizadores</h3></div>
       <div class="colab-row">
         ${u.colaboradores.map((c) => `
           <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
@@ -1523,7 +1615,7 @@ function perfilOrganizador(u) {
           </button>`).join('')}
       </div>` : ''}
 
-    <div class="row-between"><h3>Mis eventos</h3><button class="cal-link" onclick="verCalendario()">📅 Calendario</button></div>
+    <div class="row-between"><h3>Mis eventos</h3><button class="cal-link" onclick="verCalendario()">Calendario</button></div>
     <div class="event-list">
       ${mios.length ? mios.map((e) => `
         <div class="mio-wrap">
@@ -1574,7 +1666,7 @@ function avatarFondo(u) {
 // Contenido del avatar (nada si hay logo; iniciales para organizador; emoji para asistente)
 function avatarContenido(u) {
   if (u.logo) return '';
-  return u.rol === 'organizador' ? `<span class="ava-ini">${inicialesDe(u.nombre)}</span>` : u.avatar;
+  return u.avatar || `<span class="ava-ini">${inicialesDe(u.nombre)}</span>`;
 }
 
 // Calendario del mes con los eventos del organizador
@@ -1598,7 +1690,7 @@ function calendarioHTML(u) {
 }
 // Abre el calendario del mes en un panel
 function verCalendario() {
-  abrirSheet('Calendario · Junio', `
+  abrirSheet('Calendario', `
     <p class="hint">Los días con punto tienen evento. Tócalos para ver.</p>
     ${calendarioHTML(DATA.usuario)}
   `);
@@ -1729,22 +1821,15 @@ function alternarPrivacidad() {
 
 function pintarNav() {
   const nav = document.getElementById('bottomNav');
-  const esOrg = DATA.usuario.rol === 'organizador';
 
-  // El organizador tiene "Crear"; el asistente tiene "Amigos".
-  const items = esOrg
-    ? [
-        { go: 'home',    ic: 'home',   texto: 'Inicio' },
-        { go: 'search',  ic: 'search', texto: 'Buscar' },
-        { go: 'create',  ic: 'plus',   texto: 'Crear'  },
-        { go: 'profile', ic: 'user',   texto: 'Perfil' }
-      ]
-    : [
-        { go: 'home',    ic: 'home',   texto: 'Explorar' },
-        { go: 'search',  ic: 'search', texto: 'Buscar'   },
-        { go: 'friends', ic: 'users',  texto: 'Amigos'   },
-        { go: 'profile', ic: 'user',   texto: 'Perfil'   }
-      ];
+  // Cuenta única: todos pueden explorar, buscar, crear, ver amigos y su perfil.
+  const items = [
+    { go: 'home',    ic: 'home',   texto: 'Inicio' },
+    { go: 'search',  ic: 'search', texto: 'Buscar' },
+    { go: 'create',  ic: 'plus',   texto: 'Crear'  },
+    { go: 'friends', ic: 'users',  texto: 'Amigos' },
+    { go: 'profile', ic: 'user',   texto: 'Perfil' }
+  ];
 
   const actual = document.body.dataset.screen;
   nav.innerHTML = items.map((it) => `
@@ -1860,7 +1945,7 @@ function abrirEvento(id) {
   if (!e) return;
   if (!e._comentarios) e._comentarios = (COMENTARIOS_SEED[e.id] || []).map((c) => ({ ...c }));
   if (e._rsvp === undefined && e.voy) e._rsvp = 'voy';   // ya estabas confirmado
-  const esMio = e.organizador === DATA.usuario.nombre && DATA.usuario.rol === 'organizador';
+  const esMio = e.organizador === DATA.usuario.nombre;
   const edadTxt = (e.edadRango && e.edadRango.max) ? `18–${e.edadRango.max} años` : '18+';
   const orgs = [{ nombre: e.organizador, avatar: DATA.usuario.avatar, color: DATA.usuario.color }].concat(e.organizadores || []);
   const c = rsvpCounts(e);
@@ -1937,7 +2022,7 @@ function abrirEvento(id) {
     </div>
 
     ${(e.boletos && e.boletos.length) ? `
-      <div class="row-between"><h3>🎟️ Boletos</h3></div>
+      <div class="row-between"><h3>Boletos</h3></div>
       <div class="zona-list">
         ${e.boletos.map((b) => `
           <div class="zona-row">
@@ -1955,7 +2040,7 @@ function abrirEvento(id) {
     </div>
 
     ${(e.noticias && e.noticias.length) ? `
-      <div class="row-between"><h3>📰 Publicaciones</h3></div>
+      <div class="row-between"><h3>Publicaciones</h3></div>
       <div class="news-list">
         ${e.noticias.map((n) => `
           <div class="post-card">
@@ -1969,7 +2054,7 @@ function abrirEvento(id) {
       </div>` : ''}
 
     <!-- Muro de comentarios -->
-    <div class="row-between"><h3>💬 Comentarios</h3></div>
+    <div class="row-between"><h3>Comentarios</h3></div>
     <div class="post-compose">
       <textarea id="evComInput" placeholder="Escribe un comentario…" rows="1"></textarea>
       <div class="post-compose-bar">
@@ -2097,24 +2182,20 @@ const COMENTARIOS_SEED = {
 const AVATARES = ['🦄','🐺','🌸','🎧','🦋','🐱','🌙','🔥','😎','👑','🎈','🪩'];
 function editarPerfil() {
   const u = DATA.usuario;
-  const esOrg = u.rol === 'organizador';
   abrirSheet('Editar perfil', `
-    ${esOrg ? `
-      <p class="form-label">Logo de la organizadora</p>
-      <div class="logo-edit">
-        <div class="logo-prev" style="${avatarFondo(u)}">${u.logo ? '' : inicialesDe(u.nombre)}</div>
-        <input type="file" accept="image/*" id="logoFile" hidden onchange="subirLogo(event)">
-        <button class="chip" onclick="document.getElementById('logoFile').click()">⬆ Subir logo</button>
-        ${u.logo ? `<button class="chip" onclick="quitarLogo()">Quitar</button>` : ''}
-      </div>
-    ` : `
-      <p class="form-label">Foto (elige un emoji)</p>
-      <div class="avatar-grid" id="avatarGrid">
-        ${AVATARES.map((a) => `
-          <button class="avatar-opt ${a === u.avatar ? 'is-sel' : ''}" onclick="elegirAvatar('${a}', this)">${a}</button>
-        `).join('')}
-      </div>
-    `}
+    <p class="form-label">Logo o foto</p>
+    <div class="logo-edit">
+      <div class="logo-prev" style="${avatarFondo(u)}">${u.logo ? '' : (u.avatar || inicialesDe(u.nombre))}</div>
+      <input type="file" accept="image/*" id="logoFile" hidden onchange="subirLogo(event)">
+      <button class="chip" onclick="document.getElementById('logoFile').click()">⬆ Subir logo</button>
+      ${u.logo ? `<button class="chip" onclick="quitarLogo()">Quitar</button>` : ''}
+    </div>
+    <p class="form-label">…o elige un emoji</p>
+    <div class="avatar-grid" id="avatarGrid">
+      ${AVATARES.map((a) => `
+        <button class="avatar-opt ${a === u.avatar ? 'is-sel' : ''}" onclick="elegirAvatar('${a}', this)">${a}</button>
+      `).join('')}
+    </div>
 
     <div class="field"><div class="field-main">
       <label class="field-label">Nombre</label>

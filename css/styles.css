@@ -2109,3 +2109,64 @@ body.no-scroll { overflow: hidden; }
   font-family: inherit; font-size: .95rem; outline: none;
 }
 .rsvp-extra .nota:focus { border-color: var(--violet); }
+
+/* ================================================================== */
+/* LIMPIEZA VISUAL (menos glow, más aire, acentos editoriales)        */
+/* Va al final para sobreescribir lo anterior.                        */
+/* ================================================================== */
+
+/* Botón principal: sombra suave y neutra (no neón) */
+.btn { box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.btn.full:hover { box-shadow: 0 10px 26px rgba(47,123,255,.28); }
+
+/* Chips: el activo es un relleno sólido limpio, sin glow */
+.chip.is-active { background: var(--violet); box-shadow: none; }
+.chips-row { gap: 8px; }
+
+/* Tarjetas: el hover solo levanta con sombra neutra (sin halo azul) */
+.ev2:hover { box-shadow: 0 14px 36px rgba(0,0,0,.5); }
+.event-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,.45); }
+.featured { box-shadow: 0 14px 38px rgba(0,0,0,.4); }
+.rol-tile:hover, .role-tile:hover { box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+.colab:hover { box-shadow: 0 10px 24px rgba(0,0,0,.4); }
+.cover-preview, .ev-cover, .ev2-cover { box-shadow: none; }
+
+/* Badges/insignias: menos brillo, más sobrias */
+.badge { box-shadow: none; }
+.pill-soft, .rc, .ev2-people { font-weight: 600; }
+
+/* Avatares del perfil: anillo sutil en vez de halo fuerte */
+.profile-avatar { box-shadow: 0 0 0 4px var(--bg-soft), 0 8px 24px rgba(0,0,0,.45); }
+
+/* Más aire entre secciones y dentro de las pantallas */
+#screen-home, #screen-profile, #screen-create, #screen-friends, #screen-search {
+  padding-left: 20px; padding-right: 20px;
+}
+.row-between { margin: 28px 0 14px; }
+.event-list { gap: 18px; }
+.page-head { margin-bottom: 22px; }
+.section-title { margin: 26px 0 14px; }
+
+/* Títulos un pelín más grandes y con más aire (editorial) */
+.page-head h1 { font-size: 2.1rem; letter-spacing: -.03em; }
+.ev2-overlay h3 { font-size: 1.5rem; letter-spacing: -.02em; }
+
+/* La barra inferior más limpia */
+.bottom-nav { background: rgba(6,10,18,.92); }
+
+/* Quitar el degradado del fondo del cuerpo si se siente "de más":
+   lo dejamos pero más tenue */
+body {
+  background-image:
+    radial-gradient(1100px 560px at 82% -12%, rgba(47,123,255,.14), transparent 60%),
+    radial-gradient(900px 460px at -12% 8%, rgba(56,189,248,.08), transparent 55%);
+}
+
+/* CTA cuando no hay eventos creados */
+.empty-cta {
+  width: 100%; font-family: inherit; font-weight: 700; font-size: .95rem; cursor: pointer;
+  color: var(--violet); background: rgba(47,123,255,.08);
+  border: 1px dashed rgba(47,123,255,.4); border-radius: var(--r-md); padding: 18px;
+}
+/* 5 pestañas: un poco más compactas */
+.nav-text { font-size: .68rem; }
