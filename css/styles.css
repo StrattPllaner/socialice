@@ -326,13 +326,27 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 }
 .brand-logo.sm { width: 56px; height: 56px; border-radius: 18px; font-size: 1.9rem; margin-bottom: 16px; box-shadow: var(--glow-violet); }
 
-/* Logo en imagen (el logo real de la app) */
+/* Logo en imagen (solo la figura, sin círculo): flota y brilla */
 .brand-logo-img {
-  width: 116px; height: 116px; border-radius: 50%;
-  object-fit: cover; display: block;
-  filter: drop-shadow(0 0 26px rgba(47,123,255,.55));
+  width: 150px; height: 150px;
+  object-fit: contain; display: block;
+  animation: logoFloat 5s ease-in-out infinite, logoGlow 3.2s ease-in-out infinite;
 }
-.brand-logo-img.sm { width: 62px; height: 62px; margin-bottom: 16px; }
+.brand-logo-img.sm {
+  width: 76px; height: 76px; margin-bottom: 16px;
+  animation: logoGlow 3.2s ease-in-out infinite;
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-12px) rotate(2deg); }
+}
+@keyframes logoGlow {
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(56,189,248,.55)) drop-shadow(0 0 30px rgba(47,123,255,.35)); }
+  50%      { filter: drop-shadow(0 0 24px rgba(125,211,252,.9)) drop-shadow(0 0 54px rgba(47,123,255,.6)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo-img { animation: none; filter: drop-shadow(0 0 20px rgba(56,189,248,.6)); }
+}
 .brand-name {
   font-size: 2.8rem; letter-spacing: -.02em;
   background: linear-gradient(135deg,#fff 30%, #bfe3ff);
@@ -341,9 +355,32 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .brand-tag { color: var(--ink-soft); font-size: 1.05rem; }
 
 /* Orbes de luz difuminados al fondo de la bienvenida */
-.welcome-orb { position: absolute; border-radius: 50%; filter: blur(60px); opacity: .55; pointer-events: none; }
-.orb-1 { width: 280px; height: 280px; top: -60px; right: -80px; background: var(--violet); }
-.orb-2 { width: 240px; height: 240px; bottom: 40px; left: -90px; background: var(--magenta); }
+.welcome-orb { position: absolute; border-radius: 50%; filter: blur(64px); opacity: .6; pointer-events: none; will-change: transform; }
+.orb-1 { width: 300px; height: 300px; top: -70px; right: -90px; background: var(--violet); animation: orbDrift1 14s ease-in-out infinite; }
+.orb-2 { width: 260px; height: 260px; bottom: 30px; left: -100px; background: var(--magenta); animation: orbDrift2 17s ease-in-out infinite; }
+/* Tercer orbe (cian) para que el fondo se sienta más vivo */
+.welcome::before {
+  content: ''; position: absolute; width: 260px; height: 260px; border-radius: 50%;
+  top: 38%; left: 30%; background: var(--cyan); filter: blur(70px); opacity: .35;
+  pointer-events: none; animation: orbDrift3 20s ease-in-out infinite;
+}
+@keyframes orbDrift1 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(-50px,40px) scale(1.15); }
+  66%     { transform: translate(30px,80px) scale(.9); }
+}
+@keyframes orbDrift2 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  33%     { transform: translate(60px,-50px) scale(1.1); }
+  66%     { transform: translate(110px,20px) scale(.95); }
+}
+@keyframes orbDrift3 {
+  0%,100% { transform: translate(0,0) scale(1); opacity:.3; }
+  50%     { transform: translate(-60px,-40px) scale(1.25); opacity:.5; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orb-1, .orb-2, .welcome::before { animation: none; }
+}
 
 /* ============== CAMPOS DE TEXTO ============== */
 .field {
