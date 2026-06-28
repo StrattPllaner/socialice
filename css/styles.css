@@ -52,6 +52,10 @@
   /* Ancho máximo: la app es mobile-first, así que la "centramos"
      en una columna estrecha aunque la pantalla sea enorme. */
   --app-max: 460px;
+
+  /* Tipografías: titulares con personalidad + cuerpo limpio (look diseñado) */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
 }
 
 /* ------------------------------------------------------------------ */
@@ -67,7 +71,7 @@ html, body {
 }
 
 body {
-  font-family: 'Baloo Bhaijaan 2', system-ui, sans-serif;
+  font-family: var(--font-body);
   color: var(--ink);
   background: var(--bg);
   /* Un par de luces de colores difuminadas al fondo, para que NO se
@@ -94,11 +98,16 @@ body {
 /* ------------------------------------------------------------------ */
 /* 3. Tipografía: títulos con peso, todo redondeado y legible          */
 /* ------------------------------------------------------------------ */
-h1, h2, h3 { font-weight: 800; line-height: 1.1; letter-spacing: -.01em; }
-h1 { font-size: 1.9rem; }
-h2 { font-size: 1.35rem; }
-h3 { font-size: 1.05rem; }
-p  { color: var(--ink-soft); line-height: 1.5; }
+h1, h2, h3,
+.brand-name, .home-brand, .splash-h, .hero-name, .eyebrow,
+.ev2-overlay h3, .featured h2, .voy-info strong, .past2-overlay strong, .cover-name, .cover-title {
+  font-family: var(--font-display);
+}
+h1, h2, h3 { font-weight: 800; line-height: 1.06; letter-spacing: -.02em; }
+h1 { font-size: 2rem; letter-spacing: -.03em; }
+h2 { font-size: 1.4rem; }
+h3 { font-size: 1.08rem; letter-spacing: -.015em; }
+p  { color: var(--ink-soft); line-height: 1.55; }
 small { color: var(--ink-faint); }
 
 /* Texto con degradado (para títulos llamativos) */
