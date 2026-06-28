@@ -176,21 +176,43 @@ function casiLleno(e) {
   return e.capacidad && !e.proximamente && (e.asistentes / e.capacidad) >= 0.85;
 }
 
+const MESES = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+// Chip de fecha (día + mes) para la portada
+function chipFecha(e) {
+  if (!e.fechaISO) return null;
+  const d = new Date(e.fechaISO);
+  return { dia: d.getDate(), mes: MESES[d.getMonth()] };
+}
+// Info del anfitrión (avatar + color)
+function hostInfo(e) {
+  if (e.organizador === DATA.usuario.nombre) return { avatar: DATA.usuario.avatar, color: DATA.usuario.color, nombre: e.organizador };
+  const co = (DATA.usuario.colaboradores || []).find((c) => c.nombre === e.organizador);
+  if (co) return { avatar: co.avatar, color: co.color, nombre: co.nombre };
+  return { avatar: '🎧', color: 'linear-gradient(135deg,#0ea5e9,#6366f1)', nombre: e.organizador };
+}
+
 // Tarjeta de evento (estilo editorial: título sobre la portada). Clicable.
 function tarjetaEvento(e) {
+  const ch = chipFecha(e);
+  const h = hostInfo(e);
+  const cara = invitadosMuestra(e, 3);
   return `
     <article class="ev2" onclick="abrirEvento('${e.id}')">
       <div class="ev2-cover" style="${coverStyle(e)}">
+        ${ch ? `<span class="ev2-date"><b>${ch.dia}</b><i>${ch.mes}</i></span>` : `<span class="ev2-date soon"><b>✦</b><i>PRONTO</i></span>`}
         <span class="ev2-price">${e.precio}</span>
-        ${casiLleno(e) ? `<span class="ev2-warn">🔥 ¡Últimos lugares!</span>` : ''}
         <div class="ev2-overlay">
+          ${casiLleno(e) ? `<span class="ev2-warn-inline">🔥 ¡Últimos lugares!</span>` : ''}
           <h3 ${nombreAttrs(e)}>${e.nombre}</h3>
-          <p class="ev2-when">${e.fecha}</p>
+          <p class="ev2-when">${e.fecha} · ${e.ciudad}</p>
         </div>
       </div>
       <div class="ev2-foot">
-        <span class="ev2-place">📍 ${e.lugar} · ${e.ciudad}</span>
-        <span class="ev2-people ${casiLleno(e) ? 'full' : ''}">👥 ${e.asistentes}${e.capacidad ? '/' + e.capacidad : ''}</span>
+        <span class="ev2-host"><span class="ev2-host-ava" style="background:${h.color}">${h.avatar}</span>${h.nombre.split(' ')[0]}</span>
+        <span class="ev2-going">
+          <span class="ev2-faces">${cara.map((g) => `<span class="ev2-face" style="background:${g.color}">${g.avatar}</span>`).join('')}</span>
+          <span class="ev2-people ${casiLleno(e) ? 'full' : ''}">${e.proximamente ? totalInteresados(e) + ' interesados' : e.asistentes + (e.capacidad ? '/' + e.capacidad : '') + ' van'}</span>
+        </span>
       </div>
     </article>`;
 }
@@ -2031,7 +2053,20 @@ function abrirEvento(id) {
           </div>`).join('')}
       </div>` : ''}
 
-    <p class="ev-desc">Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía 🎶</p>
+    <!-- Detalles -->
+    <div class="row-between"><h3>Detalles</h3></div>
+    <p class="ev-desc">${e.descripcion || `Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía.`}</p>
+    <div class="detail-chips">
+      <span class="dchip"><span>👗 Código</span><b>${e.dressCode || 'Libre'}</b></span>
+      <span class="dchip"><span>🔞 Edad</span><b>${edadTxt}</b></span>
+      <span class="dchip"><span>🎟️ Entrada</span><b>${e.precio}</b></span>
+    </div>
+
+    <!-- Álbum -->
+    <div class="row-between"><h3>Álbum</h3><span class="see-all" onclick="toast('Subir foto · próximamente')">Subir</span></div>
+    <div class="album-grid">
+      ${(e.album || ['🌃','🪩','🥂','💃','✨','🎶']).map((f) => `<button class="album-cell" onclick="toast('Foto del evento')">${f}</button>`).join('')}
+    </div>
 
     <!-- Invitar -->
     <div class="invite-row">

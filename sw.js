@@ -7,7 +7,7 @@
    tomará la versión nueva.
    ===================================================================== */
 
-const CACHE_VERSION = 'socialice-v8';
+const CACHE_VERSION = 'socialice-v9';
 
 // Archivos básicos que queremos disponibles sin conexión
 const ASSETS = [

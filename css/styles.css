@@ -2170,3 +2170,54 @@ body {
 }
 /* 5 pestañas: un poco más compactas */
 .nav-text { font-size: .68rem; }
+
+/* ================================================================== */
+/* TARJETAS DE EVENTO REMODELADAS                                     */
+/* ================================================================== */
+/* Chip de fecha estilo calendario, arriba a la izquierda */
+.ev2-date {
+  position: absolute; top: 12px; left: 12px; z-index: 3;
+  display: flex; flex-direction: column; align-items: center; line-height: 1;
+  background: rgba(4,7,15,.7); backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.18); border-radius: 14px;
+  padding: 7px 11px; min-width: 46px;
+}
+.ev2-date b { font-family: var(--font-display); font-size: 1.25rem; color: #fff; }
+.ev2-date i { font-style: normal; font-size: .62rem; font-weight: 800; letter-spacing: .08em; color: var(--cyan); margin-top: 2px; }
+.ev2-date.soon b { font-size: 1rem; }
+
+/* Pie con anfitrión y caras de quién va */
+.ev2-foot { padding: 13px 16px; }
+.ev2-host { display: inline-flex; align-items: center; gap: 7px; font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
+.ev2-host-ava { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .9rem; }
+.ev2-going { display: inline-flex; align-items: center; gap: 8px; }
+.ev2-faces { display: flex; }
+.ev2-face { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .85rem; border: 2px solid var(--bg-soft); margin-left: -8px; }
+.ev2-face:first-child { margin-left: 0; }
+.ev2-people { font-size: .78rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.ev2-people.full { color: #ff7088; }
+
+/* Detalles (chips de info) + Álbum del evento */
+.detail-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+.dchip {
+  display: flex; flex-direction: column; gap: 2px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--line);
+  border-radius: var(--r-md); padding: 10px 14px;
+}
+.dchip span { font-size: .72rem; color: var(--ink-faint); }
+.dchip b { font-size: .9rem; }
+.album-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.album-cell {
+  aspect-ratio: 1; border-radius: 14px; cursor: pointer; font-size: 1.9rem;
+  display: grid; place-items: center; border: 1px solid var(--line);
+  background: linear-gradient(140deg, rgba(47,123,255,.16), rgba(56,189,248,.1));
+}
+.album-cell:active { transform: scale(.94); }
+
+/* Aviso "últimos lugares" en línea, sobre el título */
+.ev2-warn-inline {
+  display: inline-block; align-self: flex-start;
+  font-size: .72rem; font-weight: 800; color: #fff;
+  background: rgba(239,68,68,.92); padding: 4px 10px; border-radius: var(--r-pill);
+  margin-bottom: 8px;
+}
