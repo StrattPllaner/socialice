@@ -2446,3 +2446,60 @@ body::before {
   .voy-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; overflow: visible; }
   .voy-card { width: auto; }
 }
+
+/* ================================================================== */
+/* FORMATO ESCRITORIO (≥1000px): menú lateral en vez de barra abajo   */
+/* ================================================================== */
+@media (min-width: 1000px) {
+  /* La barra inferior se convierte en MENÚ LATERAL izquierdo */
+  .bottom-nav {
+    top: 0; bottom: 0; left: 0; right: auto;
+    width: 240px; height: 100dvh;
+    flex-direction: column; justify-content: flex-start; align-items: stretch;
+    gap: 4px; padding: 86px 16px 24px;
+    transform: none; border-top: none; border-right: 1px solid var(--line);
+    border-radius: 0; background: rgba(6,10,18,.72); backdrop-filter: blur(16px);
+    box-shadow: none;
+  }
+  /* Marca arriba del menú lateral */
+  .bottom-nav::before {
+    content: 'Socialice'; position: absolute; top: 28px; left: 24px;
+    font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+    background: linear-gradient(120deg,#fff 35%, #bfe3ff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .nav-btn {
+    flex: 0 0 auto; flex-direction: row; justify-content: flex-start; gap: 14px;
+    padding: 13px 16px; border-radius: 14px; color: var(--ink-soft);
+  }
+  .nav-btn:hover { background: rgba(255,255,255,.05); }
+  .nav-btn .nav-icon svg { width: 24px; height: 24px; }
+  .nav-text { font-size: 1rem; font-weight: 600; }
+  .nav-btn.is-active { background: rgba(47,123,255,.16); color: var(--violet); }
+
+  /* El contenido se recorre a la derecha del menú y usa un área ancha */
+  body:not([data-screen="splash"]) .app-shell {
+    margin-left: 240px; max-width: 1100px; min-height: 100dvh;
+  }
+  #screen-home, #screen-profile, #screen-create, #screen-friends, #screen-search {
+    padding: 34px 36px 48px;
+  }
+
+  /* La bienvenida/login se quedan centradas en toda la pantalla (sin menú) */
+  body[data-screen="splash"] .app-shell { margin-left: 0; max-width: 100%; }
+  .welcome-center { max-width: 520px; margin: 0 auto; }
+
+  /* Eventos en 3 columnas con buen aire */
+  .event-list { grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .voy-row { grid-template-columns: repeat(3, 1fr); }
+
+  /* CTA crear: que no quede gigante */
+  .crear-pill { margin-left: 0; }
+  .home-top { max-width: 100%; }
+}
+
+/* Pantalla muy ancha: aún más columnas en buscar/perfil */
+@media (min-width: 1400px) {
+  body:not([data-screen="splash"]) .app-shell { max-width: 1240px; }
+  .event-list { grid-template-columns: repeat(4, 1fr); }
+}
