@@ -30,7 +30,8 @@ const ICON_PATHS = {
   eye:    '<path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/>',
   eyeOff: '<path d="m3 3 18 18"/><path d="M10.5 6.1A9.6 9.6 0 0 1 12 6c6 0 9.5 6 9.5 6a16.8 16.8 0 0 1-3 3.6"/><path d="M6.4 7.8A16.5 16.5 0 0 0 2.5 12S6 18 12 18a9.4 9.4 0 0 0 3-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
   pin:    '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
-  bell:   '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>'
+  bell:   '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
+  cal:    '<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>'
 };
 
 // Devuelve el SVG de un icono. cls = clases CSS extra (opcional).
@@ -104,6 +105,7 @@ function elegirRol(rol) {
    =================================================================== */
 
 let categoriaActiva = 'todos';
+let notisNuevas = true;   // hay notificaciones sin leer (punto rojo + vibración)
 
 function pintarInicio() {
   const cont = document.getElementById('screen-home');
@@ -114,16 +116,23 @@ function pintarInicio() {
   // Próximamente (para crear expectativa)
   const pronto = DATA.eventos.filter((e) => e.proximamente);
 
+  const ciudad = (u.redes && u.ciudad) || 'CDMX';
+
   cont.innerHTML = `
     <header class="home-top">
       <button class="home-logo" onclick="abrirConectados(this)" aria-label="Socialice">
         <img src="icons/logo-figure.png" alt="Socialice">
       </button>
-      <button class="bell-btn" onclick="abrirNotificaciones()" aria-label="Notificaciones">
-        ${icon('bell')}
-        <span class="bell-dot"></span>
-      </button>
+      <div class="home-actions">
+        <button class="ico-btn" onclick="verCalendario()" aria-label="Calendario">${icon('cal')}</button>
+        <button class="ico-btn bell ${notisNuevas ? 'nuevo' : ''}" onclick="abrirNotificaciones()" aria-label="Notificaciones">
+          ${icon('bell')}${notisNuevas ? '<span class="bell-dot"></span>' : ''}
+        </button>
+      </div>
     </header>
+
+    <!-- CTA crear evento -->
+    <button class="crear-pill" onclick="abrirCrearMenu()">＋ Crear evento</button>
 
     ${vas.length ? `
       <div class="row-between"><h3>Vas a ir</h3><span class="see-all" onclick="irA('search')">${vas.length}</span></div>
@@ -131,8 +140,9 @@ function pintarInicio() {
         ${vas.map(tarjetaVoy).join('')}
       </div>` : ''}
 
-    <div class="row-between" style="margin-top:${vas.length ? '22px' : '4px'}">
-      <h3>Recomendadas para ti</h3>
+    <div class="row-between" style="margin-top:${vas.length ? '22px' : '14px'}">
+      <h3>Tendencia en ${ciudad}</h3>
+      <span class="see-all" onclick="irA('search')">Ver todas</span>
     </div>
     <div class="chips-row" id="chipsRow"></div>
     <div class="event-list" id="eventList"></div>
@@ -1994,6 +2004,11 @@ function abrirNotificaciones() {
     { ava: '🎪', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', txt: 'Aurora Fest ya tiene fecha — ¡revísala!', t: 'hace 3 h' },
     { ava: '⭐', color: 'linear-gradient(135deg,#f59e0b,#ef4444)', txt: '<b>Valeria</b> te marcó como mejor amigo', t: 'ayer' }
   ];
+  // Al abrir, se marcan como leídas: quita el punto rojo y la vibración
+  notisNuevas = false;
+  const bell = document.querySelector('.ico-btn.bell');
+  if (bell) { bell.classList.remove('nuevo'); bell.querySelector('.bell-dot')?.remove(); }
+
   abrirSheet('Notificaciones', `
     <div class="noti-list">
       ${notis.map((n) => `
