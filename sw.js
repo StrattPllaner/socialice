@@ -5,7 +5,7 @@
    y siempre va a la red. Así nunca te quedas viendo una versión anterior.
    ===================================================================== */
 
-const VERSION = 'socialice-no-cache-v12';
+const VERSION = 'socialice-no-cache-v13';
 
 // Al instalar: toma el control de inmediato
 self.addEventListener('install', () => { self.skipWaiting(); });

@@ -2395,3 +2395,54 @@ body::before {
 }
 .crear-pill:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .crear-pill:active { transform: scale(.97); }
+
+/* ================================================================== */
+/* RESPONSIVO: aprovechar el espacio en iPad y computadora            */
+/* (en celular se queda igual; aquí solo crece en pantallas grandes)  */
+/* ================================================================== */
+
+/* --- Tablet / pantallas medianas --- */
+@media (min-width: 760px) {
+  :root { --app-max: 740px; }
+
+  /* Listas de eventos en 2 columnas */
+  .event-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+  /* Amigos y grupos también en 2 columnas */
+  .friend-list, .grupo-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-items: start; }
+  /* Mini-listas y fotos aprovechan el ancho */
+  .photo-grid, .album-grid { grid-template-columns: repeat(5, 1fr); }
+
+  /* Barra inferior flotante centrada (no estirada de lado a lado) */
+  .bottom-nav {
+    width: auto; max-width: none; gap: 8px;
+    left: 50%; transform: translateX(-50%);
+    bottom: 16px; padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+    border: 1px solid var(--line-strong); border-radius: var(--r-pill);
+    box-shadow: 0 12px 40px rgba(0,0,0,.5);
+  }
+  .nav-btn { padding: 6px 16px; }
+  .app-shell { padding-bottom: 0; }
+
+  /* Los paneles deslizables no deben volverse gigantes */
+  .sheet { max-width: 560px; border-radius: 26px; }
+
+  /* Las pantallas tipo formulario (splash/login/registro) quedan centradas y angostas */
+  .splash-head, .splash-body, .splash-bottom, .splash-foot { max-width: 460px; margin-left: auto; margin-right: auto; width: 100%; }
+}
+
+/* --- Computadora / pantallas grandes --- */
+@media (min-width: 1100px) {
+  :root { --app-max: 980px; }
+  .event-list { grid-template-columns: repeat(3, 1fr); }
+  #screen-home, #screen-profile, #screen-create, #screen-friends, #screen-search {
+    padding-left: 28px; padding-right: 28px;
+  }
+  /* El perfil se ve mejor con el hero arriba y el contenido alrededor */
+  .photo-grid, .album-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* Que el "Vas a ir" no deje hueco: que las tarjetas crezcan parejo */
+@media (min-width: 760px) {
+  .voy-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; overflow: visible; }
+  .voy-card { width: auto; }
+}
