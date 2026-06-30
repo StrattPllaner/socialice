@@ -434,6 +434,23 @@ const GRADS = [
 ];
 const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','👑','🔥'];
 
+// Temas de fondo para la página de creación (con su gradiente de portada)
+const TEMAS = [
+  { nombre: 'Azul',     bg: 'radial-gradient(120% 90% at 50% 0%, #123a7e, #04070f)', grad: 'linear-gradient(135deg,#2f7bff,#38bdf8)' },
+  { nombre: 'Noche',    bg: 'radial-gradient(120% 90% at 50% 0%, #1b1146, #05040d)', grad: 'linear-gradient(135deg,#6366f1,#a855f7)' },
+  { nombre: 'Aurora',   bg: 'radial-gradient(120% 90% at 50% 0%, #0b3b4a, #04090f)', grad: 'linear-gradient(135deg,#22d3ee,#34d399)' },
+  { nombre: 'Atardecer',bg: 'radial-gradient(120% 90% at 50% 0%, #4a1d3a, #0a0510)', grad: 'linear-gradient(135deg,#f59e0b,#ec4899)' },
+  { nombre: 'Neón',     bg: 'radial-gradient(120% 90% at 50% 0%, #16104a, #060414)', grad: 'linear-gradient(135deg,#ec4899,#6366f1)' },
+  { nombre: 'Hielo',    bg: 'radial-gradient(120% 90% at 50% 0%, #1d3a5e, #050a12)', grad: 'linear-gradient(135deg,#7dd3fc,#2563eb)' }
+];
+// Estilos de letra para el título del evento
+const FONTS = [
+  { id: 'classic', nombre: 'Clásico', css: "var(--font-display)" },
+  { id: 'elegant', nombre: 'Elegante', css: "'Hanken Grotesk', sans-serif" },
+  { id: 'fancy',   nombre: 'Fancy',   css: "'Times New Roman', Georgia, serif" },
+  { id: 'mono',    nombre: 'Mono',    css: "'Courier New', monospace" }
+];
+
 // Paleta simple de colores para el nombre
 const NAME_COLORS = ['#ffffff', '#2f7bff', '#38bdf8', '#7dd3fc', '#22d3ee', '#818cf8', '#0ea5e9'];
 // Emojis sugeridos para poner en la portada
@@ -442,7 +459,18 @@ const COVER_EMOJI_SET = ['🎉','🪩','🔥','✨','🌙','🌃','💜','🍸',
 function nuevoDraft() {
   return {
     id: null,
-    paso: 0,                      // paso actual del asistente
+    paso: 0,
+    tema: 0,                      // fondo/tema de la página de creación
+    efecto: false,               // efecto animado del fondo
+    tituloFont: 'classic',       // estilo de letra del título
+    descripcion: '',
+    dressCode: '',               // código de vestimenta
+    costo: '',                   // costo por persona
+    rsvpFecha: '',               // fecha límite para confirmar
+    links: [],                   // enlaces (música, etc.)
+    requireApproval: false,      // requiere aprobación del anfitrión
+    reminders: true,             // recordatorios automáticos
+    questionnaire: false,        // cuestionario para invitados
     nombre: '', fecha: '', lugar: '', ciudad: '',
     cover: {
       grad: GRADS[0], img: null,  // fondo (color o imagen)
@@ -499,6 +527,14 @@ function editarFiesta(id) {
     textos: (e.coverTextos || []).map((t) => ({ ...t }))
   };
   draft.proximamente = !!e.proximamente;
+  draft.publico = e.publico !== false;
+  draft.tema = e.tema || 0;
+  draft.tituloFont = e.tituloFont || 'classic';
+  draft.descripcion = e.descripcion || '';
+  draft.dressCode = e.dressCode || '';
+  draft.costo = e.costo || '';
+  draft.requireApproval = !!e.requireApproval;
+  draft.links = (e.links || []).map((l) => ({ ...l }));
   draft.edad = e.edadRango ? { activo: true, max: e.edadRango.max || null } : { activo: false, max: null };
   draft.boletos = e.boletos ? e.boletos.map((b) => ({ ...b })) : [{ nombre: 'General', precio: 0, cantidad: e.capacidad || 200 }];
   draft.organizadores = (e.organizadores || []).map((o) => ({ ...o }));
@@ -548,36 +584,210 @@ function pisoActual() { return draft.pisos[draft.pisoActivo]; }
 function itemsActuales() { return pisoActual().items; }
 function itemSel() { return itemsActuales().find((i) => i.id === draft.sel); }
 
+let mostrarMapa = false;
+
+// --- Página de creación de evento (una sola página, con tema de fondo) ---
 function pintarCrear() {
   const editando = !!draft.id;
-  const paso = draft.paso;
-  const ultimo = paso === PASOS.length - 1;
+  const t = TEMAS[draft.tema] || TEMAS[0];
+  const font = (FONTS.find((f) => f.id === draft.tituloFont) || FONTS[0]).css;
+  const u = DATA.usuario;
+  const cont = document.getElementById('screen-create');
+  cont.className = 'crear-screen' + (draft.efecto ? ' con-efecto' : '');
+  cont.style.background = t.bg;
 
-  document.getElementById('screen-create').innerHTML = `
-    <header class="page-head">
-      <h1>${editando ? 'Editar fiesta' : 'Crear fiesta'}</h1>
-      <p class="page-sub">Paso ${paso + 1} de ${PASOS.length} · ${PASOS[paso]}</p>
-    </header>
+  cont.innerHTML = `
+    <div class="crear-page">
 
-    <div class="wizard-dots">
-      ${PASOS.map((_, i) => `<i class="${i <= paso ? 'on' : ''}" onclick="irPaso(${i})"></i>`).join('')}
+      <!-- Barra superior -->
+      <div class="crear-bar">
+        <button class="round-btn" onclick="irA('home')" aria-label="Cerrar">✕</button>
+        <button class="pub-toggle" onclick="togglePublico2()">${draft.publico ? '🌐 Público' : '🔒 Privado'} ›</button>
+        <button class="save-btn" onclick="guardarFiesta()">Guardar</button>
+      </div>
+
+      <!-- Título + estilos de letra -->
+      <div class="titulo-card">
+        <input class="titulo-input" id="cvTitulo" value="${draft.nombre}" placeholder="Evento sin título"
+               style="font-family:${font}" oninput="draft.nombre=this.value">
+        <div class="font-row">
+          ${FONTS.map((f) => `<button class="font-chip ${f.id === draft.tituloFont ? 'on' : ''}" style="font-family:${f.css}" onclick="setTituloFont('${f.id}')">${f.nombre}</button>`).join('')}
+        </div>
+      </div>
+
+      <!-- Portada -->
+      <div class="cover-banner" style="${coverStyleDraft()}">
+        ${draft.cover.img ? '' : '<span class="cover-banner-emoji">🎉</span>'}
+        <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+        <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
+      </div>
+
+      <!-- Fecha -->
+      <div class="crear-field big">
+        <input id="cvFecha" value="${draft.fecha}" placeholder="Pon una fecha y hora…" oninput="draft.fecha=this.value">
+      </div>
+
+      <!-- Anfitrión + co-anfitriones -->
+      <div class="crear-block host-block">
+        <div class="host-top"><span>👑 Organiza</span></div>
+        <div class="host-row">
+          <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
+          <strong>${u.nombre}</strong>
+          <button class="chip add-co" onclick="agregarCoanfitrion()">＋ Co‑anfitriones</button>
+        </div>
+        <div id="orgList"></div>
+      </div>
+
+      <!-- Filas de datos -->
+      <div class="crear-rows">
+        <label class="crear-row"><span>📍</span><input id="cvLugar" value="${draft.lugar}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
+        <label class="crear-row"><span>🏙️</span><input id="cvCiudad" value="${draft.ciudad}" placeholder="Ciudad" oninput="draft.ciudad=this.value"></label>
+        <label class="crear-row"><span>💲</span><input id="cvCosto" value="${draft.costo}" placeholder="Costo por persona (opcional)" oninput="draft.costo=this.value"></label>
+        <label class="crear-row"><span>⏳</span><input id="cvRsvp" value="${draft.rsvpFecha}" placeholder="Fecha límite para confirmar" oninput="draft.rsvpFecha=this.value"></label>
+        <label class="crear-row"><span>👗</span><input id="cvDress" value="${draft.dressCode}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
+      </div>
+
+      <!-- Chips rápidos -->
+      <div class="quick-chips">
+        <button class="chip" onclick="agregarLinkEvento()">＋ Link</button>
+        <button class="chip" onclick="agregarLinkEvento('playlist')">＋ Playlist</button>
+        <button class="chip" onclick="toggleMapa()">${mostrarMapa ? '－' : '＋'} Mapa del lugar</button>
+      </div>
+      ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${l.url}" target="_blank" rel="noopener">${l.tipo === 'playlist' ? '🎵' : '🔗'} ${l.url} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
+
+      <!-- Descripción -->
+      <textarea class="crear-desc" placeholder="Agrega una descripción de tu evento…" oninput="draft.descripcion=this.value">${draft.descripcion}</textarea>
+
+      <!-- Mapa del lugar (colapsable) -->
+      <div id="mapaWrap" style="${mostrarMapa ? '' : 'display:none'}">
+        <div class="row-between"><h3>Mapa del lugar</h3><span class="see-all" onclick="limpiarVenue()">Vaciar</span></div>
+        <div class="floor-tabs" id="floorTabs"></div>
+        <div class="tool-row" id="toolRow"></div>
+        <div class="venue" id="venue" onclick="venueTap(event)" onpointermove="venueMove(event)" onpointerup="venueDrop()" onpointerleave="venueDrop()" onwheel="venueWheel(event)">
+          <div class="venue-inner" id="venueInner"><div class="venue-grid"></div></div>
+          <span class="venue-hint" id="venueHint"></span>
+          <div class="venue-zoom"><button onclick="zoomVenue(-1)">−</button><span id="zoomLabel">100%</span><button onclick="zoomVenue(1)">+</button></div>
+        </div>
+        <div class="venue-controls" id="venueControls"></div>
+      </div>
+
+      <!-- Boletos y zonas -->
+      <div class="row-between"><h3>Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>
+      <div id="boletosList"></div>
+      <button class="add-zone" onclick="addBoleto()">＋ Agregar tipo de boleto</button>
+
+      <!-- Opciones de RSVP (vista previa) -->
+      <div class="row-between" style="margin-top:24px"><h3>Opciones de RSVP</h3></div>
+      <div class="rsvp-prev">
+        <div class="rsvp-prev-opt">👍<span>Voy</span></div>
+        <div class="rsvp-prev-opt">🤔<span>Tal vez</span></div>
+        <div class="rsvp-prev-opt">😢<span>No puedo</span></div>
+      </div>
+
+      <!-- Acciones de anfitrión -->
+      <div class="row-between" style="margin-top:24px"><h3>Acciones de anfitrión</h3></div>
+      <div class="host-actions">
+        <button class="ha ${draft.questionnaire ? 'on' : ''}" onclick="draft.questionnaire=!draft.questionnaire; this.classList.toggle('on')">📋 Cuestionario</button>
+        <button class="ha ${draft.reminders ? 'on' : ''}" onclick="draft.reminders=!draft.reminders; this.classList.toggle('on')">⏰ Recordatorios</button>
+        <button class="ha ${draft.requireApproval ? 'on' : ''}" onclick="draft.requireApproval=!draft.requireApproval; this.classList.toggle('on')">✅ Requiere aprobación</button>
+        <button class="ha" onclick="abrirAjustesEvento()">⋯ Más</button>
+      </div>
+
+      <!-- Lista de ingreso -->
+      <div class="row-between" style="margin-top:24px"><h3>Lista de ingreso</h3><span class="see-all" id="guestCount"></span></div>
+      <div class="guest-add">
+        <input id="guestInput" placeholder="Nombre del invitado" onkeydown="if(event.key==='Enter') addGuest()">
+        <button class="add-btn" onclick="addGuest()">Añadir</button>
+      </div>
+      <div class="guest-list" id="guestList"></div>
+
+      <!-- Publicaciones -->
+      <div class="row-between" style="margin-top:24px"><h3>Publicaciones</h3></div>
+      <div class="post-compose">
+        <textarea id="newsInput" placeholder="Escribe una publicación…" rows="1"></textarea>
+        <div class="post-compose-bar">
+          <input type="file" accept="image/*,video/*" id="newsFile" hidden onchange="adjuntarNoticia(event)">
+          <button class="post-attach" onclick="document.getElementById('newsFile').click()">📎 Foto / video</button>
+          <span id="newsAttachInfo" class="post-attach-info"></span>
+          <button class="add-btn" onclick="addNoticia()">Publicar</button>
+        </div>
+      </div>
+      <div class="news-list" id="newsList"></div>
+
+      <button class="btn full" style="margin:24px 0" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Publicar evento'}</button>
     </div>
 
-    <div class="wizard-step">${pasoHTML(paso)}</div>
-
-    <div class="wizard-nav">
-      ${paso > 0 ? `<button class="btn-ghost wnav-back" onclick="irPaso(${paso - 1})">‹ Atrás</button>` : ''}
-      ${ultimo
-        ? `<button class="btn full" onclick="guardarFiesta()">${editando ? 'Guardar cambios ✓' : 'Publicar fiesta 🎉'}</button>`
-        : `<button class="btn full" onclick="irPaso(${paso + 1})">Siguiente ›</button>`}
+    <!-- Barra inferior: Tema / Efecto / Ajustes -->
+    <div class="crear-toolbar">
+      <button onclick="abrirTemas()"><span class="ct-ico" style="background:${t.grad}"></span>Tema</button>
+      <button class="${draft.efecto ? 'on' : ''}" onclick="toggleEfecto()"><span class="ct-fx">✨</span>Efecto</button>
+      <button onclick="abrirAjustesEvento()"><span class="ct-fx">⚙️</span>Ajustes</button>
     </div>
   `;
 
-  // Inicializa lo que necesita cada paso
-  if (paso === 2) pintarBoletos();
-  if (paso === 3) pintarOrganizadores();
-  if (paso === 4) { pintarFloors(); pintarTools(); pintarVenue(); pintarControls(); }
-  if (paso === 5) { pintarGuests(); pintarNoticias(); }
+  pintarBoletos();
+  pintarOrganizadores();
+  pintarGuests();
+  pintarNoticias();
+  if (mostrarMapa) { pintarFloors(); pintarTools(); pintarVenue(); pintarControls(); }
+}
+
+/* --- Acciones de la página de creación --- */
+function togglePublico2() { draft.publico = !draft.publico; pintarCrear(); }
+function setTituloFont(id) { draft.tituloFont = id; pintarCrear(); }
+function toggleEfecto() { draft.efecto = !draft.efecto; pintarCrear(); }
+function toggleMapa() { mostrarMapa = !mostrarMapa; pintarCrear(); }
+function agregarCoanfitrion() {
+  abrirSheet('Agregar co‑anfitriones', `
+    <p class="hint">Toca a tus amigos para sumarlos como organizadores.</p>
+    <div class="chips-row mini wrap">
+      ${DATA.amigos.map((a) => `<button class="chip" onclick="addOrgObj('${a.nombre}','${a.avatar}'); cerrarSheet()">${a.avatar} ${a.nombre.split(' ')[0]}</button>`).join('')}
+    </div>
+  `);
+}
+function agregarLinkEvento(tipo) {
+  const url = prompt(tipo === 'playlist' ? 'Pega el link de la playlist (Spotify, etc.):' : 'Pega un link:');
+  if (!url) return;
+  draft.links.push({ tipo: tipo || 'link', url });
+  pintarCrear();
+}
+function delLink(i) { draft.links.splice(i, 1); pintarCrear(); }
+
+// Elegir tema de fondo
+function abrirTemas() {
+  abrirSheet('Tema del evento', `
+    <div class="tema-grid">
+      ${TEMAS.map((t, i) => `
+        <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" style="background:${t.bg}" onclick="setTema(${i})">
+          <span class="tema-pill" style="background:${t.grad}"></span>
+          <small>${t.nombre}</small>
+        </button>`).join('')}
+    </div>
+  `);
+}
+function setTema(i) {
+  draft.tema = i;
+  draft.cover.grad = TEMAS[i].grad;
+  cerrarSheet();
+  pintarCrear();
+  toast(`Tema: ${TEMAS[i].nombre}`);
+}
+
+// Ajustes del evento (público, edad, etc.)
+function abrirAjustesEvento() {
+  abrirSheet('Ajustes del evento', `
+    <div class="set-list">
+      <label class="set-row"><div><strong>Evento público</strong><small>Aparece en el feed</small></div>
+        <span class="toggle ${draft.publico ? 'is-on' : ''}" onclick="draft.publico=!draft.publico; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
+      <label class="set-row"><div><strong>Próximamente</strong><small>Crea expectativa sin fecha</small></div>
+        <span class="toggle ${draft.proximamente ? 'is-on' : ''}" onclick="draft.proximamente=!draft.proximamente; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
+      <label class="set-row"><div><strong>Solo mayores (18+)</strong><small>Restringe por edad</small></div>
+        <span class="toggle ${draft.edad.activo ? 'is-on' : ''}" onclick="draft.edad.activo=!draft.edad.activo; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
+      <label class="set-row"><div><strong>Requiere aprobación</strong><small>Tú apruebas a los invitados</small></div>
+        <span class="toggle ${draft.requireApproval ? 'is-on' : ''}" onclick="draft.requireApproval=!draft.requireApproval; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
+    </div>
+    <div class="sheet-actions"><button class="btn full" onclick="cerrarSheet()">Listo</button></div>
+  `);
 }
 
 function irPaso(n) {
@@ -1038,6 +1248,13 @@ function guardarFiesta() {
     titlePos: { ...draft.cover.titlePos },
     titleSize: draft.cover.titleSize,
     coverTextos: draft.cover.textos.map((t) => ({ ...t })),
+    tema: draft.tema,
+    tituloFont: draft.tituloFont,
+    descripcion: draft.descripcion.trim(),
+    dressCode: draft.dressCode.trim(),
+    costo: draft.costo.trim(),
+    requireApproval: draft.requireApproval,
+    links: draft.links.map((l) => ({ ...l })),
     proximamente: draft.proximamente,
     publico: draft.publico !== false,
     fecha: draft.proximamente ? 'Próximamente' : (draft.fecha.trim() || 'Fecha por confirmar'),
