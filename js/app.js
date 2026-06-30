@@ -881,21 +881,26 @@ function pintarEfecto() {
       const w = ribbon ? rnd(3, 5) : rnd(7, 12);
       const h = ribbon ? rnd(16, 28) : rnd(12, 20);
       s.className = 'efp-conf';
-      s.style.cssText = `left:${rnd(0, 100)}%;width:${w}px;height:${h}px;background:${pick(cols)};--sway:${rnd(-70, 70)}px;animation-duration:${rnd(2.4, 5)}s;animation-delay:${rnd(0, 4)}s`;
+      const cd = rnd(2.4, 5);
+      s.style.cssText = `left:${rnd(0, 100)}%;width:${w}px;height:${h}px;background:${pick(cols)};--sway:${rnd(-70, 70)}px;animation-duration:${cd}s;animation-delay:-${rnd(0, cd)}s`;
     } else if (e === 'burbujas') {
       const sz = rnd(10, 30);
       s.className = 'efp-bub';
-      s.style.cssText = `left:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;--sway:${rnd(-30, 30)}px;animation-duration:${rnd(4, 8)}s;animation-delay:${rnd(0, 6)}s`;
+      const bd = rnd(4, 8);
+      s.style.cssText = `left:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;--sway:${rnd(-30, 30)}px;animation-duration:${bd}s;animation-delay:-${rnd(0, bd)}s`;
     } else if (e === 'rayos') {
       // reflectores de disco: haces desde ARRIBA que barren de lado a lado
       const c = pick(['56,189,248', '168,85,247', '244,114,182', '34,211,238', '255,255,255']);
+      const dur = rnd(4, 7);
       s.className = 'efp-beam';
-      s.style.cssText = `left:${rnd(8, 92)}%;--swing:${rnd(16, 32)}deg;background:linear-gradient(180deg, rgba(${c},.28), rgba(${c},.05) 70%, transparent 90%);animation-duration:${rnd(4, 7)}s;animation-delay:${rnd(0, 3)}s`;
+      // retraso NEGATIVO: el haz ya está en movimiento desde el inicio (no se congela)
+      s.style.cssText = `left:${rnd(8, 92)}%;--swing:${rnd(16, 32)}deg;background:linear-gradient(180deg, rgba(${c},.28), rgba(${c},.05) 70%, transparent 90%);animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s`;
     } else {
       // nieve / corazones: partículas con emoji que caen
       s.className = 'efp-emoji';
       s.textContent = e === 'nieve' ? pick(['❄️', '❅', '•']) : pick(['💜', '💙', '💖', '🩵']);
-      s.style.cssText = `left:${rnd(0, 100)}%;font-size:${rnd(10, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${rnd(e === 'nieve' ? 5 : 3.5, e === 'nieve' ? 11 : 7)}s;animation-delay:${rnd(0, 5)}s`;
+      const ed = rnd(e === 'nieve' ? 5 : 3.5, e === 'nieve' ? 11 : 7);
+      s.style.cssText = `left:${rnd(0, 100)}%;font-size:${rnd(10, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
     }
     layer.appendChild(s);
   }
