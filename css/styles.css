@@ -2754,22 +2754,29 @@ html, body { overscroll-behavior: none; }
 }
 @keyframes humoDrift { from { transform: translate(-5%, 1%) scale(1.05); } to { transform: translate(6%, -3%) scale(1.18); } }
 
-/* Cámara vieja (estilo Backrooms/VHS): viñeta + líneas de barrido + parpadeo + tinte */
+/* Cámara vieja (estilo Backrooms/VHS): viñeta fuerte + barrido + parpadeo + tinte */
 .efx-grano::before {
   background:
-    linear-gradient(rgba(150,140,60,.07), rgba(150,140,60,.07)),
-    repeating-linear-gradient(0deg, rgba(0,0,0,.22) 0 1px, transparent 1px 3px),
-    radial-gradient(125% 100% at 50% 50%, transparent 48%, rgba(0,0,0,.72) 100%);
+    linear-gradient(rgba(160,150,55,.13), rgba(160,150,55,.13)),
+    repeating-linear-gradient(0deg, rgba(0,0,0,.4) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 95% at 50% 50%, transparent 38%, rgba(0,0,0,.94) 100%);
   background-size: cover, 100% 3px, cover;
-  mix-blend-mode: multiply; animation: vhsFlicker .12s steps(2) infinite;
+  mix-blend-mode: multiply; animation: vhsFlicker .1s steps(2) infinite;
 }
 .efx-grano::after {
   inset: -60px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
-  opacity: .2; mix-blend-mode: overlay; z-index: 41; animation: grainShift .2s steps(4) infinite;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.85'/%3E%3C/svg%3E");
+  opacity: .42; mix-blend-mode: overlay; z-index: 41; animation: grainShift .14s steps(5) infinite;
 }
-@keyframes vhsFlicker { 0% { opacity: .9; } 50% { opacity: .72; } 100% { opacity: .95; } }
-@keyframes grainShift { 25% { transform: translate(-4px,2px); } 50% { transform: translate(3px,-3px); } 75% { transform: translate(-2px,-4px); } }
+/* Banda de barrido que recorre la pantalla (como cinta vieja) */
+.efx-grano .crear-page::after {
+  content: ''; position: fixed; left: 0; right: 0; height: 90px; z-index: 42; pointer-events: none;
+  background: linear-gradient(180deg, transparent, rgba(255,255,255,.05) 45%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.05) 55%, transparent);
+  animation: vhsRoll 5.5s linear infinite;
+}
+@keyframes vhsRoll { from { top: -90px; } to { top: 102%; } }
+@keyframes vhsFlicker { 0% { opacity: .95; } 45% { opacity: .66; } 60% { opacity: 1; } 100% { opacity: .84; } }
+@keyframes grainShift { 25% { transform: translate(-5px,3px); } 50% { transform: translate(4px,-4px); } 75% { transform: translate(-3px,-5px); } }
 
 /* Neón: el efecto ilumina TODO (no solo el fondo) */
 .efx-neon .titulo-card, .efx-neon .cover-banner, .efx-neon .fecha-block,
@@ -2823,17 +2830,22 @@ body[data-screen="create"] .efx-layer { display: block; }
   100% { transform: translate(var(--sway,0px),118vh) rotate(360deg); }
 }
 
-/* Nieve acumulada abajo: banco de nieve SÓLIDO con borde ondulado (no niebla) */
+/* Nieve acumulada abajo: banco SÓLIDO con montículos redondeados (convexos) */
 .efx-snow-pile {
   position: fixed; left: 0; right: 0; bottom: 0; height: 0;
-  background: linear-gradient(180deg, #ffffff, #e7eefc);
-  -webkit-mask: radial-gradient(circle 18px at 18px -4px, transparent 17px, #000 18px) 0 0 / 36px 100% repeat-x;
-          mask: radial-gradient(circle 18px at 18px -4px, transparent 17px, #000 18px) 0 0 / 36px 100% repeat-x;
-  box-shadow: 0 -2px 14px rgba(180,210,255,.5), inset 0 6px 8px rgba(255,255,255,.8);
+  background: linear-gradient(180deg, #ffffff 0%, #eaf1ff 60%, #dbe6fb 100%);
+  /* capa 1: círculos = montículos sobre el borde; capa 2: bloque sólido debajo */
+  -webkit-mask:
+    radial-gradient(circle 17px at 17px 17px, #000 16px, transparent 17px) 0 0 / 34px 34px repeat-x,
+    linear-gradient(#000, #000) 0 17px / 100% 100% no-repeat;
+          mask:
+    radial-gradient(circle 17px at 17px 17px, #000 16px, transparent 17px) 0 0 / 34px 34px repeat-x,
+    linear-gradient(#000, #000) 0 17px / 100% 100% no-repeat;
+  box-shadow: 0 -2px 16px rgba(190,215,255,.45);
   pointer-events: none; z-index: 41;
   animation: snowGrow 9s ease-out forwards;
 }
-@keyframes snowGrow { 0% { height: 0; } 100% { height: 56px; } }
+@keyframes snowGrow { 0% { height: 0; } 100% { height: 58px; } }
 @media (prefers-reduced-motion: reduce) { .efx-snow-pile { height: 60px; animation: none; } }
 
 /* Con un tema activo, las tarjetas llevan un velo oscuro para que el texto
@@ -2849,3 +2861,8 @@ body.creando .post-compose,
 body.creando .news-list .post-card { background: rgba(8,10,18,.58) !important; }
 body.creando .crear-row { background: transparent !important; }
 body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+
+/* Recuadro para elegir color animado del título */
+.anim-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 6px; }
+.anim-swatch { aspect-ratio: 1; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); cursor: pointer; background-size: 220% auto; animation: nameflow 3s linear infinite; }
+.anim-swatch.on { border-color: #fff; transform: scale(1.08); }

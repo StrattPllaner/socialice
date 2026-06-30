@@ -468,6 +468,21 @@ const TEMAS = [
   { nombre: 'Holográfico', grad: 'linear-gradient(135deg,#a1c4fd,#fbc2eb)',
     bg: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 22%, #fbc2eb 50%, #c2a8ff 76%, #8ec5fc 100%)',
     size: 'cover' },
+  { nombre: 'Iridiscente', grad: 'linear-gradient(135deg,#a8edea,#fed6e3)',
+    bg: 'conic-gradient(from 210deg at 35% 30%, #a8edea, #fed6e3, #c5a3ff, #8ec5fc, #a8edea)',
+    size: 'cover' },
+  { nombre: 'Chicle', grad: 'linear-gradient(135deg,#ff9a9e,#fad0c4)',
+    bg: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 45%, #a18cd1 100%)',
+    size: 'cover' },
+  { nombre: 'Cromo', grad: 'linear-gradient(135deg,#c9d6ff,#e2e2e2)',
+    bg: 'linear-gradient(135deg, #e2e2e2 0%, #9aa7c7 20%, #f5f7fa 40%, #aab4d4 60%, #f5f7fa 80%, #9aa7c7 100%)',
+    size: 'cover' },
+  { nombre: 'Mango', grad: 'linear-gradient(135deg,#f6d365,#fda085)',
+    bg: 'linear-gradient(135deg, #f6d365 0%, #fda085 55%, #c2456b 100%)',
+    size: 'cover' },
+  { nombre: 'Menta', grad: 'linear-gradient(135deg,#84fab0,#8fd3f4)',
+    bg: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 60%, #5b6ef0 100%)',
+    size: 'cover' },
   { nombre: 'Tropical', grad: 'linear-gradient(135deg,#10b981,#fbbf24)',
     bg: 'radial-gradient(circle at 28% 18%, rgba(251,191,36,.22), transparent 42%), repeating-radial-gradient(circle at 50% 125%, rgba(16,185,129,.3) 0 24px, transparent 24px 50px), linear-gradient(160deg, #047857, #064e3b 60%, #022c22)',
     size: 'cover, auto, cover' },
@@ -714,7 +729,7 @@ function pintarCrear() {
           <label class="tt-color" style="background:${anim ? 'conic-gradient(from 0deg,#2f7bff,#38bdf8,#a855f7,#22d3ee,#2f7bff)' : draft.cover.titleColor}" title="Color del título">
             <input type="color" value="${anim ? '#2f7bff' : draft.cover.titleColor}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
           </label>
-          <button class="tt-anim ${anim ? 'on' : ''}" onclick="toggleTituloAnim()" title="Color animado">✨</button>
+          <button class="tt-anim ${anim ? 'on' : ''}" onclick="abrirColorAnim()" title="Color animado">✨</button>
         </div>
       </div>
 
@@ -928,12 +943,29 @@ function setBoletoAnim(i, id) {
   cerrarSheet();
   pintarBoletos();
 }
-// Color animado del título (activa/desactiva un degradado animado)
-function toggleTituloAnim() {
-  if (draft.cover.anim && draft.cover.anim.length >= 2) draft.cover.anim = [];
-  else draft.cover.anim = ['#2f7bff', '#38bdf8', '#a855f7', '#22d3ee'];
-  pintarCrear();
+// Paletas de color animado para el título (se eligen en un recuadro)
+const ANIM_PALETTES = [
+  ['#2f7bff', '#38bdf8', '#a855f7', '#22d3ee'],
+  ['#f43f5e', '#fb923c', '#fbbf24'],
+  ['#34d399', '#22d3ee', '#38bdf8'],
+  ['#a855f7', '#ec4899', '#f472b6'],
+  ['#f43f5e', '#fbbf24', '#34d399', '#38bdf8', '#a855f7'],
+  ['#fbbf24', '#fde68a', '#f59e0b'],
+  ['#22d3ee', '#a855f7', '#f472b6'],
+  ['#e2e8f0', '#94a3b8', '#cbd5e1']
+];
+// Abre el recuadro para elegir un color animado (varias paletas)
+function abrirColorAnim() {
+  const cur = (draft.cover.anim || []).join(',');
+  abrirSheet('Color animado', `
+    <div class="anim-grid">
+      ${ANIM_PALETTES.map((p, i) => `<button class="anim-swatch ${p.join(',') === cur ? 'on' : ''}" style="background:linear-gradient(90deg,${p.join(',')})" onclick="setAnimPalette(${i})"></button>`).join('')}
+    </div>
+    <div class="sheet-actions"><button class="btn-ghost full" onclick="quitarTituloAnim()">Quitar color animado</button></div>
+  `);
 }
+function setAnimPalette(i) { draft.cover.anim = ANIM_PALETTES[i].slice(); cerrarSheet(); pintarCrear(); }
+function quitarTituloAnim() { draft.cover.anim = []; cerrarSheet(); pintarCrear(); }
 // Elegir tipo de efecto
 function abrirEfectos() {
   abrirSheet('Efecto del fondo', `
