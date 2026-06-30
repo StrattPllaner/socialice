@@ -2685,8 +2685,7 @@ body.creando::before { display: none !important; }
 .post-gallery .post-media { width: 100%; border-radius: 12px; }
 
 /* Boleto especial (animado) */
-.zona-card.especial { position: relative; overflow: hidden; border-color: rgba(251,191,36,.5); }
-.zona-card.especial::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(110deg, transparent 35%, rgba(251,191,36,.28) 50%, transparent 65%); background-size: 220% 100%; animation: silverSweep 3s linear infinite; }
+.zona-card.especial { position: relative; overflow: hidden; }
 .boleto-fx { width: 100%; margin-top: 10px; font-family: inherit; font-weight: 700; font-size: .85rem; color: var(--ink-soft); background: rgba(255,255,255,.05); border: 1px dashed var(--line-strong); border-radius: 10px; padding: 9px; cursor: pointer; }
 .boleto-fx.on { color: #fbbf24; border-color: rgba(251,191,36,.5); border-style: solid; background: rgba(251,191,36,.1); }
 
@@ -2694,3 +2693,98 @@ body.creando::before { display: none !important; }
 .v-item { box-shadow: 0 2px 10px rgba(0,0,0,.55); }
 .venue-inner.has-bg .v-item { outline: 2px solid rgba(255,255,255,.9); filter: saturate(1.3) brightness(1.12); }
 .venue-inner.has-bg .v-item .v-label, .venue-inner.has-bg .v-label { text-shadow: 0 1px 4px rgba(0,0,0,.9); }
+
+/* ================================================================== */
+/* CREAR v3: acceso a tipografía/color, fecha limpia, efectos arriba  */
+/* ================================================================== */
+
+/* Título: barra de herramientas (no se muestran todas las opciones) */
+.titulo-tools { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.tt-btn { display: inline-flex; align-items: baseline; gap: 8px; font-size: 1.3rem; font-weight: 800; color: var(--ink); background: rgba(255,255,255,.07); border: 1px solid var(--line-strong); border-radius: 12px; padding: 8px 14px; cursor: pointer; line-height: 1; }
+.tt-btn small { font-family: var(--font-body); font-size: .72rem; font-weight: 600; color: var(--ink-faint); }
+.tt-color { width: 38px; height: 38px; border-radius: 11px; border: 2px solid rgba(255,255,255,.35); cursor: pointer; padding: 0; }
+.tt-anim { width: 38px; height: 38px; border-radius: 11px; border: 1px solid var(--line-strong); background: rgba(255,255,255,.07); color: var(--ink); cursor: pointer; font-size: 1rem; }
+.tt-anim.on { border-color: #fff; background: rgba(255,255,255,.16); }
+
+/* Selector de tipografías (sheet) */
+.font-list { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; }
+.font-item { position: relative; text-align: left; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px 18px; font-size: 1.5rem; line-height: 1.1; cursor: pointer; }
+.font-item small { position: absolute; right: 16px; bottom: 12px; font-family: var(--font-body); font-size: .72rem; font-weight: 700; color: var(--ink-faint); }
+.font-item.on { border-color: var(--violet); background: rgba(47,123,255,.12); }
+
+/* Fecha más limpia (menos "IA"): sin emojis, etiquetas finas */
+.fecha-block { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; gap: 0; }
+.fecha-row { gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: transparent; }
+.fecha-row:last-child { border-bottom: none; }
+.fecha-lbl { min-width: 48px; font-weight: 700; color: var(--ink); }
+.fecha-date, .fecha-time { background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font-family: inherit; padding: 8px 12px; color-scheme: dark; }
+.fecha-date { flex: 1; min-width: 110px; }
+.fecha-time { width: 96px; text-align: center; }
+
+/* Organiza: cabecera con botones a la derecha */
+.host-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.host-title { font-weight: 700; color: var(--ink-soft); }
+.host-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; }
+
+/* --- Efectos: AHORA SOBRE la pantalla (encima del contenido) --- */
+.crear-screen[class*="efx-"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 40; mix-blend-mode: screen; }
+.efx-destellos::before {
+  background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2.4px 2.4px at 75% 25%, #cfe8ff, transparent), radial-gradient(3px 3px at 50% 60%, #fff, transparent), radial-gradient(2px 2px at 85% 75%, #fff, transparent), radial-gradient(2.4px 2.4px at 30% 80%, #e9d5ff, transparent), radial-gradient(2px 2px at 10% 55%, #fff, transparent);
+  background-size: 220px 220px; animation: twinkle 1.8s ease-in-out infinite alternate; opacity: .85;
+}
+@keyframes twinkle { from { opacity: .35; } to { opacity: .95; } }
+.efx-confeti::before {
+  background-image: radial-gradient(circle, #f43f5e 0 3.5px, transparent 4.5px), radial-gradient(circle, #38bdf8 0 3.5px, transparent 4.5px), radial-gradient(circle, #fbbf24 0 3.5px, transparent 4.5px), radial-gradient(circle, #34d399 0 3.5px, transparent 4.5px), radial-gradient(circle, #a855f7 0 3.5px, transparent 4.5px);
+  background-size: 80px 150px, 110px 170px, 95px 190px, 130px 160px, 100px 210px; opacity: .9; animation: confetiFall 3.2s linear infinite;
+}
+@keyframes confetiFall { to { background-position: 0 150px, 0 170px, 0 190px, 0 160px, 0 210px; } }
+.efx-burbujas::before {
+  background-image: radial-gradient(7px 7px at 20% 100%, rgba(255,255,255,.32), transparent), radial-gradient(11px 11px at 60% 100%, rgba(255,255,255,.24), transparent), radial-gradient(6px 6px at 85% 100%, rgba(255,255,255,.28), transparent), radial-gradient(9px 9px at 40% 100%, rgba(255,255,255,.2), transparent);
+  background-size: 170px 340px, 230px 400px, 140px 300px, 200px 360px; animation: bubbleUp 6s linear infinite;
+}
+@keyframes bubbleUp { to { background-position: 0 -340px, 0 -400px, 0 -300px, 0 -360px; } }
+.efx-rayos::before {
+  background: conic-gradient(from 0deg at 50% -6%, transparent 0 26deg, rgba(255,255,255,.12) 31deg 41deg, transparent 46deg 130deg, rgba(125,211,252,.10) 135deg 144deg, transparent 150deg 360deg);
+  animation: spinRay 8s linear infinite; transform-origin: 50% -6%;
+}
+@keyframes spinRay { to { transform: rotate(360deg); } }
+.efx-humo::before {
+  background-image: radial-gradient(40% 30% at 30% 40%, rgba(255,255,255,.12), transparent 70%), radial-gradient(45% 35% at 70% 60%, rgba(200,220,255,.1), transparent 70%);
+  background-size: 100% 100%; animation: humoDrift 9s ease-in-out infinite alternate; opacity: .8;
+}
+@keyframes humoDrift { from { transform: translate(-3%, 0) scale(1); } to { transform: translate(4%, -2%) scale(1.1); } }
+.efx-neon::before {
+  background: radial-gradient(60% 45% at 50% 50%, transparent 55%, rgba(236,72,153,.18) 80%, rgba(56,189,248,.2) 100%);
+  animation: neonPulse 2.4s ease-in-out infinite;
+}
+@keyframes neonPulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+.efx-grano::before {
+  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 1px, transparent 1px 2px), repeating-linear-gradient(90deg, rgba(0,0,0,.06) 0 1px, transparent 1px 2px);
+  opacity: .55; mix-blend-mode: overlay; animation: grainShift .45s steps(3) infinite;
+}
+@keyframes grainShift { 33% { transform: translate(1px,1px); } 66% { transform: translate(-1px,1px); } }
+@media (prefers-reduced-motion: reduce) { .crear-screen[class*="efx-"]::before { animation: none; } }
+
+/* --- Animaciones de boletos especiales (el usuario elige) --- */
+.zona-card.especial::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+.bx-oro::after { background: linear-gradient(110deg, transparent 35%, rgba(251,191,36,.4) 50%, transparent 65%); background-size: 220% 100%; animation: silverSweep 2.6s linear infinite; }
+.bx-oro { border-color: rgba(251,191,36,.6) !important; }
+.bx-holo::after { background: linear-gradient(110deg, transparent 30%, rgba(56,189,248,.35) 45%, rgba(236,72,153,.35) 55%, transparent 70%); background-size: 240% 100%; animation: silverSweep 2.4s linear infinite; }
+.bx-holo { border-color: rgba(168,85,247,.6) !important; }
+.bx-neon { border-color: rgba(34,211,238,.7) !important; animation: neonGlow 1.6s ease-in-out infinite; }
+@keyframes neonGlow { 0%,100% { box-shadow: 0 0 0 rgba(34,211,238,0); } 50% { box-shadow: 0 0 18px rgba(34,211,238,.55); } }
+.bx-arcoiris::after { background: linear-gradient(110deg, rgba(244,63,94,.25), rgba(251,191,36,.25), rgba(52,211,153,.25), rgba(56,189,248,.25), rgba(168,85,247,.25)); background-size: 300% 100%; animation: nameflow 3s linear infinite; }
+.bx-arcoiris { border-color: rgba(255,255,255,.4) !important; }
+.bx-pulso { animation: pulso 1.6s ease-in-out infinite; border-color: rgba(47,123,255,.6) !important; }
+@keyframes pulso { 0%,100% { transform: scale(1); } 50% { transform: scale(1.015); } }
+.bx-diamante::after { background: linear-gradient(110deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%); background-size: 220% 100%; animation: silverSweep 2s linear infinite; }
+.bx-diamante { border-color: rgba(255,255,255,.6) !important; }
+
+/* Previews de la animación en el selector */
+.ba-prev { width: 28px; height: 28px; border-radius: 8px; }
+.ba-prev.bx-oro { background: linear-gradient(120deg,#fbbf24,#b45309); }
+.ba-prev.bx-holo { background: linear-gradient(120deg,#38bdf8,#a855f7,#ec4899); }
+.ba-prev.bx-neon { background: #0a0a14; box-shadow: 0 0 10px #22d3ee inset, 0 0 8px #22d3ee; }
+.ba-prev.bx-arcoiris { background: linear-gradient(120deg,#f43f5e,#fbbf24,#34d399,#38bdf8,#a855f7); }
+.ba-prev.bx-pulso { background: linear-gradient(120deg,#2f7bff,#38bdf8); }
+.ba-prev.bx-diamante { background: linear-gradient(120deg,#e2e8f0,#94a3b8); }

@@ -465,18 +465,47 @@ const TEMAS = [
     size: 'auto, 300px 300px, 320px 320px, auto' },
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
     bg: 'radial-gradient(90% 70% at 50% 0%, #1a2030, transparent 70%), #0a0c12',
-    size: 'auto, auto' }
+    size: 'auto, auto' },
+  { nombre: 'Y2K', grad: 'linear-gradient(135deg,#f472b6,#22d3ee)',
+    bg: 'radial-gradient(80% 60% at 50% 0%, #ff5fb2, transparent 60%), repeating-conic-gradient(from 0deg at 50% 50%, #14101f 0deg 90deg, #1d1430 90deg 180deg) , #0c0a14',
+    size: 'auto, 70px 70px, auto' },
+  { nombre: 'Disco', grad: 'linear-gradient(135deg,#fbbf24,#a855f7)',
+    bg: 'radial-gradient(60% 45% at 50% 0%, #6d3bbf, transparent 65%), radial-gradient(2px 2px at 25% 35%, #fde68a, transparent), radial-gradient(2px 2px at 65% 25%, #f0abfc, transparent), radial-gradient(2px 2px at 45% 60%, #fff, transparent), radial-gradient(2px 2px at 80% 70%, #fbbf24, transparent), #0a0712',
+    size: 'auto, 130px 130px, 170px 170px, 150px 150px, 190px 190px, auto' },
+  { nombre: 'Tropical', grad: 'linear-gradient(135deg,#34d399,#fbbf24)',
+    bg: 'radial-gradient(85% 55% at 50% 0%, #0d5a3f, transparent 60%), linear-gradient(180deg, #0a2a22, #07140f), radial-gradient(2px 2px at 30% 50%, #fbbf2455, transparent)',
+    size: 'auto, auto, 280px 280px' },
+  { nombre: 'Galaxia', grad: 'linear-gradient(135deg,#7c3aed,#22d3ee)',
+    bg: 'radial-gradient(70% 50% at 30% 10%, #3b1d6e, transparent 60%), radial-gradient(60% 50% at 80% 30%, #1e3a8a55, transparent 60%), radial-gradient(1.5px 1.5px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 60% 50%, #c4b5fd, transparent), radial-gradient(1.5px 1.5px at 85% 70%, #fff, transparent), #06040f',
+    size: 'auto, auto, 220px 220px, 260px 260px, 300px 300px, auto' },
+  { nombre: 'Fuego', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
+    bg: 'radial-gradient(90% 60% at 50% 100%, #b91c1c, transparent 65%), radial-gradient(70% 45% at 50% 100%, #f59e0b88, transparent 60%), linear-gradient(180deg, #1a0a06, #0a0503)',
+    size: 'auto' },
+  { nombre: 'Rave', grad: 'linear-gradient(135deg,#22c55e,#ec4899)',
+    bg: 'radial-gradient(70% 50% at 50% 0%, #14532d, transparent 65%), repeating-linear-gradient(90deg, rgba(236,72,153,.12) 0 1px, transparent 1px 44px), repeating-linear-gradient(0deg, rgba(34,197,94,.12) 0 1px, transparent 1px 44px), #060a07',
+    size: 'auto, auto, auto, auto' }
 ];
 
-// Estilos de letra para el título del evento (varias tipografías)
+// Tipografías (no se muestran todas: se abren en un selector)
 const FONTS = [
-  { id: 'classic', nombre: 'Clásico',  css: "var(--font-display)" },
-  { id: 'sans',    nombre: 'Limpio',   css: "'Hanken Grotesk', sans-serif" },
-  { id: 'serif',   nombre: 'Serif',    css: "Georgia, 'Times New Roman', serif" },
-  { id: 'script',  nombre: 'Script',   css: "'Snell Roundhand','Brush Script MT', cursive" },
-  { id: 'mono',    nombre: 'Mono',     css: "'Courier New', monospace" },
-  { id: 'impact',  nombre: 'Impacto',  css: "Impact, 'Arial Black', sans-serif" },
-  { id: 'condensed', nombre: 'Compacta', css: "'Arial Narrow', sans-serif" }
+  { id: 'classic', nombre: 'Clásico',   css: "var(--font-display)" },
+  { id: 'sans',    nombre: 'Limpio',    css: "'Hanken Grotesk', sans-serif" },
+  { id: 'serif',   nombre: 'Serif',     css: "Georgia, 'Times New Roman', serif" },
+  { id: 'baskerville', nombre: 'Editorial', css: "Baskerville, Georgia, serif" },
+  { id: 'palatino', nombre: 'Palatino', css: "Palatino, 'Palatino Linotype', serif" },
+  { id: 'script',  nombre: 'Script',    css: "'Snell Roundhand','Brush Script MT', cursive" },
+  { id: 'savoye',  nombre: 'Cursiva',   css: "'Savoye LET','Snell Roundhand', cursive" },
+  { id: 'marker',  nombre: 'Marcador',  css: "'Marker Felt','Comic Sans MS', cursive" },
+  { id: 'bradley', nombre: 'A mano',    css: "'Bradley Hand','Segoe Script', cursive" },
+  { id: 'chalk',   nombre: 'Tiza',      css: "'Chalkduster', fantasy" },
+  { id: 'mono',    nombre: 'Mono',      css: "'Courier New', monospace" },
+  { id: 'typewriter', nombre: 'Máquina', css: "'American Typewriter','Courier New', serif" },
+  { id: 'impact',  nombre: 'Impacto',   css: "Impact, 'Arial Black', sans-serif" },
+  { id: 'futura',  nombre: 'Futura',    css: "Futura, 'Trebuchet MS', sans-serif" },
+  { id: 'optima',  nombre: 'Optima',    css: "Optima, 'Segoe UI', sans-serif" },
+  { id: 'copperplate', nombre: 'Grabado', css: "Copperplate,'Copperplate Gothic', fantasy" },
+  { id: 'condensed', nombre: 'Compacta', css: "'Arial Narrow', sans-serif" },
+  { id: 'papyrus', nombre: 'Antigua',   css: "Papyrus, fantasy" }
 ];
 
 // Tipos de efecto del fondo
@@ -486,7 +515,19 @@ const EFECTOS = [
   { id: 'confeti',   nombre: 'Confeti',   emoji: '🎉' },
   { id: 'burbujas',  nombre: 'Burbujas',  emoji: '🫧' },
   { id: 'rayos',     nombre: 'Reflectores',emoji: '🔦' },
+  { id: 'humo',      nombre: 'Humo',      emoji: '💨' },
+  { id: 'neon',      nombre: 'Neón',      emoji: '💖' },
   { id: 'grano',     nombre: 'Grano',     emoji: '🎞️' }
+];
+
+// Animaciones para boletos especiales (el usuario elige)
+const BOLETO_ANIMS = [
+  { id: 'oro',      nombre: 'Oro' },
+  { id: 'holo',     nombre: 'Holográfico' },
+  { id: 'neon',     nombre: 'Neón' },
+  { id: 'arcoiris', nombre: 'Arcoíris' },
+  { id: 'pulso',    nombre: 'Pulso' },
+  { id: 'diamante', nombre: 'Diamante' }
 ];
 
 // Paleta simple de colores para el nombre
@@ -650,17 +691,16 @@ function pintarCrear() {
         <button class="save-btn" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Guardar'}</button>
       </div>
 
-      <!-- Título + tipografías + color -->
+      <!-- Título + acceso a tipografías y color -->
       <div class="titulo-card">
         <div class="titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
              data-ph="Evento sin título" style="font-family:${font}; ${anim ? `background-image:${animGrad(draft.cover.anim)}` : `color:${draft.cover.titleColor}`}"
              oninput="draft.nombre=this.textContent">${draft.nombre}</div>
-        <div class="font-row">
-          ${FONTS.map((f) => `<button class="font-chip ${f.id === draft.tituloFont ? 'on' : ''}" style="font-family:${f.css}" onclick="setTituloFont('${f.id}')">${f.nombre}</button>`).join('')}
-        </div>
-        <div class="title-colors">
-          ${NAME_COLORS.map((c) => `<button class="name-dot ${(!anim && draft.cover.titleColor === c) ? 'sel' : ''}" style="background:${c}" onclick="setNombreColor('${c}')"></button>`).join('')}
-          <button class="name-dot tcolor-anim ${anim ? 'on' : ''}" onclick="toggleTituloAnim()" title="Color animado">✨</button>
+        <div class="titulo-tools">
+          <button class="tt-btn" onclick="abrirTipografias()" style="font-family:${font}">Aa <small>Tipografía</small></button>
+          <button class="tt-color" onclick="document.getElementById('tColorInput').click()" style="background:${anim ? 'conic-gradient(from 0deg,#2f7bff,#38bdf8,#a855f7,#22d3ee,#2f7bff)' : draft.cover.titleColor}" aria-label="Color"></button>
+          <input type="color" id="tColorInput" value="${anim ? '#2f7bff' : draft.cover.titleColor}" hidden onchange="setNombreColor(this.value)">
+          <button class="tt-anim ${anim ? 'on' : ''}" onclick="toggleTituloAnim()" title="Color animado">✨</button>
         </div>
       </div>
 
@@ -671,30 +711,32 @@ function pintarCrear() {
         <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
       </div>
 
-      <!-- Fecha y hora con SELECTOR (inicio y cierre) -->
+      <!-- Fecha y hora: fecha con selector, hora manual (sin forzar el 0) -->
       <div class="fecha-block">
         <div class="fecha-row">
-          <span class="fecha-ico">🗓️</span><span class="fecha-lbl">Inicio</span>
-          <input type="date" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; syncFecha()">
-          <input type="time" value="${draft.horaInicio}" oninput="draft.horaInicio=this.value; syncFecha()">
+          <span class="fecha-lbl">Inicio</span>
+          <input class="fecha-date" type="date" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; syncFecha()">
+          <input class="fecha-time" type="text" inputmode="numeric" value="${draft.horaInicio}" placeholder="9:30 pm" oninput="draft.horaInicio=this.value; syncFecha()">
         </div>
         <div class="fecha-row">
-          <span class="fecha-ico">🏁</span><span class="fecha-lbl">Cierre</span>
-          <input type="date" value="${draft.fechaFin}" oninput="draft.fechaFin=this.value; syncFecha()">
-          <input type="time" value="${draft.horaFin}" oninput="draft.horaFin=this.value; syncFecha()">
+          <span class="fecha-lbl">Cierre</span>
+          <input class="fecha-date" type="date" value="${draft.fechaFin}" oninput="draft.fechaFin=this.value">
+          <input class="fecha-time" type="text" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value">
         </div>
       </div>
 
-      <!-- Anfitrión + co-anfitriones + grupo -->
+      <!-- Anfitrión: botones arriba junto al título, sin estado vacío -->
       <div class="crear-block host-block">
-        <div class="host-top"><span>👑 Organiza</span></div>
+        <div class="host-head">
+          <span class="host-title">👑 Organiza</span>
+          <div class="host-add-row">
+            <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitriones</button>
+            <button class="chip" onclick="agregarGrupoOrg()">＋ Grupo</button>
+          </div>
+        </div>
         <div class="host-row">
           <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
           <strong>${u.nombre}</strong>
-        </div>
-        <div class="host-add-row">
-          <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitriones</button>
-          <button class="chip" onclick="agregarGrupoOrg()">👥 ＋ Grupo</button>
         </div>
         <div id="orgList"></div>
       </div>
@@ -790,12 +832,32 @@ function syncFecha() {
   if (!draft.fechaInicio) { draft.fecha = ''; return; }
   const d = new Date(draft.fechaInicio + 'T00:00');
   let s = `${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
-  if (draft.horaInicio) {
-    const [h, m] = draft.horaInicio.split(':').map(Number);
-    const ap = h >= 12 ? 'pm' : 'am'; const h12 = ((h + 11) % 12) + 1;
-    s += ` · ${h12}:${String(m).padStart(2, '0')} ${ap}`;
-  }
+  if (draft.horaInicio && draft.horaInicio.trim()) s += ` · ${draft.horaInicio.trim()}`;
   draft.fecha = s;
+}
+// Selector de tipografías (se abre, no se muestran todas de una)
+function abrirTipografias() {
+  abrirSheet('Tipografía del título', `
+    <div class="font-list">
+      ${FONTS.map((f) => `<button class="font-item ${f.id === draft.tituloFont ? 'on' : ''}" style="font-family:${f.css}" onclick="setTituloFont('${f.id}'); cerrarSheet()">${draft.nombre || 'Tu evento'}<small>${f.nombre}</small></button>`).join('')}
+    </div>
+  `);
+}
+// Elegir animación de un boleto especial
+function abrirBoletoAnim(i) {
+  abrirSheet('Animación del boleto', `
+    <p class="hint">Dale un estilo especial a este boleto.</p>
+    <div class="efx-grid">
+      <button class="efx-opt ${!draft.boletos[i].animado ? 'on' : ''}" onclick="setBoletoAnim(${i}, null)"><span>🚫</span>Ninguna</button>
+      ${BOLETO_ANIMS.map((a) => `<button class="efx-opt ${draft.boletos[i].animado && draft.boletos[i].anim === a.id ? 'on' : ''}" onclick="setBoletoAnim(${i}, '${a.id}')"><span class="ba-prev bx-${a.id}"></span>${a.nombre}</button>`).join('')}
+    </div>
+  `);
+}
+function setBoletoAnim(i, id) {
+  draft.boletos[i].animado = !!id;
+  draft.boletos[i].anim = id || null;
+  cerrarSheet();
+  pintarBoletos();
 }
 // Color animado del título (activa/desactiva un degradado animado)
 function toggleTituloAnim() {
@@ -1202,14 +1264,13 @@ function resizeTitulo(d) {
 function pintarOrganizadores() {
   const cont = document.getElementById('orgList');
   if (!cont) return;
-  cont.innerHTML = draft.organizadores.length
-    ? draft.organizadores.map((o, i) => `
+  // Sin estado vacío: si no hay equipo, no ocupa espacio
+  cont.innerHTML = draft.organizadores.map((o, i) => `
         <div class="org-row">
           <div class="org-ava">${o.avatar}</div>
           <span class="org-name">${o.nombre}</span>
           <button class="guest-del" onclick="delOrganizador(${i})">✕</button>
-        </div>`).join('')
-    : `<p class="empty">Solo tú por ahora. Agrega a tu equipo 👥</p>`;
+        </div>`).join('');
 }
 function addOrganizador() {
   const inp = document.getElementById('orgInput');
@@ -1241,8 +1302,10 @@ function quitarPlanoBg() { pisoActual().bg = null; pintarCrear(); }
 function pintarBoletos() {
   const cont = document.getElementById('boletosList');
   if (!cont) return;
-  cont.innerHTML = draft.boletos.map((b, i) => `
-    <div class="zona-card ${b.animado ? 'especial' : ''}">
+  cont.innerHTML = draft.boletos.map((b, i) => {
+    const animName = b.animado ? (BOLETO_ANIMS.find((a) => a.id === b.anim) || {}).nombre || 'Especial' : '';
+    return `
+    <div class="zona-card ${b.animado ? 'especial bx-' + (b.anim || 'oro') : ''}">
       <div class="zona-top">
         <input class="zona-name" value="${b.nombre}" placeholder="Nombre (ej: VIP)" oninput="draft.boletos[${i}].nombre=this.value">
         ${draft.boletos.length > 1 ? `<button class="guest-del" onclick="delBoleto(${i})">✕</button>` : ''}
@@ -1253,9 +1316,9 @@ function pintarBoletos() {
         <div class="zona-f"><label>Cantidad</label>
           <input type="number" value="${b.cantidad}" oninput="draft.boletos[${i}].cantidad=+this.value||0; actualizarCapTotal()"></div>
       </div>
-      <button class="boleto-fx ${b.animado ? 'on' : ''}" onclick="draft.boletos[${i}].animado=!draft.boletos[${i}].animado; pintarBoletos()">✨ Boleto especial (animado)</button>
-    </div>
-  `).join('');
+      <button class="boleto-fx ${b.animado ? 'on' : ''}" onclick="abrirBoletoAnim(${i})">✨ ${b.animado ? `Animación: ${animName}` : 'Boleto especial (elige animación)'}</button>
+    </div>`;
+  }).join('');
   actualizarCapTotal();
 }
 function actualizarCapTotal() {
