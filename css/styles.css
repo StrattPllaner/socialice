@@ -2647,34 +2647,7 @@ body.creando::before { display: none !important; }
 .efx-opt span { font-size: 1.6rem; }
 .efx-opt.on { border-color: var(--violet); background: rgba(47,123,255,.14); color: var(--violet); }
 
-/* --- Efectos de fondo (capa fija detrás del contenido) --- */
-.crear-screen[class*="efx-"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-.efx-destellos::before {
-  background-image: radial-gradient(1.6px 1.6px at 20% 30%, #fff, transparent), radial-gradient(1.6px 1.6px at 75% 25%, #fff, transparent), radial-gradient(2px 2px at 50% 60%, #fff, transparent), radial-gradient(1.4px 1.4px at 85% 75%, #fff, transparent), radial-gradient(1.6px 1.6px at 30% 80%, #fff, transparent);
-  background-size: 260px 260px; animation: twinkle 2.6s ease-in-out infinite alternate;
-}
-@keyframes twinkle { from { opacity: .25; } to { opacity: .9; } }
-.efx-confeti::before {
-  background-image: radial-gradient(circle, #f43f5e 0 3px, transparent 4px), radial-gradient(circle, #38bdf8 0 3px, transparent 4px), radial-gradient(circle, #fbbf24 0 3px, transparent 4px), radial-gradient(circle, #34d399 0 3px, transparent 4px);
-  background-size: 70px 130px, 95px 150px, 80px 170px, 110px 140px; opacity: .8; animation: confetiFall 4s linear infinite;
-}
-@keyframes confetiFall { to { background-position: 0 130px, 0 150px, 0 170px, 0 140px; } }
-.efx-burbujas::before {
-  background-image: radial-gradient(6px 6px at 20% 100%, rgba(255,255,255,.18), transparent), radial-gradient(9px 9px at 60% 100%, rgba(255,255,255,.14), transparent), radial-gradient(5px 5px at 85% 100%, rgba(255,255,255,.16), transparent);
-  background-size: 160px 320px, 220px 380px, 130px 300px; animation: bubbleUp 7s linear infinite;
-}
-@keyframes bubbleUp { to { background-position: 0 -320px, 0 -380px, 0 -300px; } }
-.efx-rayos::before {
-  background: conic-gradient(from 0deg at 50% -8%, transparent 0 28deg, rgba(255,255,255,.07) 33deg 42deg, transparent 47deg 360deg);
-  animation: spinRay 9s linear infinite; transform-origin: 50% -8%;
-}
-@keyframes spinRay { to { transform: rotate(360deg); } }
-.efx-grano::before {
-  background-image: repeating-linear-gradient(0deg, rgba(255,255,255,.04) 0 1px, transparent 1px 2px), repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 1px, transparent 1px 2px);
-  opacity: .5; animation: grainShift .5s steps(3) infinite;
-}
-@keyframes grainShift { 33% { transform: translate(1px,1px); } 66% { transform: translate(-1px,1px); } }
-@media (prefers-reduced-motion: reduce) { .crear-screen[class*="efx-"]::before { animation: none; } }
+/* (Los efectos de degradado viejos se eliminaron: ahora son partículas reales) */
 
 /* Adjuntos pendientes de publicación */
 .news-thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
@@ -2727,9 +2700,12 @@ body.creando::before { display: none !important; }
 .host-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; }
 
 /* --- Efectos basados en CSS (humo/neón/reflectores/grano) sobre la pantalla --- */
-.crear-screen.efx-humo::before, .crear-screen.efx-neon::before, .crear-screen.efx-rayos::before, .crear-screen.efx-grano::before {
+.crear-screen.efx-humo::before, .crear-screen.efx-neon::before, .crear-screen.efx-grano::before {
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 40;
 }
+/* Reflectores de disco: haces desde arriba que barren de lado a lado */
+.efp-beam { position: absolute; top: -8%; width: 200px; height: 135vh; margin-left: -100px; transform-origin: top center; mix-blend-mode: screen; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); animation-name: beamSwing; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; }
+@keyframes beamSwing { from { transform: rotate(calc(var(--swing,24deg) * -1)); } to { transform: rotate(var(--swing,24deg)); } }
 
 /* --- Efectos con PARTÍCULAS reales (no se ven IA) --- */
 .efx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
