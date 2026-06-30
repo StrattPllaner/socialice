@@ -59,8 +59,8 @@ function irA(nombre) {
   // Al salir de "crear", quitamos el tema de fondo de toda la pantalla
   if (nombre !== 'create') {
     document.body.classList.remove('creando');
-    document.body.style.removeProperty('--tema-bg');
-    document.body.style.removeProperty('--tema-size');
+    const tbg = document.getElementById('temaBg');
+    if (tbg) tbg.style.display = 'none';
     document.querySelectorAll('.efx-layer').forEach((n) => n.remove());
   }
   render(nombre);
@@ -683,10 +683,14 @@ function pintarCrear() {
   cont.className = 'crear-screen' + (efxOn ? ' efx-' + draft.efecto : '');
   cont.style.background = 'transparent';
 
-  // El TEMA cubre TODA la pantalla (se aplica al fondo del documento)
+  // El TEMA cubre TODA la pantalla con una CAPA FIJA (sin background-attachment,
+  // que causa tirones y deja ver "atrás" al hacer scroll en móvil)
   document.body.classList.add('creando');
-  document.body.style.setProperty('--tema-bg', t.bg);
-  document.body.style.setProperty('--tema-size', t.size || 'auto');
+  let temaBg = document.getElementById('temaBg');
+  if (!temaBg) { temaBg = document.createElement('div'); temaBg.id = 'temaBg'; document.body.prepend(temaBg); }
+  temaBg.style.background = t.bg;
+  temaBg.style.backgroundSize = t.size || 'auto';
+  temaBg.style.display = 'block';
 
   cont.innerHTML = `
     <div class="crear-page">
@@ -876,6 +880,12 @@ function pintarEfecto() {
       s.style.cssText = `left:${rnd(0, 100)}%;font-size:${rnd(10, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${rnd(e === 'nieve' ? 5 : 3.5, e === 'nieve' ? 11 : 7)}s;animation-delay:${rnd(0, 5)}s`;
     }
     layer.appendChild(s);
+  }
+  // Nieve: montículo de nieve que se va acumulando abajo
+  if (e === 'nieve') {
+    const pila = document.createElement('div');
+    pila.className = 'efx-snow-pile';
+    layer.appendChild(pila);
   }
   cont.appendChild(layer);
 }

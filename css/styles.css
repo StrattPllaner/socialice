@@ -2611,8 +2611,12 @@ body[data-screen="create"] .bottom-nav { display: none; }
 /* ================================================================== */
 
 /* El TEMA cubre toda la pantalla */
-body.creando { background: var(--tema-bg) !important; background-size: var(--tema-size) !important; background-position: center top !important; background-attachment: fixed !important; }
+/* El tema se pinta en una capa FIJA (#temaBg), no en el body, para evitar
+   tirones de scroll y que se vea "atrás" en móvil */
+#temaBg { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none; background-position: center top; }
 body.creando::before { display: none !important; }
+/* Evita el "rebote"/overscroll que deja ver una pantalla atrás */
+html, body { overscroll-behavior: none; }
 @media (min-width: 1000px) {
   body[data-screen="create"] .app-shell { margin-left: 0 !important; max-width: 100% !important; }
 }
@@ -2805,3 +2809,17 @@ body[data-screen="create"] .efx-layer { display: block; }
   0%   { transform: translate(0,-12vh) rotate(0); }
   100% { transform: translate(var(--sway,0px),118vh) rotate(360deg); }
 }
+
+/* Nieve acumulada en la parte de abajo */
+.efx-snow-pile {
+  position: fixed; left: 0; right: 0; bottom: 0; height: 0;
+  background:
+    radial-gradient(60% 120% at 20% 100%, rgba(255,255,255,.95), transparent 70%),
+    radial-gradient(70% 120% at 55% 100%, rgba(255,255,255,.92), transparent 72%),
+    radial-gradient(60% 120% at 85% 100%, rgba(255,255,255,.95), transparent 70%),
+    linear-gradient(0deg, rgba(255,255,255,.9), rgba(255,255,255,.5) 55%, transparent);
+  filter: blur(1px); pointer-events: none; z-index: 41;
+  animation: snowGrow 7s ease-out forwards;
+}
+@keyframes snowGrow { 0% { height: 0; opacity: .5; } 100% { height: 70px; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .efx-snow-pile { height: 60px; animation: none; } }
