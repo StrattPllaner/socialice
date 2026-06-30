@@ -837,21 +837,24 @@ function pintarEfecto() {
   const layer = document.createElement('div');
   layer.className = 'efx-layer';
   const rnd = (a, b) => a + Math.random() * (b - a);
-  const cols = ['#f43f5e', '#fbbf24', '#34d399', '#38bdf8', '#a855f7', '#ffffff'];
-  const n = e === 'confeti' ? 46 : e === 'burbujas' ? 24 : 36;
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+  const cols = ['#f43f5e', '#fb7185', '#fbbf24', '#facc15', '#34d399', '#22d3ee', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'];
+  const n = e === 'confeti' ? 120 : e === 'burbujas' ? 46 : 80;
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
     if (e === 'destellos') {
-      const sz = rnd(2, 5);
-      s.className = 'efp-spark';
-      s.style.cssText = `left:${rnd(0, 100)}%;top:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(1.4, 3.4)}s;animation-delay:${rnd(0, 3)}s`;
+      const sz = rnd(3, 9);
+      s.className = 'efp-spark ' + pick(['', '', 'star']);  // mezcla de puntos y estrellas
+      s.style.cssText = `left:${rnd(0, 100)}%;top:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(1, 2.6)}s;animation-delay:${rnd(0, 2.5)}s`;
     } else if (e === 'confeti') {
+      const w = rnd(7, 14), h = rnd(11, 22);
+      const redondo = Math.random() < 0.25;
       s.className = 'efp-conf';
-      s.style.cssText = `left:${rnd(0, 100)}%;width:${rnd(6, 10)}px;height:${rnd(10, 16)}px;background:${cols[i % cols.length]};animation-duration:${rnd(3, 6)}s;animation-delay:${rnd(0, 5)}s`;
+      s.style.cssText = `left:${rnd(0, 100)}%;width:${w}px;height:${redondo ? w : h}px;background:${pick(cols)};${redondo ? 'border-radius:50%;' : ''}--sway:${rnd(-60, 60)}px;animation-duration:${rnd(2.4, 5)}s;animation-delay:${rnd(0, 4)}s`;
     } else {
-      const sz = rnd(8, 22);
+      const sz = rnd(10, 30);
       s.className = 'efp-bub';
-      s.style.cssText = `left:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(5, 9)}s;animation-delay:${rnd(0, 6)}s`;
+      s.style.cssText = `left:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;--sway:${rnd(-30, 30)}px;animation-duration:${rnd(4, 8)}s;animation-delay:${rnd(0, 6)}s`;
     }
     layer.appendChild(s);
   }
@@ -2988,6 +2991,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const p = new URLSearchParams(location.search);
   if (p.get('rol')) DATA.usuario.rol = p.get('rol');
   if (p.get('splash')) splashIr(p.get('splash'));
+  if (p.get('efx')) draft.efecto = p.get('efx');   // prueba: ?screen=create&efx=confeti
   if (p.get('screen')) {
     document.getElementById('screen-splash').classList.remove('is-active');
     entrarApp();

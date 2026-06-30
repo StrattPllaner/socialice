@@ -2733,12 +2733,24 @@ body.creando::before { display: none !important; }
 
 /* --- Efectos con PARTÍCULAS reales (no se ven IA) --- */
 .efx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
-.efp-spark { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 7px 2px rgba(255,255,255,.85), 0 0 14px 4px rgba(170,210,255,.45); opacity: 0; animation-name: sparkTw; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
-@keyframes sparkTw { 0%,100% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1); } }
-.efp-conf { position: absolute; top: -8%; border-radius: 2px; opacity: .92; animation-name: confFall; animation-timing-function: linear; animation-iteration-count: infinite; }
-@keyframes confFall { 0% { transform: translateY(-12vh) rotateZ(0) rotateX(0); } 100% { transform: translateY(115vh) rotateZ(720deg) rotateX(360deg); } }
-.efp-bub { position: absolute; bottom: -10%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.75), rgba(255,255,255,.1) 60%, transparent 75%); border: 1px solid rgba(255,255,255,.28); animation-name: bubRise; animation-timing-function: linear; animation-iteration-count: infinite; }
-@keyframes bubRise { 0% { transform: translateY(0) translateX(0); opacity: 0; } 12% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-118vh) translateX(14px); opacity: 0; } }
+.efp-spark { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 9px 2px rgba(255,255,255,.95), 0 0 20px 7px rgba(160,205,255,.6); opacity: 0; animation-name: sparkTw; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.efp-spark.star { border-radius: 0; box-shadow: 0 0 12px 3px rgba(255,255,255,.95); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+@keyframes sparkTw { 0%,100% { opacity: 0; transform: scale(.2) rotate(0deg); } 50% { opacity: 1; transform: scale(1.25) rotate(45deg); } }
+.efp-conf { position: absolute; top: -8%; border-radius: 2px; opacity: .95; box-shadow: 0 1px 3px rgba(0,0,0,.25); animation-name: confFall; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes confFall {
+  0%   { transform: translate(0,-12vh) rotateZ(0) rotateX(0); opacity: 0; }
+  8%   { opacity: 1; }
+  50%  { transform: translate(var(--sway,0px), 55vh) rotateZ(360deg) rotateX(180deg); }
+  100% { transform: translate(0, 116vh) rotateZ(720deg) rotateX(360deg); opacity: 1; }
+}
+.efp-bub { position: absolute; bottom: -10%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.85), rgba(255,255,255,.14) 60%, transparent 75%); border: 1px solid rgba(255,255,255,.35); animation-name: bubRise; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes bubRise {
+  0%   { transform: translate(0,0); opacity: 0; }
+  12%  { opacity: 1; }
+  50%  { transform: translate(var(--sway,0px), -60vh); }
+  90%  { opacity: 1; }
+  100% { transform: translate(0,-120vh); opacity: 0; }
+}
 .efx-rayos::before {
   background: conic-gradient(from 0deg at 50% -6%, transparent 0 26deg, rgba(255,255,255,.12) 31deg 41deg, transparent 46deg 130deg, rgba(125,211,252,.10) 135deg 144deg, transparent 150deg 360deg);
   animation: spinRay 8s linear infinite; transform-origin: 50% -6%;
