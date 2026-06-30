@@ -2704,29 +2704,29 @@ body.creando::before { display: none !important; }
   content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 40;
 }
 /* Reflectores de disco: haces desde arriba que barren de lado a lado */
-.efp-beam { position: absolute; top: -8%; width: 200px; height: 135vh; margin-left: -100px; transform-origin: top center; mix-blend-mode: screen; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); animation-name: beamSwing; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; }
+.efp-beam { position: absolute; top: -8%; width: 200px; height: 135vh; margin-left: -100px; transform-origin: top center; mix-blend-mode: screen; clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); animation-name: beamSwing; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-direction: alternate; animation-fill-mode: both; }
 @keyframes beamSwing { from { transform: rotate(calc(var(--swing,24deg) * -1)); } to { transform: rotate(var(--swing,24deg)); } }
 
 /* --- Efectos con PARTÍCULAS reales (no se ven IA) --- */
 .efx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
-.efp-spark { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 9px 2px rgba(255,255,255,.95), 0 0 20px 7px rgba(160,205,255,.6); opacity: 0; animation-name: sparkTw; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+.efp-spark { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 9px 2px rgba(255,255,255,.95), 0 0 20px 7px rgba(160,205,255,.6); opacity: 0; animation-name: sparkTw; animation-timing-function: ease-in-out; animation-iteration-count: infinite; animation-fill-mode: both; }
 .efp-spark.star { border-radius: 0; box-shadow: 0 0 12px 3px rgba(255,255,255,.95); clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 @keyframes sparkTw { 0%,100% { opacity: 0; transform: scale(.2) rotate(0deg); } 50% { opacity: 1; transform: scale(1.25) rotate(45deg); } }
-.efp-conf { position: absolute; top: -8%; border-radius: 2px; opacity: .95; box-shadow: 0 1px 3px rgba(0,0,0,.25); animation-name: confFall; animation-timing-function: linear; animation-iteration-count: infinite; }
+
+/* Confeti: caída CONTINUA, sin trabarse a la mitad ni parpadear */
+.efp-conf { position: absolute; top: 0; border-radius: 2px; opacity: .95; box-shadow: 0 1px 3px rgba(0,0,0,.25); animation-name: confFall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; }
 @keyframes confFall {
-  0%   { transform: translate(0,-12vh) rotateZ(0) rotateX(0); opacity: 0; }
-  8%   { opacity: 1; }
-  50%  { transform: translate(var(--sway,0px), 55vh) rotateZ(360deg) rotateX(180deg); }
-  100% { transform: translate(0, 116vh) rotateZ(720deg) rotateX(360deg); opacity: 1; }
+  0%   { transform: translate(0,-15vh) rotateZ(0) rotateX(0); }
+  100% { transform: translate(var(--sway,0px), 118vh) rotateZ(720deg) rotateX(540deg); }
 }
+
 /* Burbujas: vidrio TRANSPARENTE (solo borde + brillo) */
-.efp-bub { position: absolute; bottom: -10%; border-radius: 50%; background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.4) 0 6%, rgba(255,255,255,.06) 28%, transparent 62%); border: 1px solid rgba(255,255,255,.4); box-shadow: inset 0 0 8px rgba(255,255,255,.18); animation-name: bubRise; animation-timing-function: linear; animation-iteration-count: infinite; }
+.efp-bub { position: absolute; bottom: -10%; border-radius: 50%; background: radial-gradient(circle at 34% 28%, rgba(255,255,255,.4) 0 6%, rgba(255,255,255,.06) 28%, transparent 62%); border: 1px solid rgba(255,255,255,.4); box-shadow: inset 0 0 8px rgba(255,255,255,.18); animation-name: bubRise; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; }
 @keyframes bubRise {
   0%   { transform: translate(0,0); opacity: 0; }
-  12%  { opacity: 1; }
-  50%  { transform: translate(var(--sway,0px), -60vh); }
-  90%  { opacity: 1; }
-  100% { transform: translate(0,-120vh); opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { transform: translate(var(--sway,0px),-128vh); opacity: 0; }
 }
 
 /* Reflectores: rayos largos que barren toda la pantalla */
@@ -2800,10 +2800,8 @@ body[data-screen="create"] .efx-layer { display: block; }
 .tt-color input[type="color"] { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); opacity: 0; border: none; padding: 0; cursor: pointer; background: none; }
 
 /* Partículas con emoji (nieve / corazones) */
-.efp-emoji { position: absolute; top: -8%; line-height: 1; opacity: .95; filter: drop-shadow(0 1px 2px rgba(0,0,0,.3)); animation-name: emojiFall; animation-timing-function: linear; animation-iteration-count: infinite; }
+.efp-emoji { position: absolute; top: 0; line-height: 1; opacity: .95; filter: drop-shadow(0 1px 2px rgba(0,0,0,.3)); animation-name: emojiFall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; }
 @keyframes emojiFall {
-  0%   { transform: translate(0,-10vh) rotate(0); opacity: 0; }
-  10%  { opacity: 1; }
-  50%  { transform: translate(var(--sway,0px), 55vh) rotate(180deg); }
-  100% { transform: translate(0,116vh) rotate(360deg); opacity: 1; }
+  0%   { transform: translate(0,-12vh) rotate(0); }
+  100% { transform: translate(var(--sway,0px),118vh) rotate(360deg); }
 }

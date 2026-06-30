@@ -845,7 +845,7 @@ function pintarEfecto() {
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const cols = ['#f43f5e', '#fb7185', '#fbbf24', '#facc15', '#34d399', '#22d3ee', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'];
-  const counts = { confeti: 50, burbujas: 26, destellos: 42, nieve: 40, corazones: 26, rayos: 5 };
+  const counts = { confeti: 32, burbujas: 26, destellos: 42, nieve: 40, corazones: 26, rayos: 5 };
   const n = counts[e];
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
