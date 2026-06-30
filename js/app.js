@@ -56,6 +56,12 @@ function render(nombre) {
 
 // Muestra una pantalla por su nombre y oculta las demás.
 function irA(nombre) {
+  // Al salir de "crear", quitamos el tema de fondo de toda la pantalla
+  if (nombre !== 'create') {
+    document.body.classList.remove('creando');
+    document.body.style.removeProperty('--tema-bg');
+    document.body.style.removeProperty('--tema-size');
+  }
   render(nombre);
   document.querySelectorAll('.screen').forEach((s) => {
     s.classList.toggle('is-active', s.dataset.name === nombre);
@@ -434,21 +440,53 @@ const GRADS = [
 ];
 const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','👑','🔥'];
 
-// Temas de fondo para la página de creación (con su gradiente de portada)
+// Temas de fondo ÚNICOS (cada uno un estilo real, no solo un color)
 const TEMAS = [
-  { nombre: 'Azul',     bg: 'radial-gradient(120% 90% at 50% 0%, #123a7e, #04070f)', grad: 'linear-gradient(135deg,#2f7bff,#38bdf8)' },
-  { nombre: 'Noche',    bg: 'radial-gradient(120% 90% at 50% 0%, #1b1146, #05040d)', grad: 'linear-gradient(135deg,#6366f1,#a855f7)' },
-  { nombre: 'Aurora',   bg: 'radial-gradient(120% 90% at 50% 0%, #0b3b4a, #04090f)', grad: 'linear-gradient(135deg,#22d3ee,#34d399)' },
-  { nombre: 'Atardecer',bg: 'radial-gradient(120% 90% at 50% 0%, #4a1d3a, #0a0510)', grad: 'linear-gradient(135deg,#f59e0b,#ec4899)' },
-  { nombre: 'Neón',     bg: 'radial-gradient(120% 90% at 50% 0%, #16104a, #060414)', grad: 'linear-gradient(135deg,#ec4899,#6366f1)' },
-  { nombre: 'Hielo',    bg: 'radial-gradient(120% 90% at 50% 0%, #1d3a5e, #050a12)', grad: 'linear-gradient(135deg,#7dd3fc,#2563eb)' }
+  { nombre: 'Medianoche', grad: 'linear-gradient(135deg,#2f7bff,#38bdf8)',
+    bg: 'radial-gradient(70% 50% at 50% 0%, #18356e, transparent 70%), radial-gradient(1px 1px at 20% 30%, #fff, transparent), radial-gradient(1px 1px at 70% 20%, #cfe3ff, transparent), radial-gradient(1.5px 1.5px at 40% 60%, #fff, transparent), radial-gradient(1px 1px at 85% 70%, #bcd6ff, transparent), #04070f',
+    size: 'auto, 240px 240px, 320px 320px, 200px 200px, 280px 280px, auto' },
+  { nombre: 'Cuadrícula', grad: 'linear-gradient(135deg,#22d3ee,#2563eb)',
+    bg: 'radial-gradient(80% 60% at 50% -10%, rgba(34,211,238,.25), transparent 70%), repeating-linear-gradient(0deg, rgba(56,189,248,.10) 0 1px, transparent 1px 38px), repeating-linear-gradient(90deg, rgba(56,189,248,.10) 0 1px, transparent 1px 38px), #05080f',
+    size: 'auto, auto, auto, auto' },
+  { nombre: 'Atardecer', grad: 'linear-gradient(135deg,#f59e0b,#ec4899)',
+    bg: 'radial-gradient(90% 60% at 50% 0%, #b3491f, transparent 60%), radial-gradient(70% 50% at 50% 5%, #f59e0b66, transparent 60%), linear-gradient(180deg, #3a1426, #0a0408)',
+    size: 'auto' },
+  { nombre: 'Vapor', grad: 'linear-gradient(135deg,#ec4899,#38bdf8)',
+    bg: 'linear-gradient(180deg, #2a1145 0%, #4a1d5a 45%, #c2497a 100%), repeating-linear-gradient(0deg, rgba(255,255,255,.05) 0 2px, transparent 2px 5px)',
+    size: 'auto, auto' },
+  { nombre: 'Confeti', grad: 'linear-gradient(135deg,#34d399,#f59e0b)',
+    bg: 'radial-gradient(circle at 15% 20%, #f43f5e 0 4px, transparent 5px), radial-gradient(circle at 80% 15%, #38bdf8 0 4px, transparent 5px), radial-gradient(circle at 60% 50%, #f59e0b 0 4px, transparent 5px), radial-gradient(circle at 30% 75%, #34d399 0 4px, transparent 5px), radial-gradient(circle at 90% 80%, #a855f7 0 4px, transparent 5px), #0a0a12',
+    size: '180px 180px, 200px 200px, 160px 160px, 220px 220px, 190px 190px, auto' },
+  { nombre: 'Dorado', grad: 'linear-gradient(135deg,#fbbf24,#b45309)',
+    bg: 'radial-gradient(80% 55% at 50% 0%, #5a4410, transparent 65%), radial-gradient(1.5px 1.5px at 25% 35%, #fde68a, transparent), radial-gradient(1px 1px at 65% 25%, #fbbf24, transparent), radial-gradient(1.5px 1.5px at 50% 65%, #fde68a, transparent), linear-gradient(180deg,#15110a,#070504)',
+    size: 'auto, 260px 260px, 300px 300px, 240px 240px, auto' },
+  { nombre: 'Selva', grad: 'linear-gradient(135deg,#10b981,#0ea5e9)',
+    bg: 'radial-gradient(85% 55% at 50% 0%, #0c3b30, transparent 65%), radial-gradient(2px 2px at 30% 40%, #34d39955, transparent), radial-gradient(2px 2px at 70% 60%, #22d3ee55, transparent), linear-gradient(180deg,#06120e,#040806)',
+    size: 'auto, 300px 300px, 320px 320px, auto' },
+  { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
+    bg: 'radial-gradient(90% 70% at 50% 0%, #1a2030, transparent 70%), #0a0c12',
+    size: 'auto, auto' }
 ];
-// Estilos de letra para el título del evento
+
+// Estilos de letra para el título del evento (varias tipografías)
 const FONTS = [
-  { id: 'classic', nombre: 'Clásico', css: "var(--font-display)" },
-  { id: 'elegant', nombre: 'Elegante', css: "'Hanken Grotesk', sans-serif" },
-  { id: 'fancy',   nombre: 'Fancy',   css: "'Times New Roman', Georgia, serif" },
-  { id: 'mono',    nombre: 'Mono',    css: "'Courier New', monospace" }
+  { id: 'classic', nombre: 'Clásico',  css: "var(--font-display)" },
+  { id: 'sans',    nombre: 'Limpio',   css: "'Hanken Grotesk', sans-serif" },
+  { id: 'serif',   nombre: 'Serif',    css: "Georgia, 'Times New Roman', serif" },
+  { id: 'script',  nombre: 'Script',   css: "'Snell Roundhand','Brush Script MT', cursive" },
+  { id: 'mono',    nombre: 'Mono',     css: "'Courier New', monospace" },
+  { id: 'impact',  nombre: 'Impacto',  css: "Impact, 'Arial Black', sans-serif" },
+  { id: 'condensed', nombre: 'Compacta', css: "'Arial Narrow', sans-serif" }
+];
+
+// Tipos de efecto del fondo
+const EFECTOS = [
+  { id: 'ninguno',   nombre: 'Ninguno',   emoji: '🚫' },
+  { id: 'destellos', nombre: 'Destellos', emoji: '✨' },
+  { id: 'confeti',   nombre: 'Confeti',   emoji: '🎉' },
+  { id: 'burbujas',  nombre: 'Burbujas',  emoji: '🫧' },
+  { id: 'rayos',     nombre: 'Reflectores',emoji: '🔦' },
+  { id: 'grano',     nombre: 'Grano',     emoji: '🎞️' }
 ];
 
 // Paleta simple de colores para el nombre
@@ -461,12 +499,12 @@ function nuevoDraft() {
     id: null,
     paso: 0,
     tema: 0,                      // fondo/tema de la página de creación
-    efecto: false,               // efecto animado del fondo
+    efecto: 'ninguno',           // tipo de efecto del fondo
     tituloFont: 'classic',       // estilo de letra del título
     descripcion: '',
     dressCode: '',               // código de vestimenta
     costo: '',                   // costo por persona
-    rsvpFecha: '',               // fecha límite para confirmar
+    fechaInicio: '', horaInicio: '', fechaFin: '', horaFin: '', // fecha/hora con selector
     links: [],                   // enlaces (música, etc.)
     requireApproval: false,      // requiere aprobación del anfitrión
     reminders: true,             // recordatorios automáticos
@@ -591,27 +629,38 @@ function pintarCrear() {
   const editando = !!draft.id;
   const t = TEMAS[draft.tema] || TEMAS[0];
   const font = (FONTS.find((f) => f.id === draft.tituloFont) || FONTS[0]).css;
+  const anim = draft.cover.anim && draft.cover.anim.length >= 2;
+  const efxOn = draft.efecto && draft.efecto !== 'ninguno';
   const u = DATA.usuario;
   const cont = document.getElementById('screen-create');
-  cont.className = 'crear-screen' + (draft.efecto ? ' con-efecto' : '');
-  cont.style.background = t.bg;
+  cont.className = 'crear-screen' + (efxOn ? ' efx-' + draft.efecto : '');
+  cont.style.background = 'transparent';
+
+  // El TEMA cubre TODA la pantalla (se aplica al fondo del documento)
+  document.body.classList.add('creando');
+  document.body.style.setProperty('--tema-bg', t.bg);
+  document.body.style.setProperty('--tema-size', t.size || 'auto');
 
   cont.innerHTML = `
     <div class="crear-page">
 
-      <!-- Barra superior -->
+      <!-- Barra superior (sin público/privado: eso va en Ajustes) -->
       <div class="crear-bar">
-        <button class="round-btn" onclick="irA('home')" aria-label="Cerrar">✕</button>
-        <button class="pub-toggle" onclick="togglePublico2()">${draft.publico ? '🌐 Público' : '🔒 Privado'} ›</button>
-        <button class="save-btn" onclick="guardarFiesta()">Guardar</button>
+        <button class="round-btn" onclick="salirCrear()" aria-label="Cerrar">✕</button>
+        <button class="save-btn" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Guardar'}</button>
       </div>
 
-      <!-- Título + estilos de letra -->
+      <!-- Título + tipografías + color -->
       <div class="titulo-card">
-        <input class="titulo-input" id="cvTitulo" value="${draft.nombre}" placeholder="Evento sin título"
-               style="font-family:${font}" oninput="draft.nombre=this.value">
+        <div class="titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
+             data-ph="Evento sin título" style="font-family:${font}; ${anim ? `background-image:${animGrad(draft.cover.anim)}` : `color:${draft.cover.titleColor}`}"
+             oninput="draft.nombre=this.textContent">${draft.nombre}</div>
         <div class="font-row">
           ${FONTS.map((f) => `<button class="font-chip ${f.id === draft.tituloFont ? 'on' : ''}" style="font-family:${f.css}" onclick="setTituloFont('${f.id}')">${f.nombre}</button>`).join('')}
+        </div>
+        <div class="title-colors">
+          ${NAME_COLORS.map((c) => `<button class="name-dot ${(!anim && draft.cover.titleColor === c) ? 'sel' : ''}" style="background:${c}" onclick="setNombreColor('${c}')"></button>`).join('')}
+          <button class="name-dot tcolor-anim ${anim ? 'on' : ''}" onclick="toggleTituloAnim()" title="Color animado">✨</button>
         </div>
       </div>
 
@@ -622,18 +671,30 @@ function pintarCrear() {
         <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
       </div>
 
-      <!-- Fecha -->
-      <div class="crear-field big">
-        <input id="cvFecha" value="${draft.fecha}" placeholder="Pon una fecha y hora…" oninput="draft.fecha=this.value">
+      <!-- Fecha y hora con SELECTOR (inicio y cierre) -->
+      <div class="fecha-block">
+        <div class="fecha-row">
+          <span class="fecha-ico">🗓️</span><span class="fecha-lbl">Inicio</span>
+          <input type="date" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; syncFecha()">
+          <input type="time" value="${draft.horaInicio}" oninput="draft.horaInicio=this.value; syncFecha()">
+        </div>
+        <div class="fecha-row">
+          <span class="fecha-ico">🏁</span><span class="fecha-lbl">Cierre</span>
+          <input type="date" value="${draft.fechaFin}" oninput="draft.fechaFin=this.value; syncFecha()">
+          <input type="time" value="${draft.horaFin}" oninput="draft.horaFin=this.value; syncFecha()">
+        </div>
       </div>
 
-      <!-- Anfitrión + co-anfitriones -->
+      <!-- Anfitrión + co-anfitriones + grupo -->
       <div class="crear-block host-block">
         <div class="host-top"><span>👑 Organiza</span></div>
         <div class="host-row">
           <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
           <strong>${u.nombre}</strong>
-          <button class="chip add-co" onclick="agregarCoanfitrion()">＋ Co‑anfitriones</button>
+        </div>
+        <div class="host-add-row">
+          <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitriones</button>
+          <button class="chip" onclick="agregarGrupoOrg()">👥 ＋ Grupo</button>
         </div>
         <div id="orgList"></div>
       </div>
@@ -643,7 +704,6 @@ function pintarCrear() {
         <label class="crear-row"><span>📍</span><input id="cvLugar" value="${draft.lugar}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
         <label class="crear-row"><span>🏙️</span><input id="cvCiudad" value="${draft.ciudad}" placeholder="Ciudad" oninput="draft.ciudad=this.value"></label>
         <label class="crear-row"><span>💲</span><input id="cvCosto" value="${draft.costo}" placeholder="Costo por persona (opcional)" oninput="draft.costo=this.value"></label>
-        <label class="crear-row"><span>⏳</span><input id="cvRsvp" value="${draft.rsvpFecha}" placeholder="Fecha límite para confirmar" oninput="draft.rsvpFecha=this.value"></label>
         <label class="crear-row"><span>👗</span><input id="cvDress" value="${draft.dressCode}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
       </div>
 
@@ -658,9 +718,14 @@ function pintarCrear() {
       <!-- Descripción -->
       <textarea class="crear-desc" placeholder="Agrega una descripción de tu evento…" oninput="draft.descripcion=this.value">${draft.descripcion}</textarea>
 
-      <!-- Mapa del lugar (colapsable) -->
+      <!-- Mapa del lugar (colapsable, con foto de fondo) -->
       <div id="mapaWrap" style="${mostrarMapa ? '' : 'display:none'}">
         <div class="row-between"><h3>Mapa del lugar</h3><span class="see-all" onclick="limpiarVenue()">Vaciar</span></div>
+        <input type="file" accept="image/*" id="planoBgFile" hidden onchange="subirPlanoBg(event)">
+        <div class="cover-actions">
+          <button class="chip" onclick="document.getElementById('planoBgFile').click()">🖼️ Foto de fondo</button>
+          ${pisoActual().bg ? `<button class="chip" onclick="quitarPlanoBg()">Quitar foto</button>` : ''}
+        </div>
         <div class="floor-tabs" id="floorTabs"></div>
         <div class="tool-row" id="toolRow"></div>
         <div class="venue" id="venue" onclick="venueTap(event)" onpointermove="venueMove(event)" onpointerup="venueDrop()" onpointerleave="venueDrop()" onwheel="venueWheel(event)">
@@ -671,18 +736,10 @@ function pintarCrear() {
         <div class="venue-controls" id="venueControls"></div>
       </div>
 
-      <!-- Boletos y zonas -->
+      <!-- Boletos y zonas (con animación para boletos especiales) -->
       <div class="row-between"><h3>Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>
       <div id="boletosList"></div>
       <button class="add-zone" onclick="addBoleto()">＋ Agregar tipo de boleto</button>
-
-      <!-- Opciones de RSVP (vista previa) -->
-      <div class="row-between" style="margin-top:24px"><h3>Opciones de RSVP</h3></div>
-      <div class="rsvp-prev">
-        <div class="rsvp-prev-opt">👍<span>Voy</span></div>
-        <div class="rsvp-prev-opt">🤔<span>Tal vez</span></div>
-        <div class="rsvp-prev-opt">😢<span>No puedo</span></div>
-      </div>
 
       <!-- Acciones de anfitrión -->
       <div class="row-between" style="margin-top:24px"><h3>Acciones de anfitrión</h3></div>
@@ -693,21 +750,14 @@ function pintarCrear() {
         <button class="ha" onclick="abrirAjustesEvento()">⋯ Más</button>
       </div>
 
-      <!-- Lista de ingreso -->
-      <div class="row-between" style="margin-top:24px"><h3>Lista de ingreso</h3><span class="see-all" id="guestCount"></span></div>
-      <div class="guest-add">
-        <input id="guestInput" placeholder="Nombre del invitado" onkeydown="if(event.key==='Enter') addGuest()">
-        <button class="add-btn" onclick="addGuest()">Añadir</button>
-      </div>
-      <div class="guest-list" id="guestList"></div>
-
-      <!-- Publicaciones -->
+      <!-- Publicaciones (varias a la vez) -->
       <div class="row-between" style="margin-top:24px"><h3>Publicaciones</h3></div>
       <div class="post-compose">
         <textarea id="newsInput" placeholder="Escribe una publicación…" rows="1"></textarea>
+        <div id="newsThumbs" class="news-thumbs"></div>
         <div class="post-compose-bar">
-          <input type="file" accept="image/*,video/*" id="newsFile" hidden onchange="adjuntarNoticia(event)">
-          <button class="post-attach" onclick="document.getElementById('newsFile').click()">📎 Foto / video</button>
+          <input type="file" accept="image/*,video/*" multiple id="newsFile" hidden onchange="adjuntarNoticia(event)">
+          <button class="post-attach" onclick="document.getElementById('newsFile').click()">📎 Fotos / videos</button>
           <span id="newsAttachInfo" class="post-attach-info"></span>
           <button class="add-btn" onclick="addNoticia()">Publicar</button>
         </div>
@@ -720,19 +770,73 @@ function pintarCrear() {
     <!-- Barra inferior: Tema / Efecto / Ajustes -->
     <div class="crear-toolbar">
       <button onclick="abrirTemas()"><span class="ct-ico" style="background:${t.grad}"></span>Tema</button>
-      <button class="${draft.efecto ? 'on' : ''}" onclick="toggleEfecto()"><span class="ct-fx">✨</span>Efecto</button>
+      <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()"><span class="ct-fx">${(EFECTOS.find((e) => e.id === draft.efecto) || EFECTOS[0]).emoji}</span>Efecto</button>
       <button onclick="abrirAjustesEvento()"><span class="ct-fx">⚙️</span>Ajustes</button>
     </div>
   `;
 
   pintarBoletos();
   pintarOrganizadores();
-  pintarGuests();
   pintarNoticias();
+  pintarNewsThumbs();
   if (mostrarMapa) { pintarFloors(); pintarTools(); pintarVenue(); pintarControls(); }
 }
 
 /* --- Acciones de la página de creación --- */
+function salirCrear() { document.body.classList.remove('creando'); irA('home'); }
+// Junta fecha/hora en un texto legible para mostrar en el evento
+function syncFecha() {
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  if (!draft.fechaInicio) { draft.fecha = ''; return; }
+  const d = new Date(draft.fechaInicio + 'T00:00');
+  let s = `${['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'][d.getDay()]} ${d.getDate()} ${meses[d.getMonth()]}`;
+  if (draft.horaInicio) {
+    const [h, m] = draft.horaInicio.split(':').map(Number);
+    const ap = h >= 12 ? 'pm' : 'am'; const h12 = ((h + 11) % 12) + 1;
+    s += ` · ${h12}:${String(m).padStart(2, '0')} ${ap}`;
+  }
+  draft.fecha = s;
+}
+// Color animado del título (activa/desactiva un degradado animado)
+function toggleTituloAnim() {
+  if (draft.cover.anim && draft.cover.anim.length >= 2) draft.cover.anim = [];
+  else draft.cover.anim = ['#2f7bff', '#38bdf8', '#a855f7', '#22d3ee'];
+  pintarCrear();
+}
+// Elegir tipo de efecto
+function abrirEfectos() {
+  abrirSheet('Efecto del fondo', `
+    <div class="efx-grid">
+      ${EFECTOS.map((e) => `<button class="efx-opt ${e.id === draft.efecto ? 'on' : ''}" onclick="setEfecto('${e.id}')"><span>${e.emoji}</span>${e.nombre}</button>`).join('')}
+    </div>
+  `);
+}
+function setEfecto(id) { draft.efecto = id; cerrarSheet(); pintarCrear(); }
+// Agregar un grupo de organizadores como co-anfitriones
+function agregarGrupoOrg() {
+  const grupos = DATA.grupos || [];
+  if (!grupos.length) { toast('Primero crea un grupo en Amigos 👥'); return; }
+  abrirSheet('Agregar grupo', `
+    <p class="hint">Suma todo un grupo como co‑anfitriones.</p>
+    <div class="grupo-list">
+      ${grupos.map((g) => `<button class="grupo-card" onclick="usarGrupoOrg('${g.id}')">
+        <span class="grupo-emoji" style="background:${g.color}">${g.emoji}</span>
+        <span class="grupo-main"><strong>${g.nombre}</strong><small>${g.miembros.length} organizadores</small></span>
+      </button>`).join('')}
+    </div>
+  `);
+}
+function usarGrupoOrg(id) {
+  const g = (DATA.grupos || []).find((x) => x.id === id);
+  if (!g) return;
+  g.miembros.forEach((m) => {
+    if (m.nombre !== DATA.usuario.nombre && !draft.organizadores.some((o) => o.nombre === m.nombre))
+      draft.organizadores.push({ nombre: m.nombre, avatar: m.avatar });
+  });
+  cerrarSheet();
+  pintarCrear();
+  toast(`Grupo "${g.nombre}" agregado`);
+}
 function togglePublico2() { draft.publico = !draft.publico; pintarCrear(); }
 function setTituloFont(id) { draft.tituloFont = id; pintarCrear(); }
 function toggleEfecto() { draft.efecto = !draft.efecto; pintarCrear(); }
@@ -781,8 +885,6 @@ function abrirAjustesEvento() {
         <span class="toggle ${draft.publico ? 'is-on' : ''}" onclick="draft.publico=!draft.publico; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
       <label class="set-row"><div><strong>Próximamente</strong><small>Crea expectativa sin fecha</small></div>
         <span class="toggle ${draft.proximamente ? 'is-on' : ''}" onclick="draft.proximamente=!draft.proximamente; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
-      <label class="set-row"><div><strong>Solo mayores (18+)</strong><small>Restringe por edad</small></div>
-        <span class="toggle ${draft.edad.activo ? 'is-on' : ''}" onclick="draft.edad.activo=!draft.edad.activo; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
       <label class="set-row"><div><strong>Requiere aprobación</strong><small>Tú apruebas a los invitados</small></div>
         <span class="toggle ${draft.requireApproval ? 'is-on' : ''}" onclick="draft.requireApproval=!draft.requireApproval; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
     </div>
@@ -1140,7 +1242,7 @@ function pintarBoletos() {
   const cont = document.getElementById('boletosList');
   if (!cont) return;
   cont.innerHTML = draft.boletos.map((b, i) => `
-    <div class="zona-card">
+    <div class="zona-card ${b.animado ? 'especial' : ''}">
       <div class="zona-top">
         <input class="zona-name" value="${b.nombre}" placeholder="Nombre (ej: VIP)" oninput="draft.boletos[${i}].nombre=this.value">
         ${draft.boletos.length > 1 ? `<button class="guest-del" onclick="delBoleto(${i})">✕</button>` : ''}
@@ -1151,6 +1253,7 @@ function pintarBoletos() {
         <div class="zona-f"><label>Cantidad</label>
           <input type="number" value="${b.cantidad}" oninput="draft.boletos[${i}].cantidad=+this.value||0; actualizarCapTotal()"></div>
       </div>
+      <button class="boleto-fx ${b.animado ? 'on' : ''}" onclick="draft.boletos[${i}].animado=!draft.boletos[${i}].animado; pintarBoletos()">✨ Boleto especial (animado)</button>
     </div>
   `).join('');
   actualizarCapTotal();
@@ -1177,25 +1280,51 @@ function subirPortada(ev) {
 }
 function quitarPortada() { draft.cover.img = null; pintarCrear(); }
 
-// --- Publicaciones (tipo Instagram: texto + foto/video) ---
-let _newsMedia = null;  // adjunto temporal del compositor
-function adjuntarNoticia(ev) {
+// Foto de fondo del mapa del lugar
+function subirPlanoBg(ev) {
   const file = ev.target.files[0];
   if (!file) return;
-  const tipo = file.type.startsWith('video') ? 'video' : 'img';
   const reader = new FileReader();
-  reader.onload = () => {
-    _newsMedia = { tipo, url: reader.result };
-    const info = document.getElementById('newsAttachInfo');
-    if (info) info.textContent = tipo === 'video' ? '🎬 Video listo' : '🖼️ Foto lista';
-  };
+  reader.onload = () => { pisoActual().bg = reader.result; pintarCrear(); };
   reader.readAsDataURL(file);
 }
+function quitarPlanoBg() { pisoActual().bg = null; pintarCrear(); }
+
+// --- Publicaciones (tipo Instagram: texto + foto/video) ---
+let _newsMedia = [];  // adjuntos temporales del compositor (varios a la vez)
+function adjuntarNoticia(ev) {
+  const files = Array.from(ev.target.files || []);
+  if (!files.length) return;
+  let pend = files.length;
+  files.forEach((file) => {
+    const tipo = file.type.startsWith('video') ? 'video' : 'img';
+    const reader = new FileReader();
+    reader.onload = () => {
+      _newsMedia.push({ tipo, url: reader.result });
+      if (--pend === 0) { pintarNewsThumbs(); }
+    };
+    reader.readAsDataURL(file);
+  });
+  ev.target.value = '';
+}
+function pintarNewsThumbs() {
+  const cont = document.getElementById('newsThumbs');
+  if (!cont) return;
+  cont.innerHTML = _newsMedia.map((m, i) => `
+    <span class="news-thumb">${m.tipo === 'video' ? '🎬' : `<img src="${m.url}" alt="">`}<b onclick="quitarNewsMedia(${i})">✕</b></span>`).join('');
+  const info = document.getElementById('newsAttachInfo');
+  if (info) info.textContent = _newsMedia.length ? `${_newsMedia.length} adjunto(s)` : '';
+}
+function quitarNewsMedia(i) { _newsMedia.splice(i, 1); pintarNewsThumbs(); }
+function unoMediaHTML(m) {
+  return m.tipo === 'video'
+    ? `<video class="post-media" src="${m.url}" controls playsinline></video>`
+    : `<img class="post-media" src="${m.url}" alt="">`;
+}
 function mediaHTML(n) {
-  if (!n.media) return '';
-  return n.media.tipo === 'video'
-    ? `<video class="post-media" src="${n.media.url}" controls playsinline></video>`
-    : `<img class="post-media" src="${n.media.url}" alt="">`;
+  const arr = Array.isArray(n.media) ? n.media : (n.media ? [n.media] : []);
+  if (!arr.length) return '';
+  return `<div class="post-gallery ${arr.length > 1 ? 'multi' : ''}">${arr.map(unoMediaHTML).join('')}</div>`;
 }
 function pintarNoticias() {
   const cont = document.getElementById('newsList');
@@ -1216,12 +1345,11 @@ function pintarNoticias() {
 function addNoticia() {
   const inp = document.getElementById('newsInput');
   const texto = inp.value.trim();
-  if (!texto && !_newsMedia) return;
-  draft.noticias.unshift({ texto, media: _newsMedia, fecha: 'ahora' });
+  if (!texto && !_newsMedia.length) return;
+  draft.noticias.unshift({ texto, media: _newsMedia.slice(), fecha: 'ahora' });
   inp.value = '';
-  _newsMedia = null;
-  const info = document.getElementById('newsAttachInfo');
-  if (info) info.textContent = '';
+  _newsMedia = [];
+  pintarNewsThumbs();
   pintarNoticias();
   toast('Publicación añadida 📣');
 }
@@ -1336,10 +1464,11 @@ function pintarVenue() {
   const inner = document.getElementById('venueInner');
   if (!inner) return;
   inner.style.transform = `scale(${draft.zoom})`;
-  // Imagen de fondo del piso (si la subieron)
+  // Imagen de fondo del piso: se proporciona al 94% del mapa (sin recortar)
   const bg = pisoActual().bg;
   inner.style.backgroundImage = bg ? `url(${bg})` : '';
-  inner.style.backgroundSize = 'cover';
+  inner.style.backgroundSize = bg ? '94% auto' : 'cover';
+  inner.style.backgroundRepeat = 'no-repeat';
   inner.style.backgroundPosition = 'center';
   inner.classList.toggle('has-bg', !!bg);
   const zl = document.getElementById('zoomLabel');
