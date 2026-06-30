@@ -2726,23 +2726,19 @@ body.creando::before { display: none !important; }
 .host-title { font-weight: 700; color: var(--ink-soft); }
 .host-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; }
 
-/* --- Efectos: AHORA SOBRE la pantalla (encima del contenido) --- */
-.crear-screen[class*="efx-"]::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 40; mix-blend-mode: screen; }
-.efx-destellos::before {
-  background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2.4px 2.4px at 75% 25%, #cfe8ff, transparent), radial-gradient(3px 3px at 50% 60%, #fff, transparent), radial-gradient(2px 2px at 85% 75%, #fff, transparent), radial-gradient(2.4px 2.4px at 30% 80%, #e9d5ff, transparent), radial-gradient(2px 2px at 10% 55%, #fff, transparent);
-  background-size: 220px 220px; animation: twinkle 1.8s ease-in-out infinite alternate; opacity: .85;
+/* --- Efectos basados en CSS (humo/neón/reflectores/grano) sobre la pantalla --- */
+.crear-screen.efx-humo::before, .crear-screen.efx-neon::before, .crear-screen.efx-rayos::before, .crear-screen.efx-grano::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 40;
 }
-@keyframes twinkle { from { opacity: .35; } to { opacity: .95; } }
-.efx-confeti::before {
-  background-image: radial-gradient(circle, #f43f5e 0 3.5px, transparent 4.5px), radial-gradient(circle, #38bdf8 0 3.5px, transparent 4.5px), radial-gradient(circle, #fbbf24 0 3.5px, transparent 4.5px), radial-gradient(circle, #34d399 0 3.5px, transparent 4.5px), radial-gradient(circle, #a855f7 0 3.5px, transparent 4.5px);
-  background-size: 80px 150px, 110px 170px, 95px 190px, 130px 160px, 100px 210px; opacity: .9; animation: confetiFall 3.2s linear infinite;
-}
-@keyframes confetiFall { to { background-position: 0 150px, 0 170px, 0 190px, 0 160px, 0 210px; } }
-.efx-burbujas::before {
-  background-image: radial-gradient(7px 7px at 20% 100%, rgba(255,255,255,.32), transparent), radial-gradient(11px 11px at 60% 100%, rgba(255,255,255,.24), transparent), radial-gradient(6px 6px at 85% 100%, rgba(255,255,255,.28), transparent), radial-gradient(9px 9px at 40% 100%, rgba(255,255,255,.2), transparent);
-  background-size: 170px 340px, 230px 400px, 140px 300px, 200px 360px; animation: bubbleUp 6s linear infinite;
-}
-@keyframes bubbleUp { to { background-position: 0 -340px, 0 -400px, 0 -300px, 0 -360px; } }
+
+/* --- Efectos con PARTÍCULAS reales (no se ven IA) --- */
+.efx-layer { position: fixed; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
+.efp-spark { position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 0 7px 2px rgba(255,255,255,.85), 0 0 14px 4px rgba(170,210,255,.45); opacity: 0; animation-name: sparkTw; animation-timing-function: ease-in-out; animation-iteration-count: infinite; }
+@keyframes sparkTw { 0%,100% { opacity: 0; transform: scale(.3); } 50% { opacity: 1; transform: scale(1); } }
+.efp-conf { position: absolute; top: -8%; border-radius: 2px; opacity: .92; animation-name: confFall; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes confFall { 0% { transform: translateY(-12vh) rotateZ(0) rotateX(0); } 100% { transform: translateY(115vh) rotateZ(720deg) rotateX(360deg); } }
+.efp-bub { position: absolute; bottom: -10%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.75), rgba(255,255,255,.1) 60%, transparent 75%); border: 1px solid rgba(255,255,255,.28); animation-name: bubRise; animation-timing-function: linear; animation-iteration-count: infinite; }
+@keyframes bubRise { 0% { transform: translateY(0) translateX(0); opacity: 0; } 12% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(-118vh) translateX(14px); opacity: 0; } }
 .efx-rayos::before {
   background: conic-gradient(from 0deg at 50% -6%, transparent 0 26deg, rgba(255,255,255,.12) 31deg 41deg, transparent 46deg 130deg, rgba(125,211,252,.10) 135deg 144deg, transparent 150deg 360deg);
   animation: spinRay 8s linear infinite; transform-origin: 50% -6%;
@@ -2788,3 +2784,7 @@ body.creando::before { display: none !important; }
 .ba-prev.bx-arcoiris { background: linear-gradient(120deg,#f43f5e,#fbbf24,#34d399,#38bdf8,#a855f7); }
 .ba-prev.bx-pulso { background: linear-gradient(120deg,#2f7bff,#38bdf8); }
 .ba-prev.bx-diamante { background: linear-gradient(120deg,#e2e8f0,#94a3b8); }
+
+/* El selector de color del título es el propio swatch (abre en Safari/iOS) */
+.tt-color { position: relative; overflow: hidden; display: inline-block; }
+.tt-color input[type="color"] { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); opacity: 0; border: none; padding: 0; cursor: pointer; background: none; }

@@ -61,6 +61,7 @@ function irA(nombre) {
     document.body.classList.remove('creando');
     document.body.style.removeProperty('--tema-bg');
     document.body.style.removeProperty('--tema-size');
+    document.querySelectorAll('.efx-layer').forEach((n) => n.remove());
   }
   render(nombre);
   document.querySelectorAll('.screen').forEach((s) => {
@@ -698,8 +699,9 @@ function pintarCrear() {
              oninput="draft.nombre=this.textContent">${draft.nombre}</div>
         <div class="titulo-tools">
           <button class="tt-btn" onclick="abrirTipografias()" style="font-family:${font}">Aa <small>Tipografía</small></button>
-          <button class="tt-color" onclick="document.getElementById('tColorInput').click()" style="background:${anim ? 'conic-gradient(from 0deg,#2f7bff,#38bdf8,#a855f7,#22d3ee,#2f7bff)' : draft.cover.titleColor}" aria-label="Color"></button>
-          <input type="color" id="tColorInput" value="${anim ? '#2f7bff' : draft.cover.titleColor}" hidden onchange="setNombreColor(this.value)">
+          <label class="tt-color" style="background:${anim ? 'conic-gradient(from 0deg,#2f7bff,#38bdf8,#a855f7,#22d3ee,#2f7bff)' : draft.cover.titleColor}" title="Color del título">
+            <input type="color" value="${anim ? '#2f7bff' : draft.cover.titleColor}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
+          </label>
           <button class="tt-anim ${anim ? 'on' : ''}" onclick="toggleTituloAnim()" title="Color animado">✨</button>
         </div>
       </div>
@@ -821,7 +823,39 @@ function pintarCrear() {
   pintarOrganizadores();
   pintarNoticias();
   pintarNewsThumbs();
+  pintarEfecto();
   if (mostrarMapa) { pintarFloors(); pintarTools(); pintarVenue(); pintarControls(); }
+}
+
+// Efectos con partículas REALES (se ven naturales, no degradados)
+function pintarEfecto() {
+  document.querySelectorAll('.efx-layer').forEach((n) => n.remove());
+  const e = draft.efecto;
+  if (!e || e === 'ninguno' || !['destellos', 'confeti', 'burbujas'].includes(e)) return;
+  const cont = document.getElementById('screen-create');
+  if (!cont) return;
+  const layer = document.createElement('div');
+  layer.className = 'efx-layer';
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  const cols = ['#f43f5e', '#fbbf24', '#34d399', '#38bdf8', '#a855f7', '#ffffff'];
+  const n = e === 'confeti' ? 46 : e === 'burbujas' ? 24 : 36;
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('span');
+    if (e === 'destellos') {
+      const sz = rnd(2, 5);
+      s.className = 'efp-spark';
+      s.style.cssText = `left:${rnd(0, 100)}%;top:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(1.4, 3.4)}s;animation-delay:${rnd(0, 3)}s`;
+    } else if (e === 'confeti') {
+      s.className = 'efp-conf';
+      s.style.cssText = `left:${rnd(0, 100)}%;width:${rnd(6, 10)}px;height:${rnd(10, 16)}px;background:${cols[i % cols.length]};animation-duration:${rnd(3, 6)}s;animation-delay:${rnd(0, 5)}s`;
+    } else {
+      const sz = rnd(8, 22);
+      s.className = 'efp-bub';
+      s.style.cssText = `left:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(5, 9)}s;animation-delay:${rnd(0, 6)}s`;
+    }
+    layer.appendChild(s);
+  }
+  cont.appendChild(layer);
 }
 
 /* --- Acciones de la página de creación --- */
@@ -1180,8 +1214,17 @@ function setNombreColor(c) { draft.cover.titleColor = c; draft.cover.anim = []; 
 // Actualiza el color del título en vivo (sin re-render, mientras mueves el selector)
 function setNombreColorLive(c) {
   draft.cover.titleColor = c; draft.cover.anim = [];
-  const t = document.getElementById('coverTitle');
-  if (t) { t.classList.remove('name-anim'); t.style.backgroundImage = ''; t.style.color = c; }
+  ['coverTitle', 'cvTitulo'].forEach((id) => {
+    const t = document.getElementById(id);
+    if (t) {
+      t.classList.remove('name-anim');
+      t.style.backgroundImage = '';
+      t.style.webkitTextFillColor = c;
+      t.style.color = c;
+    }
+  });
+  const sw = document.querySelector('.tt-color');
+  if (sw) sw.style.background = c;
 }
 // Abre/cierra la paleta para agregar colores a la animación
 let _animOpen = false;
