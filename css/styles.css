@@ -2613,7 +2613,7 @@ body[data-screen="create"] .bottom-nav { display: none; }
 /* El TEMA cubre toda la pantalla */
 /* El tema se pinta en una capa FIJA (#temaBg), no en el body, para evitar
    tirones de scroll y que se vea "atrás" en móvil */
-#temaBg { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none; background-position: center top; }
+#temaBg { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none; background-position: center top; box-shadow: inset 0 0 220px rgba(0,0,0,.4), inset 0 -70px 130px rgba(0,0,0,.3); }
 body.creando::before { display: none !important; }
 /* Evita el "rebote"/overscroll que deja ver una pantalla atrás */
 html, body { overscroll-behavior: none; }
@@ -2830,22 +2830,24 @@ body[data-screen="create"] .efx-layer { display: block; }
   100% { transform: translate(var(--sway,0px),118vh) rotate(360deg); }
 }
 
-/* Nieve acumulada abajo: banco SÓLIDO con montículos redondeados (convexos) */
+/* Copos de nieve suaves (puntos blancos difusos, se ven reales) */
+.efp-snow { position: absolute; top: 0; border-radius: 50%; background: radial-gradient(circle, #fff 28%, rgba(255,255,255,.55) 58%, transparent 76%); box-shadow: 0 0 5px rgba(255,255,255,.55); animation-name: emojiFall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; }
+
+/* Nieve acumulada abajo: banco suave con montículos redondeados y finos */
 .efx-snow-pile {
   position: fixed; left: 0; right: 0; bottom: 0; height: 0;
-  background: linear-gradient(180deg, #ffffff 0%, #eaf1ff 60%, #dbe6fb 100%);
-  /* capa 1: círculos = montículos sobre el borde; capa 2: bloque sólido debajo */
+  background: linear-gradient(180deg, #ffffff 0%, #f2f6ff 55%, #e3ecfb 100%);
   -webkit-mask:
-    radial-gradient(circle 17px at 17px 17px, #000 16px, transparent 17px) 0 0 / 34px 34px repeat-x,
-    linear-gradient(#000, #000) 0 17px / 100% 100% no-repeat;
+    radial-gradient(circle 13px at 13px 13px, #000 12px, transparent 13px) 0 0 / 26px 26px repeat-x,
+    linear-gradient(#000, #000) 0 13px / 100% 100% no-repeat;
           mask:
-    radial-gradient(circle 17px at 17px 17px, #000 16px, transparent 17px) 0 0 / 34px 34px repeat-x,
-    linear-gradient(#000, #000) 0 17px / 100% 100% no-repeat;
-  box-shadow: 0 -2px 16px rgba(190,215,255,.45);
+    radial-gradient(circle 13px at 13px 13px, #000 12px, transparent 13px) 0 0 / 26px 26px repeat-x,
+    linear-gradient(#000, #000) 0 13px / 100% 100% no-repeat;
+  box-shadow: 0 -1px 22px rgba(200,222,255,.4);
   pointer-events: none; z-index: 41;
-  animation: snowGrow 9s ease-out forwards;
+  animation: snowGrow 10s ease-out forwards;
 }
-@keyframes snowGrow { 0% { height: 0; } 100% { height: 58px; } }
+@keyframes snowGrow { 0% { height: 0; } 100% { height: 52px; } }
 @media (prefers-reduced-motion: reduce) { .efx-snow-pile { height: 60px; animation: none; } }
 
 /* Con un tema activo, las tarjetas llevan un velo oscuro para que el texto
@@ -2966,3 +2968,8 @@ body.creando .preg-chip { background: rgba(8,10,18,.55) !important; }
 /* Preguntas al confirmar RSVP */
 .rsvp-preg { margin-top: 10px; }
 .rsvp-preg label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: 6px; color: var(--ink-soft); }
+
+/* Portada vacía: estado limpio (menos "IA" que un emoji suelto) */
+.cover-empty { display: inline-flex; align-items: center; gap: 8px; font-family: inherit; font-weight: 600; font-size: .95rem; color: rgba(255,255,255,.85); background: rgba(0,0,0,.18); border: 1px dashed rgba(255,255,255,.5); border-radius: var(--r-pill); padding: 10px 18px; cursor: pointer; backdrop-filter: blur(2px); }
+.cover-empty-ic { font-size: 1.2rem; line-height: 1; }
+.cover-empty:active { transform: scale(.96); }

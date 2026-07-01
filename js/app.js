@@ -705,7 +705,10 @@ function pintarCrear() {
   const efxOn = draft.efecto && draft.efecto !== 'ninguno';
   const u = DATA.usuario;
   const cont = document.getElementById('screen-create');
-  cont.className = 'crear-screen' + (efxOn ? ' efx-' + draft.efecto : '');
+  // OJO: NO sobrescribir className (borraría la clase .screen y quedaría visible siempre).
+  cont.classList.add('crear-screen');
+  [...cont.classList].filter((c) => c.startsWith('efx-')).forEach((c) => cont.classList.remove(c));
+  if (efxOn) cont.classList.add('efx-' + draft.efecto);
   cont.style.background = 'transparent';
 
   // El TEMA cubre TODA la pantalla con una CAPA FIJA (sin background-attachment,
@@ -744,8 +747,8 @@ function pintarCrear() {
       </div>
 
       <!-- Portada -->
-      <div class="cover-banner" style="${coverStyleDraft()}">
-        ${draft.cover.img ? '' : '<span class="cover-banner-emoji">🎉</span>'}
+      <div class="cover-banner ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
+        ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Agrega una portada</button>'}
         <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
         <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
       </div>
@@ -908,12 +911,18 @@ function pintarEfecto() {
       const dur = rnd(4, 7);
       s.className = 'efp-beam';
       s.style.cssText = `left:${leftPct}%;--swing:${rnd(16, 32)}deg;background:linear-gradient(180deg, rgba(${c},.28), rgba(${c},.05) 70%, transparent 90%);animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s`;
+    } else if (e === 'nieve') {
+      // copos de nieve suaves (puntos blancos difusos, no emoji)
+      const sz = rnd(3, 8);
+      const ed = rnd(6, 13);
+      s.className = 'efp-snow';
+      s.style.cssText = `left:${leftPct}%;width:${sz}px;height:${sz}px;opacity:${rnd(0.5, 0.95).toFixed(2)};--sway:${rnd(-40, 40)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
     } else {
-      // nieve / corazones: partículas con emoji que caen
+      // corazones: emoji que caen
       s.className = 'efp-emoji';
-      s.textContent = e === 'nieve' ? pick(['❄️', '❅', '•']) : pick(['💜', '💙', '💖', '🩵']);
-      const ed = rnd(e === 'nieve' ? 5 : 3.5, e === 'nieve' ? 11 : 7);
-      s.style.cssText = `left:${leftPct}%;font-size:${rnd(10, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
+      s.textContent = pick(['💜', '💙', '💖', '🩵']);
+      const ed = rnd(3.5, 7);
+      s.style.cssText = `left:${leftPct}%;font-size:${rnd(12, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
     }
     layer.appendChild(s);
   }
@@ -3120,6 +3129,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('splash')) splashIr(p.get('splash'));
   if (p.get('efx')) draft.efecto = p.get('efx');   // prueba: ?screen=create&efx=confeti
   if (p.get('tema')) draft.tema = +p.get('tema');  // prueba: ?screen=create&tema=2
+  if (p.get('seq')) {  // prueba de navegación: ?seq=create,home,search
+    document.getElementById('screen-splash').classList.remove('is-active');
+    entrarApp();
+    p.get('seq').split(',').forEach((n) => { if (n === 'create') { draft = nuevoDraft(); } irA(n.trim()); });
+  }
   if (p.get('screen')) {
     document.getElementById('screen-splash').classList.remove('is-active');
     entrarApp();
