@@ -705,6 +705,8 @@ function pintarCrear() {
   document.body.classList.add('creando');
   let temaBg = document.getElementById('temaBg');
   if (!temaBg) { temaBg = document.createElement('div'); temaBg.id = 'temaBg'; document.body.prepend(temaBg); }
+  const slug = (t.nombre || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  temaBg.className = 'tema-' + slug;
   temaBg.style.background = t.bg;
   temaBg.style.backgroundSize = t.size || 'auto';
   temaBg.style.backgroundPosition = t.posiciones || 'center top';
@@ -871,10 +873,12 @@ function pintarEfecto() {
   const n = counts[e];
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
+    // Distribución PAREJA a lo ancho (ambos lados), no aleatoria que se amontona
+    const leftPct = ((i + rnd(0.12, 0.88)) / n) * 100;
     if (e === 'destellos') {
       const sz = rnd(3, 9);
       s.className = 'efp-spark ' + pick(['', '', 'star']);
-      s.style.cssText = `left:${rnd(0, 100)}%;top:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(1, 2.6)}s;animation-delay:${rnd(0, 2.5)}s`;
+      s.style.cssText = `left:${leftPct}%;top:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(1, 2.6)}s;animation-delay:${rnd(0, 2.5)}s`;
     } else if (e === 'confeti') {
       // confeti REAL: tiras de papel (rectángulos/listones), nada de puntos
       const ribbon = Math.random() < 0.4;
@@ -882,25 +886,24 @@ function pintarEfecto() {
       const h = ribbon ? rnd(16, 28) : rnd(12, 20);
       s.className = 'efp-conf';
       const cd = rnd(2.4, 5);
-      s.style.cssText = `left:${rnd(0, 100)}%;width:${w}px;height:${h}px;background:${pick(cols)};--sway:${rnd(-70, 70)}px;animation-duration:${cd}s;animation-delay:-${rnd(0, cd)}s`;
+      s.style.cssText = `left:${leftPct}%;width:${w}px;height:${h}px;background:${pick(cols)};--sway:${rnd(-70, 70)}px;animation-duration:${cd}s;animation-delay:-${rnd(0, cd)}s`;
     } else if (e === 'burbujas') {
       const sz = rnd(10, 30);
       s.className = 'efp-bub';
       const bd = rnd(4, 8);
-      s.style.cssText = `left:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;--sway:${rnd(-30, 30)}px;animation-duration:${bd}s;animation-delay:-${rnd(0, bd)}s`;
+      s.style.cssText = `left:${leftPct}%;width:${sz}px;height:${sz}px;--sway:${rnd(-30, 30)}px;animation-duration:${bd}s;animation-delay:-${rnd(0, bd)}s`;
     } else if (e === 'rayos') {
-      // reflectores de disco: haces desde ARRIBA que barren de lado a lado
+      // reflectores de disco: repartidos a lo ancho (ambos lados) y siempre moviéndose
       const c = pick(['56,189,248', '168,85,247', '244,114,182', '34,211,238', '255,255,255']);
       const dur = rnd(4, 7);
       s.className = 'efp-beam';
-      // retraso NEGATIVO: el haz ya está en movimiento desde el inicio (no se congela)
-      s.style.cssText = `left:${rnd(8, 92)}%;--swing:${rnd(16, 32)}deg;background:linear-gradient(180deg, rgba(${c},.28), rgba(${c},.05) 70%, transparent 90%);animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s`;
+      s.style.cssText = `left:${leftPct}%;--swing:${rnd(16, 32)}deg;background:linear-gradient(180deg, rgba(${c},.28), rgba(${c},.05) 70%, transparent 90%);animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s`;
     } else {
       // nieve / corazones: partículas con emoji que caen
       s.className = 'efp-emoji';
       s.textContent = e === 'nieve' ? pick(['❄️', '❅', '•']) : pick(['💜', '💙', '💖', '🩵']);
       const ed = rnd(e === 'nieve' ? 5 : 3.5, e === 'nieve' ? 11 : 7);
-      s.style.cssText = `left:${rnd(0, 100)}%;font-size:${rnd(10, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
+      s.style.cssText = `left:${leftPct}%;font-size:${rnd(10, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
     }
     layer.appendChild(s);
   }
