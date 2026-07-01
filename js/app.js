@@ -138,6 +138,12 @@ function pintarInicio() {
       </div>
     </header>
 
+    <!-- Saludo -->
+    <div class="home-greet">
+      <h2>Hola, ${u.nombre.split(' ')[0]} 👋</h2>
+      <p>¿Lista para tu próxima salida?</p>
+    </div>
+
     <!-- CTA crear evento -->
     <button class="crear-pill" onclick="abrirCrearMenu()">＋ Crear evento</button>
 
@@ -573,6 +579,7 @@ function nuevoDraft() {
     requireApproval: false,      // requiere aprobación del anfitrión
     reminders: true,             // recordatorios automáticos
     questionnaire: false,        // cuestionario para invitados
+    preguntas: [],               // preguntas para los invitados (estilo Partiful)
     nombre: '', fecha: '', lugar: '', ciudad: '',
     cover: {
       grad: GRADS[0], img: null,  // fondo (color o imagen)
@@ -636,6 +643,7 @@ function editarFiesta(id) {
   draft.dressCode = e.dressCode || '';
   draft.costo = e.costo || '';
   draft.requireApproval = !!e.requireApproval;
+  draft.preguntas = (e.preguntas || []).slice();
   draft.links = (e.links || []).map((l) => ({ ...l }));
   draft.edad = e.edadRango ? { activo: true, max: e.edadRango.max || null } : { activo: false, max: null };
   draft.boletos = e.boletos ? e.boletos.map((b) => ({ ...b })) : [{ nombre: 'General', precio: 0, cantidad: e.capacidad || 200 }];
@@ -784,8 +792,10 @@ function pintarCrear() {
       <div class="quick-chips">
         <button class="chip" onclick="agregarLinkEvento()">＋ Link</button>
         <button class="chip" onclick="agregarLinkEvento('playlist')">＋ Playlist</button>
+        <button class="chip" onclick="agregarPregunta()">＋ Pregunta</button>
         <button class="chip" onclick="toggleMapa()">${mostrarMapa ? '－' : '＋'} Mapa del lugar</button>
       </div>
+      ${draft.preguntas.length ? `<div class="preg-list">${draft.preguntas.map((p, i) => `<div class="preg-chip">❓ ${p}<span onclick="delPregunta(${i})">✕</span></div>`).join('')}</div>` : ''}
       ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${l.url}" target="_blank" rel="noopener">${l.tipo === 'playlist' ? '🎵' : '🔗'} ${l.url} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
 
       <!-- Descripción -->
@@ -1027,6 +1037,14 @@ function agregarLinkEvento(tipo) {
   pintarCrear();
 }
 function delLink(i) { draft.links.splice(i, 1); pintarCrear(); }
+// Preguntas para los invitados (estilo Partiful)
+function agregarPregunta() {
+  const q = prompt('Pregunta para tus invitados (ej: ¿Qué traes a la fiesta?):');
+  if (!q || !q.trim()) return;
+  draft.preguntas.push(q.trim());
+  pintarCrear();
+}
+function delPregunta(i) { draft.preguntas.splice(i, 1); pintarCrear(); }
 
 // Elegir tema de fondo
 function abrirTemas() {
@@ -1563,6 +1581,7 @@ function guardarFiesta() {
     dressCode: draft.dressCode.trim(),
     costo: draft.costo.trim(),
     requireApproval: draft.requireApproval,
+    preguntas: draft.preguntas.slice(),
     links: draft.links.map((l) => ({ ...l })),
     proximamente: draft.proximamente,
     publico: draft.publico !== false,
@@ -2719,6 +2738,9 @@ function abrirEvento(id) {
               </div>
             </div>
             <input class="field-input nota" placeholder="Deja una nota (opcional)" value="${e._rsvpNota || ''}" onchange="DATA.eventos.find(x=>x.id==='${e.id}')._rsvpNota=this.value">
+            ${(e.preguntas && e.preguntas.length) ? e.preguntas.map((q, i) => `
+              <div class="rsvp-preg"><label>${q}</label>
+                <input class="field-input" placeholder="Tu respuesta" value="${(e._respuestas || [])[i] || ''}" onchange="guardarRespuesta('${e.id}',${i},this.value)"></div>`).join('') : ''}
           </div>` : ''}
         <div class="mini-toggle-row">
           <span>🔔 Recordármelo</span>
@@ -2737,6 +2759,10 @@ function abrirEvento(id) {
       ${muestra.map((g) => `<span class="ava-mini" style="background:${g.color}">${g.avatar}</span>`).join('')}
       ${c.van > muestra.length ? `<span class="ava-more">+${c.van - muestra.length}</span>` : ''}
     </div>
+    ${esMio ? `<div class="host-bar">
+      <button class="ha" onclick="avisarTodos('${e.id}')">📣 Avisar a todos</button>
+      <button class="ha" onclick="verListaInvitados('${e.id}')">👥 Gestionar invitados</button>
+    </div>` : ''}
 
     ${(e.boletos && e.boletos.length) ? `
       <div class="row-between"><h3>Boletos</h3></div>
@@ -2850,27 +2876,56 @@ function interesadoPage(id) {
   abrirEvento(id);
 }
 
-// Lista completa de invitados (agrupada por respuesta)
-function verListaInvitados(id) {
+// Lista completa de invitados con PESTAÑAS (Van / Tal vez / No) + buscador
+let _guestTab = 'van';
+function verListaInvitados(id, tab) {
+  _guestTab = tab || 'van';
   const e = DATA.eventos.find((ev) => ev.id === id);
   const c = rsvpCounts(e);
-  const van = invitadosMuestra(e, Math.min(c.van, 12));
-  const tal = (DATA.gente || []).slice(2, 2 + Math.min(c.tal, 6));
-  abrirSheet(`Invitados · ${e.nombre}`, `
-    <div class="rsvp-counts big">
-      <span class="rc voy">✅ ${c.van} van</span>
-      <span class="rc tal">🤔 ${c.tal}</span>
-      <span class="rc no">🙅 ${c.no}</span>
+  const listas = {
+    van: invitadosMuestra(e, Math.min(c.van, 40)),
+    tal: (DATA.gente || []).slice(2, 2 + Math.min(c.tal, 12)),
+    no:  (DATA.gente || []).slice(5, 5 + Math.min(c.no, 10))
+  };
+  const cur = listas[_guestTab] || [];
+  const tarjeta = (g) => `<article class="friend-card gci" data-nombre="${g.nombre.toLowerCase()}"><div class="friend-ava" style="background:${g.color}">${g.avatar}</div><div class="friend-main"><strong>${g.nombre}</strong></div></article>`;
+  abrirSheet('Quién va', `
+    <div class="guest-tabs">
+      <button class="gtab ${_guestTab === 'van' ? 'on' : ''}" onclick="verListaInvitados('${e.id}','van')">✅ Van<b>${c.van}</b></button>
+      <button class="gtab ${_guestTab === 'tal' ? 'on' : ''}" onclick="verListaInvitados('${e.id}','tal')">🤔 Tal vez<b>${c.tal}</b></button>
+      <button class="gtab ${_guestTab === 'no' ? 'on' : ''}" onclick="verListaInvitados('${e.id}','no')">🙅 No<b>${c.no}</b></button>
     </div>
-    <div class="row-between"><h3>✅ Van (${c.van})</h3></div>
-    <div class="friend-list">
-      ${van.map((g) => `<article class="friend-card"><div class="friend-ava" style="background:${g.color}">${g.avatar}</div><div class="friend-main"><strong>${g.nombre}</strong></div></article>`).join('')}
-      ${c.van > van.length ? `<p class="empty">y ${c.van - van.length} más…</p>` : ''}
+    <div class="search-bar"><input placeholder="Buscar invitado…" oninput="filtrarInvitados(this.value)"></div>
+    <div class="friend-list" id="guestSearchList">
+      ${cur.length ? cur.map(tarjeta).join('') : `<p class="empty">Nadie por aquí todavía</p>`}
     </div>
-    ${tal.length ? `<div class="row-between"><h3>🤔 Tal vez (${c.tal})</h3></div>
-      <div class="friend-list">${tal.map((g) => `<article class="friend-card"><div class="friend-ava" style="background:${g.color}">${g.avatar}</div><div class="friend-main"><strong>${g.nombre}</strong></div></article>`).join('')}</div>` : ''}
-    <div class="sheet-actions"><button class="btn full" onclick="abrirEvento('${e.id}')">‹ Volver al evento</button></div>
+    <div class="sheet-actions"><button class="btn-ghost full" onclick="abrirEvento('${e.id}')">‹ Volver al evento</button></div>
   `);
+}
+function filtrarInvitados(q) {
+  q = q.trim().toLowerCase();
+  document.querySelectorAll('#guestSearchList .gci').forEach((el) => {
+    el.style.display = el.dataset.nombre.includes(q) ? '' : 'none';
+  });
+}
+
+// Guarda la respuesta del invitado a una pregunta
+function guardarRespuesta(id, i, val) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  e._respuestas = e._respuestas || [];
+  e._respuestas[i] = val;
+}
+
+// Anfitrión: enviar un aviso a todos los invitados (blast)
+function avisarTodos(id) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  const msg = prompt('Mensaje para todos los invitados:');
+  if (!msg || !msg.trim()) return;
+  e._comentarios = e._comentarios || [];
+  const u = DATA.usuario;
+  e._comentarios.unshift({ nombre: u.nombre.split(' ')[0] + ' (anfitrión)', avatar: u.avatar, color: u.color, texto: '📣 ' + msg.trim(), fecha: 'ahora' });
+  toast(`Aviso enviado a los invitados 📣`);
+  abrirEvento(id);
 }
 
 // Copiar link de invitación (abre el evento al entrar)
