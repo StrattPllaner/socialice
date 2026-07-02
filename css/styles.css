@@ -2712,7 +2712,7 @@ html, body { overscroll-behavior: none; }
 
 /* --- Efectos basados en CSS (humo/reflectores/grano): viven DENTRO de la
    capa .efx-layer (que cuelga del body), nunca dentro de la pantalla ---- */
-.efx-layer.efx-humo::before, .efx-layer.efx-rayos::before,
+.efx-layer.efx-humo::before,
 .efx-layer.efx-grano::before, .efx-layer.efx-grano::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
 }
@@ -2742,16 +2742,7 @@ html, body { overscroll-behavior: none; }
   100% { transform: translate(var(--sway,0px),-128vh); opacity: 0; }
 }
 
-/* Reflectores: rayos largos que barren toda la pantalla */
-.efx-layer.efx-rayos::before {
-  background: conic-gradient(from 0deg at 50% 45%,
-    transparent 0 6deg, rgba(255,255,255,.12) 7deg 11deg, transparent 12deg 70deg,
-    rgba(125,211,252,.10) 71deg 75deg, transparent 76deg 150deg,
-    rgba(255,255,255,.10) 151deg 155deg, transparent 156deg 230deg,
-    rgba(168,85,247,.10) 231deg 235deg, transparent 236deg 360deg);
-  animation: spinRay 16s linear infinite;
-}
-@keyframes spinRay { to { transform: rotate(360deg); } }
+/* Reflectores: SOLO los haces que cuelgan de arriba (sin rueda central) */
 
 /* Humo: nubes visibles que se mueven */
 /* Niebla: neblina densa que cubre TODA la pantalla y se mueve */
@@ -2845,6 +2836,45 @@ body[data-screen="create"] .efx-layer { display: block; }
   100% { transform: translate(var(--sway,0px), 118vh) rotate(-13deg); }
 }
 
+/* Lluvia: rayitas finas que caen rápido */
+.efp-rain {
+  position: absolute; top: 0; width: 1.5px; border-radius: 1px;
+  background: linear-gradient(180deg, rgba(174,214,255,0), rgba(174,214,255,.75));
+  animation-name: rainDrop; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both;
+}
+@keyframes rainDrop {
+  0%   { transform: translate(0,-16vh); }
+  100% { transform: translate(var(--sway,0px), 118vh); }
+}
+
+/* Luciérnagas: puntitos ámbar que vagan y parpadean */
+.efp-fly {
+  position: absolute; border-radius: 50%;
+  background: #ffd66b;
+  box-shadow: 0 0 8px 2px rgba(255,196,64,.85), 0 0 18px 6px rgba(255,170,30,.35);
+  animation-name: flyWander, flyBlink;
+  animation-timing-function: ease-in-out, ease-in-out;
+  animation-iteration-count: infinite, infinite;
+  animation-direction: alternate, normal;
+}
+@keyframes flyWander { from { transform: translate(0,0); } to { transform: translate(var(--dx,30px), var(--dy,-40px)); } }
+@keyframes flyBlink { 0%,100% { opacity: .05; } 12% { opacity: 1; } 30% { opacity: .35; } 55% { opacity: .9; } 80% { opacity: .15; } }
+
+/* Estrellas fugaces: cruzan un instante y desaparecen (ciclo largo) */
+.efp-shoot {
+  position: absolute; height: 2px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12) 45%, #fff);
+  box-shadow: 0 0 7px rgba(255,255,255,.5);
+  opacity: 0;
+  animation-name: shootPass; animation-timing-function: ease-in; animation-iteration-count: infinite;
+}
+@keyframes shootPass {
+  0%   { opacity: 0; transform: translate(0,0) rotate(32deg); }
+  1.5% { opacity: 1; }
+  8%   { opacity: 0; transform: translate(46vw, 30vh) rotate(32deg); }
+  100% { opacity: 0; transform: translate(46vw, 30vh) rotate(32deg); }
+}
+
 /* Copos de nieve suaves (puntos blancos difusos, se ven reales) */
 .efp-snow { position: absolute; top: 0; border-radius: 50%; background: radial-gradient(circle, #fff 28%, rgba(255,255,255,.55) 58%, transparent 76%); box-shadow: 0 0 5px rgba(255,255,255,.55); animation-name: emojiFall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; }
 
@@ -2889,19 +2919,26 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 #temaBg { overflow: hidden; }
 #temaBg::before, #temaBg::after { pointer-events: none; }
 
-/* 🔥 Fuego de verdad (llamas que flamean abajo) */
+/* 🔥 Fuego de verdad: las llamas BAILAN (suben, se ladean y flamean) */
 .tema-fuego::before, .tema-fuego::after {
-  content: ''; position: absolute; left: -5%; right: -5%; bottom: -6%; height: 55%;
+  content: ''; position: absolute; left: -6%; right: -6%; bottom: -6%; height: 60%;
   background:
     radial-gradient(40% 90% at 14% 100%, #ffe08a, #ff7a18 34%, #e11900 60%, transparent 78%),
     radial-gradient(38% 96% at 37% 100%, #ffd34d, #ff6a00 34%, #c81400 60%, transparent 80%),
     radial-gradient(42% 100% at 61% 100%, #ffe08a, #ff7a18 34%, #e11900 60%, transparent 80%),
     radial-gradient(38% 88% at 85% 100%, #ffd34d, #ff5e00 38%, #c81400 62%, transparent 80%);
   filter: blur(6px); mix-blend-mode: screen;
-  animation: fireFlicker 1.1s ease-in-out infinite alternate;
+  transform-origin: 50% 100%;
+  animation: fireDance 2.6s ease-in-out infinite;
 }
-.tema-fuego::after { animation-duration: .8s; animation-delay: -.3s; opacity: .85; filter: blur(11px); }
-@keyframes fireFlicker { 0% { transform: scaleY(1) translateY(0); opacity: .9; } 100% { transform: scaleY(1.16) translateY(-3%); opacity: 1; } }
+.tema-fuego::after { animation-duration: 1.9s; animation-delay: -.9s; opacity: .85; filter: blur(11px); }
+@keyframes fireDance {
+  0%   { transform: scaleY(1)    translate(-2%, 0)     skewX(-1.5deg); opacity: .92; }
+  22%  { transform: scaleY(1.14) translate(1.2%,-2.5%) skewX(1.2deg);  opacity: 1; }
+  45%  { transform: scaleY(1.03) translate(2.6%,-.8%)  skewX(2.2deg);  opacity: .95; }
+  68%  { transform: scaleY(1.2)  translate(-1%,-3.5%)  skewX(-1deg);   opacity: 1; }
+  100% { transform: scaleY(1)    translate(-2%, 0)     skewX(-1.5deg); opacity: .92; }
+}
 
 /* ✨ Holográfico/Iridiscente cambian de color; Holográfico y Cromo con
    barrido de espejo (sheen) que los hace verse metálicos de verdad */
@@ -2931,6 +2968,17 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
   animation: cloudDrift 30s ease-in-out infinite alternate;
 }
 @keyframes cloudDrift { from { transform: translateX(-6%); } to { transform: translateX(6%); } }
+/* …y de vez en cuando el cielo SE NUBLA Y LLUEVE (ciclo largo: aclara solo) */
+.tema-cielo::after {
+  content: ''; position: absolute; inset: 0; opacity: 0;
+  background:
+    radial-gradient(1.1px 13px at 4px 26px, rgba(235,245,255,.6), transparent 70%) 0 0 / 9px 74px repeat,
+    radial-gradient(1px 11px at 5px 30px, rgba(215,235,255,.45), transparent 70%) 3px 12px / 13px 96px repeat,
+    linear-gradient(180deg, rgba(35,52,84,.45), rgba(28,42,70,.55)) 0 0 / 100% 100% no-repeat;
+  animation: lluviaCae .6s linear infinite, cieloTormenta 24s ease-in-out infinite;
+}
+@keyframes lluviaCae { to { background-position: 0 74px, 3px 108px, 0 0; } }
+@keyframes cieloTormenta { 0%, 26% { opacity: 0; } 38%, 78% { opacity: 1; } 90%, 100% { opacity: 0; } }
 
 /* 🌇 Atardecer: bruma horizontal que cruza frente al sol */
 .tema-atardecer::before {
@@ -2963,6 +3011,27 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
   animation: twinkleBg 2.6s ease-in-out infinite alternate;
 }
 @keyframes twinkleBg { from { opacity: .3; } to { opacity: .95; } }
+
+/* ☄️ Cometa que cruza el cielo cada cierto tiempo (casi siempre oculto) */
+.tema-medianoche::after, .tema-galaxia::after {
+  content: ''; position: absolute; left: 0; top: 0; width: 150px; height: 2.5px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06) 55%, #fff);
+  box-shadow: 0 0 8px rgba(255,255,255,.45);
+  opacity: 0;
+  animation: cometa 19s linear infinite;
+}
+.tema-galaxia::after {
+  background: linear-gradient(90deg, transparent, rgba(191,227,255,.08) 55%, #cfe8ff);
+  box-shadow: 0 0 8px rgba(160,210,255,.5);
+  animation-duration: 13s; animation-delay: -5s;
+}
+@keyframes cometa {
+  0%    { opacity: 0; transform: translate(-14vw, 4vh) rotate(30deg); }
+  1.2%  { opacity: 1; }
+  6.5%  { opacity: .9; }
+  8%    { opacity: 0; transform: translate(108vw, 46vh) rotate(30deg); }
+  100%  { opacity: 0; transform: translate(108vw, 46vh) rotate(30deg); }
+}
 
 /* 🟪 Synthwave: piso de rejilla EN PERSPECTIVA + sol en el horizonte */
 .tema-synthwave::after {
@@ -2999,16 +3068,18 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
   animation: discoFacets 2.2s linear infinite;
 }
 @keyframes discoFacets { from { background-position: 0 0, 0 0, 0 0, 0 0; } to { background-position: 0 0, 24px 0, 0 0, 0 0; } }
+/* Haces que SALEN de la bola y giran por todo el salón (reflejos reales) */
 .tema-disco::before {
-  content: ''; position: absolute; inset: -12%;
-  background:
-    radial-gradient(34% 26% at 18% 60%, rgba(244,114,182,.3), transparent 70%),
-    radial-gradient(30% 24% at 78% 46%, rgba(56,189,248,.28), transparent 70%),
-    radial-gradient(30% 26% at 46% 82%, rgba(168,85,247,.32), transparent 70%),
-    radial-gradient(26% 20% at 64% 24%, rgba(251,191,36,.18), transparent 70%);
-  animation: discoLights 9s ease-in-out infinite alternate;
+  content: ''; position: absolute; left: 50%; top: 84px; width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax;
+  background: conic-gradient(from 0deg,
+    transparent 0 24deg, rgba(214,220,255,.17) 26deg 33deg, transparent 35deg 96deg,
+    rgba(244,114,182,.16) 98deg 105deg, transparent 107deg 168deg,
+    rgba(56,189,248,.16) 170deg 177deg, transparent 179deg 250deg,
+    rgba(168,85,247,.15) 252deg 259deg, transparent 261deg 318deg,
+    rgba(251,191,36,.12) 320deg 326deg, transparent 328deg 360deg);
+  animation: discoBeams 24s linear infinite;
 }
-@keyframes discoLights { from { transform: translate(-3%,0); } to { transform: translate(3%,-2%); } }
+@keyframes discoBeams { to { transform: rotate(360deg); } }
 
 /* 🌊 Alberca: agua con ondas y destello de sol */
 .tema-alberca::before {
@@ -3106,18 +3177,16 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
     linear-gradient(50deg, #f472b6, #f472b6) 22% 74% / 8px 4px no-repeat;
 }
 
-/* 🌴 Tropical: follaje oscuro en las orillas (selva al atardecer) */
+/* 🌴 Tropical: platanar de verdad (hojas SVG dibujadas, estilo DtMF) que
+   enmarcan la pantalla desde las orillas y se mecen con el viento */
 .tema-tropical::before {
-  content: ''; position: absolute; inset: 0;
-  background:
-    radial-gradient(150px 95px at -4% -4%, rgba(3,46,31,.95), transparent 74%),
-    radial-gradient(120px 70px at 14% -7%, rgba(4,60,40,.9), transparent 74%),
-    radial-gradient(160px 100px at 104% -3%, rgba(3,46,31,.95), transparent 74%),
-    radial-gradient(115px 70px at 90% -8%, rgba(4,60,40,.9), transparent 72%),
-    radial-gradient(170px 105px at -6% 104%, rgba(2,38,26,.96), transparent 74%),
-    radial-gradient(160px 100px at 106% 102%, rgba(2,38,26,.96), transparent 74%);
-  filter: blur(2px);
+  content: ''; position: absolute; inset: -3% -5%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 900'%3E%3Cdefs%3E%3Cpath id='h' d='M0 0 C30 -22 110 -30 178 -8 C196 -2 198 6 184 10 C110 26 34 18 0 0 Z'/%3E%3C/defs%3E%3Cg fill='%23072b1c'%3E%3Cuse href='%23h' transform='translate(-14 60) rotate(22) scale(1.9)'/%3E%3Cuse href='%23h' transform='translate(-18 250) rotate(44) scale(2.1)'/%3E%3Cuse href='%23h' transform='translate(514 100) scale(-1.9 1.9) rotate(18)'/%3E%3Cuse href='%23h' transform='translate(518 310) scale(-2.1 2.1) rotate(40)'/%3E%3Cuse href='%23h' transform='translate(120 -10) rotate(76) scale(1.85)'/%3E%3Cuse href='%23h' transform='translate(400 -16) rotate(104) scale(1.8)'/%3E%3Cuse href='%23h' transform='translate(-14 640) rotate(18) scale(1.9)'/%3E%3Cuse href='%23h' transform='translate(516 660) scale(-1.9 1.9) rotate(16)'/%3E%3C/g%3E%3Cg fill='%230d4028'%3E%3Cuse href='%23h' transform='translate(-12 140) rotate(32) scale(1.65)'/%3E%3Cuse href='%23h' transform='translate(-16 400) rotate(12) scale(1.6)'/%3E%3Cuse href='%23h' transform='translate(514 220) scale(-1.65 1.65) rotate(28)'/%3E%3Cuse href='%23h' transform='translate(510 450) scale(-1.55 1.55) rotate(8)'/%3E%3Cuse href='%23h' transform='translate(255 -12) rotate(90) scale(1.6)'/%3E%3Cuse href='%23h' transform='translate(-14 880) rotate(-34) scale(1.9)'/%3E%3Cuse href='%23h' transform='translate(516 892) scale(-1.9 1.9) rotate(-30)'/%3E%3Cuse href='%23h' transform='translate(-12 760) rotate(-10) scale(1.55)'/%3E%3C/g%3E%3Cg fill='%2316563a'%3E%3Cuse href='%23h' transform='translate(-10 520) rotate(26) scale(1.45)'/%3E%3Cuse href='%23h' transform='translate(512 560) scale(-1.45 1.45) rotate(22)'/%3E%3Cuse href='%23h' transform='translate(-12 830) rotate(-16) scale(1.5)'/%3E%3Cuse href='%23h' transform='translate(514 810) scale(-1.55 1.55) rotate(-12)'/%3E%3Cuse href='%23h' transform='translate(60 -8) rotate(82) scale(1.35)'/%3E%3Cuse href='%23h' transform='translate(455 -10) scale(-1.35 1.35) rotate(-98)'/%3E%3C/g%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  filter: blur(.5px) drop-shadow(0 6px 16px rgba(0,0,0,.4));
+  transform-origin: 50% 0;
+  animation: hojasSway 9s ease-in-out infinite alternate;
 }
+@keyframes hojasSway { from { transform: rotate(-.5deg) translateX(-4px); } to { transform: rotate(.6deg) translateX(5px); } }
 
 /* 🌿 Menta: bandas de luz suaves que se mecen */
 .tema-menta::before {

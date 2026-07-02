@@ -464,7 +464,7 @@ const TEMAS = [
   { nombre: 'Synthwave', grad: 'linear-gradient(135deg,#ff2bd6,#22d3ee)',
     bg: 'radial-gradient(70% 30% at 50% 40%, rgba(255,43,214,.35), transparent 65%), linear-gradient(180deg,#0a0424 0%,#1a0640 55%,#2a0a55 100%)' },
   { nombre: 'Disco', grad: 'linear-gradient(135deg,#c0c8dd,#7b6bf0)',
-    bg: 'linear-gradient(180deg,#8a93ad,#8a93ad) 50% 0 / 2px 34px no-repeat, radial-gradient(70% 45% at 50% 0%, rgba(130,100,230,.4), transparent 70%), radial-gradient(110% 40% at 50% 108%, rgba(80,60,150,.45), transparent 70%), linear-gradient(180deg,#1a1229 0%,#130d20 55%,#0a0716 100%)' },
+    bg: 'linear-gradient(180deg,#8a93ad,#8a93ad) 50% 0 / 2px 34px no-repeat, radial-gradient(70% 45% at 50% 0%, rgba(130,100,230,.4), transparent 70%), radial-gradient(34% 26% at 16% 62%, rgba(244,114,182,.22), transparent 70%), radial-gradient(30% 24% at 82% 44%, rgba(56,189,248,.2), transparent 70%), radial-gradient(30% 26% at 48% 84%, rgba(168,85,247,.24), transparent 70%), radial-gradient(110% 40% at 50% 108%, rgba(80,60,150,.45), transparent 70%), linear-gradient(180deg,#1a1229 0%,#130d20 55%,#0a0716 100%)' },
   { nombre: 'Alberca', grad: 'linear-gradient(135deg,#22d3ee,#0ea5e9)',
     bg: 'radial-gradient(60% 30% at 30% 18%, rgba(255,255,255,.35), transparent 65%), radial-gradient(50% 26% at 74% 48%, rgba(255,255,255,.25), transparent 65%), radial-gradient(55% 28% at 40% 78%, rgba(255,255,255,.22), transparent 65%), linear-gradient(180deg,#67e3f4 0%,#22b8e6 45%,#0b7fc4 100%)' },
   { nombre: 'Holográfico', grad: 'linear-gradient(135deg,#a1c4fd,#fbc2eb)',
@@ -528,7 +528,10 @@ const EFECTOS = [
   { id: 'rayos',     nombre: 'Reflectores',emoji: '🔦' },
   { id: 'humo',      nombre: 'Niebla',    emoji: '🌫️' },
   { id: 'neon',      nombre: 'Neón',      emoji: '💖' },
-  { id: 'grano',     nombre: 'Cámara',    emoji: '📹' }
+  { id: 'grano',     nombre: 'Cámara',    emoji: '📹' },
+  { id: 'lluvia',      nombre: 'Lluvia',         emoji: '🌧️' },
+  { id: 'luciernagas', nombre: 'Luciérnagas',    emoji: '🌟' },
+  { id: 'fugaces',     nombre: 'Estrella fugaz', emoji: '🌠' }
 ];
 
 // Animaciones para boletos especiales (el usuario elige)
@@ -870,12 +873,12 @@ function pintarEfecto() {
   layer.className = 'efx-layer efx-' + e;
   document.body.appendChild(layer);
   if (e === 'grano') layer.insertAdjacentHTML('beforeend', '<div class="efx-vhs-band"></div>');
-  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos'];
+  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos', 'lluvia', 'luciernagas', 'fugaces'];
   if (!conParticulas.includes(e)) return; // humo/grano son solo capas CSS
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const cols = ['#f43f5e', '#fb7185', '#fbbf24', '#facc15', '#34d399', '#22d3ee', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'];
-  const counts = { confeti: 34, burbujas: 26, destellos: 42, nieve: 44, corazones: 24, rayos: 5 };
+  const counts = { confeti: 34, burbujas: 26, destellos: 42, nieve: 44, corazones: 24, rayos: 5, lluvia: 64, luciernagas: 18, fugaces: 7 };
   const n = counts[e];
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
@@ -917,6 +920,24 @@ function pintarEfecto() {
       const ed = rnd(6, 13) * kDur;
       s.className = 'efp-snow';
       s.style.cssText = `${blur}left:${leftPct}%;width:${sz}px;height:${sz}px;opacity:${rnd(0.5, 0.95).toFixed(2)};--sway:${rnd(-40, 40)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
+    } else if (e === 'lluvia') {
+      // gotas: rayitas finas que caen rápido, ligeramente inclinadas
+      const h = rnd(12, 22) * kProf;
+      const ld = rnd(0.7, 1.3) * kDur;
+      s.className = 'efp-rain';
+      s.style.cssText = `${blur}left:${leftPct}%;height:${h}px;--sway:${rnd(-26, 6)}px;animation-duration:${ld}s;animation-delay:-${rnd(0, ld)}s`;
+    } else if (e === 'luciernagas') {
+      // puntitos ámbar que vagan lento y parpadean (dos animaciones)
+      const sz = rnd(3, 5.5) * kProf;
+      const wd = rnd(5, 9), bd = rnd(2.4, 4.5);
+      s.className = 'efp-fly';
+      s.style.cssText = `left:${leftPct}%;top:${rnd(6, 92)}%;width:${sz}px;height:${sz}px;--dx:${rnd(-60, 60)}px;--dy:${rnd(-70, 50)}px;animation-duration:${wd}s,${bd}s;animation-delay:-${rnd(0, wd)}s,-${rnd(0, bd)}s`;
+    } else if (e === 'fugaces') {
+      // estrellas fugaces: cruzan de vez en cuando (casi todo el ciclo invisibles)
+      const w = rnd(70, 130);
+      const sd = rnd(5, 11);
+      s.className = 'efp-shoot';
+      s.style.cssText = `left:${rnd(-10, 60)}%;top:${rnd(2, 48)}%;width:${w}px;animation-duration:${sd}s;animation-delay:-${rnd(0, sd)}s`;
     } else {
       // corazones: caen con vaivén suave (no giran como rehilete)
       s.className = 'efp-emoji efp-heart';
@@ -1085,7 +1106,7 @@ function abrirAjustesEvento() {
       <label class="set-row"><div><strong>Requiere aprobación</strong><small>Tú apruebas a los invitados</small></div>
         <span class="toggle ${draft.requireApproval ? 'is-on' : ''}" onclick="draft.requireApproval=!draft.requireApproval; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
       <div class="set-row col">
-        <div><strong>Quién ve la lista de invitados</strong><small>Protege a tus asistentes: nadie de fuera ve quién va</small></div>
+        <div><strong>Quién ve la lista de invitados</strong><small>Tú ves todo; los invitados solo ven a sus propios amigos</small></div>
         <div class="chips-row mini">
           ${[['confirmados','Solo confirmados'],['nadie','Solo yo'],['todos','Todos']].map(([v, t]) => `
             <button class="chip ${(draft.listaVisible || 'confirmados') === v ? 'is-active' : ''}"
@@ -2691,9 +2712,15 @@ function puedeVerLista(e) {
   return e._rsvp === 'voy';
 }
 
-// Muestra deterministe de invitados desde el pool
+// ¿Es tu amigo? (para filtrar qué invitados puedes ver)
+function esAmigo(nombre) { return (DATA.amigos || []).some((a) => a.nombre === nombre); }
+
+// Muestra deterministe de invitados desde el pool.
+// Si NO eres el anfitrión, solo ves a TUS AMIGOS: los demás asistentes
+// nunca se te muestran con nombre (protección de la gente que va).
 function invitadosMuestra(e, n) {
-  const pool = DATA.gente || [];
+  const soyHost = e.organizador === DATA.usuario.nombre;
+  const pool = soyHost ? (DATA.gente || []) : (DATA.gente || []).filter((g) => esAmigo(g.nombre));
   if (!pool.length) return [];
   const seed = e.id.split('').reduce((s, c) => s + c.charCodeAt(0), 0);
   const start = seed % pool.length;
@@ -2919,14 +2946,18 @@ function verListaInvitados(id, tab) {
   }
   _guestTab = tab || 'van';
   const c = rsvpCounts(e);
+  const soyHost = e.organizador === DATA.usuario.nombre;
+  // Si no eres el anfitrión, en TODAS las pestañas solo ves a tus amigos
+  const soloAmigos = (arr) => soyHost ? arr : arr.filter((g) => esAmigo(g.nombre));
   const listas = {
     van: invitadosMuestra(e, Math.min(c.van, 40)),
-    tal: (DATA.gente || []).slice(2, 2 + Math.min(c.tal, 12)),
-    no:  (DATA.gente || []).slice(5, 5 + Math.min(c.no, 10))
+    tal: soloAmigos((DATA.gente || []).slice(2, 2 + Math.min(c.tal, 12))),
+    no:  soloAmigos((DATA.gente || []).slice(5, 5 + Math.min(c.no, 10)))
   };
   const cur = listas[_guestTab] || [];
   const tarjeta = (g) => `<article class="friend-card gci" data-nombre="${g.nombre.toLowerCase()}"><div class="friend-ava" style="background:${g.color}">${g.avatar}</div><div class="friend-main"><strong>${g.nombre}</strong></div></article>`;
   abrirSheet('Quién va', `
+    ${soyHost ? '' : `<div class="lock-note">${icon('lock','mute')}<span>Por seguridad solo ves a tus amigos. El anfitrión ve la lista completa.</span></div>`}
     <div class="guest-tabs">
       <button class="gtab ${_guestTab === 'van' ? 'on' : ''}" onclick="verListaInvitados('${e.id}','van')">✅ Van<b>${c.van}</b></button>
       <button class="gtab ${_guestTab === 'tal' ? 'on' : ''}" onclick="verListaInvitados('${e.id}','tal')">🤔 Tal vez<b>${c.tal}</b></button>
