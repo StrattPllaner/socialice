@@ -852,13 +852,16 @@ function pintarCrear() {
 
       <button class="btn full" style="margin:24px 0" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Publicar evento'}</button>
     </div>
+  `;
 
-    <!-- Barra inferior: Tema / Efecto / Ajustes -->
-    <div class="crear-toolbar">
-      <button onclick="abrirTemas()"><span class="ct-ico" style="background:${t.grad}"></span>Tema</button>
-      <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()"><span class="ct-fx">${(EFECTOS.find((e) => e.id === draft.efecto) || EFECTOS[0]).emoji}</span>Efecto</button>
-      <button onclick="abrirAjustesEvento()"><span class="ct-fx">⚙️</span>Ajustes</button>
-    </div>
+  // Barra Tema/Efecto/Ajustes: vive a NIVEL DEL BODY para que SIEMPRE flote
+  // (ninguna animación de pantalla puede afectar su position:fixed)
+  let tb = document.getElementById('crearToolbar');
+  if (!tb) { tb = document.createElement('div'); tb.id = 'crearToolbar'; tb.className = 'crear-toolbar'; document.body.appendChild(tb); }
+  tb.innerHTML = `
+    <button onclick="abrirTemas()"><span class="ct-ico" style="background:${t.grad}"></span>Tema</button>
+    <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()"><span class="ct-fx">${(EFECTOS.find((e) => e.id === draft.efecto) || EFECTOS[0]).emoji}</span>Efecto</button>
+    <button onclick="abrirAjustesEvento()"><span class="ct-fx">⚙️</span>Ajustes</button>
   `;
 
   pintarBoletos();
