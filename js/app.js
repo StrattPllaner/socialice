@@ -494,11 +494,9 @@ const TEMAS = [
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
     bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' },
   { nombre: 'Playa', grad: 'linear-gradient(135deg,#38bdf8,#fbbf24)',
-    bg: 'radial-gradient(circle 44px at 80% 9%, #fff7cf 0 55%, #ffe27a 72%, transparent 84%), radial-gradient(60% 10% at 80% 10%, rgba(255,236,150,.5), transparent 75%), linear-gradient(180deg,#8fdcff 0%,#56c6f5 36%,#17a8de 45%,#0b7fc0 55%,#f4dda6 55.2%,#eac988 78%,#d9ad6c 100%)' },
-  { nombre: 'Sandía', grad: 'linear-gradient(135deg,#fb5f7d,#22c55e)',
-    bg: 'radial-gradient(85% 45% at 28% 16%, rgba(255,255,255,.28), transparent 70%), linear-gradient(180deg,#ff96ab 0%,#fb5f7d 48%,#ee3d57 100%)' },
-  { nombre: 'Bosque', grad: 'linear-gradient(135deg,#166534,#4ade80)',
-    bg: 'radial-gradient(70% 36% at 50% 0%, rgba(170,255,205,.2), transparent 70%), linear-gradient(180deg,#17402a 0%,#0d2b1a 55%,#04120a 100%)' },
+    bg: 'linear-gradient(180deg,#8fd6f8 0%,#8fd6f8 46%,#1ea6cf 56%,#e9d3a0 67%,#d3ad72 100%)' },
+  { nombre: 'Bosque', grad: 'linear-gradient(135deg,#4c6b35,#c8dd8a)',
+    bg: 'linear-gradient(180deg,#c8dd8a 0%,#8fae5c 35%,#4c6b35 68%,#233c15 100%)' },
   // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario
   { nombre: 'Tus colores', custom: true, grad: '', bg: '' }
 ];
@@ -587,7 +585,8 @@ function nuevoDraft() {
   return {
     id: null,
     paso: 0,
-    tema: 0,                      // fondo/tema de la página de creación
+    // Por defecto arranca con el tema PERSONALIZADO (suave, con tus colores)
+    tema: TEMAS.findIndex((t) => t.custom),
     temaColors: ['#8b5cf6', '#38bdf8'], // colores del tema personalizado (1-2)
     efecto: 'ninguno',           // tipo de efecto del fondo
     tituloFont: 'classic',       // estilo de letra del título
@@ -2280,18 +2279,43 @@ function qrSVG(seed, cls = '') {
   return `<svg class="${cls}" viewBox="0 0 ${N} ${N}" fill="#0b0e18" shape-rendering="crispEdges" aria-hidden="true">${finder(0, 0)}${finder(N - 7, 0)}${finder(0, N - 7)}${cells}</svg>`;
 }
 
-// El pase en grande (para enseñarlo en la puerta)
-function abrirPase() {
+// Mis pases: UNO POR FIESTA confirmada (cada QR es único: usuario + evento)
+function abrirPases() {
   const u = DATA.usuario;
-  abrirSheet('Mi pase', `
+  const voy = DATA.eventos.filter((e) => (e.voy || e._voy) && !e.proximamente);
+  abrirSheet('Mis pases', voy.length ? `
+    <p class="hint">Un pase por fiesta. Enséñalo en la puerta: el staff lo escanea y listo.</p>
+    <div class="pases-list">
+      ${voy.map((e) => `
+        <div class="pase-ticket">
+          <div class="pt-strip" style="background:${e.grad}"></div>
+          <div class="pt-info">
+            <strong>${e.nombre}</strong>
+            <small>${e.fecha}</small>
+            <small>${e.lugar} · ${e.ciudad || ''}</small>
+            <span class="pt-user"><span class="host-ava sm" style="${avatarFondo(u)}">${avatarContenido(u)}</span>${u.usuario}</span>
+          </div>
+          <div class="pt-qr">${qrSVG(u.usuario + '·' + e.id)}</div>
+        </div>`).join('')}
+    </div>` : `
+    <p class="empty">Aún no tienes pases.<br>Confirma tu asistencia a una fiesta y aquí aparece su pase con QR 🎟️</p>
+  `);
+}
+
+// Abre directo el pase de UNA fiesta (por si se llama desde el evento)
+function abrirPaseDe(id) {
+  const u = DATA.usuario;
+  const e = DATA.eventos.find((x) => x.id === id);
+  if (!e) return;
+  abrirSheet('Tu pase', `
     <div class="pase-big">
       <div class="pase-big-head">
         <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
-        <div class="pase-big-id"><strong>${u.nombre}</strong><small>${u.usuario}</small></div>
+        <div class="pase-big-id"><strong>${e.nombre}</strong><small>${e.fecha} · ${u.usuario}</small></div>
         <span class="pase-big-logo">S</span>
       </div>
-      <div class="pase-big-qrbox">${qrSVG(u.usuario + '·' + u.nombre, 'pase-big-qr')}</div>
-      <p class="hint" style="text-align:center; margin-top:12px">Enséñalo en la puerta: el staff lo escanea y listo.<br>Vale para todas tus fiestas confirmadas.</p>
+      <div class="pase-big-qrbox">${qrSVG(u.usuario + '·' + e.id, 'pase-big-qr')}</div>
+      <p class="hint" style="text-align:center; margin-top:12px">Este pase es solo para esta fiesta.</p>
     </div>
   `);
 }
@@ -2387,9 +2411,9 @@ function pintarPerfil() {
       </div>
     </section>
 
-    <button class="pase-card" onclick="abrirPase()">
-      <span class="pase-qr">${qrSVG(u.usuario + '·' + u.nombre)}</span>
-      <span class="pase-info"><strong>MI PASE</strong><small>Enséñalo en la puerta para entrar</small></span>
+    <button class="pase-card" onclick="abrirPases()">
+      <span class="pase-qr">${qrSVG(u.usuario + '·' + (voy[0] ? voy[0].id : 'sin'))}</span>
+      <span class="pase-info"><strong>MIS PASES</strong><small>${voy.length ? `${voy.length} ${voy.length === 1 ? 'fiesta confirmada' : 'fiestas confirmadas'} · un QR por fiesta` : 'Confirma una fiesta para recibir tu pase'}</small></span>
       <span class="pase-arrow">›</span>
     </button>
 
@@ -3353,6 +3377,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'ajustes') abrirAjustes();
   if (p.get('sheet') === 'ajustesEvento') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirAjustesEvento(); }
   if (p.get('sheet') === 'editar')  editarPerfil();
+  if (p.get('sheet') === 'temaCustom') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirTemaCustom(); }
+  if (p.get('sheet') === 'pases') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('profile'); abrirPases(); }
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('paso')) { draft.paso = +p.get('paso'); pintarCrear(); }
   if (p.get('cal')) verCalendario();

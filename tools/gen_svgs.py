@@ -300,29 +300,72 @@ def chicle_svg():
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">'
             f'<defs>{defs}</defs>{body}</svg>')
 
-# ---------------- PLAYA ----------------
+# ---------------- PLAYA (escena completa: cielo, mar de verdad, arena) ----
 
-def playa_svg():
-    # El mar termina en y=495 (55% de 900); la arena sigue hasta abajo.
-    HOR = 495
-    # gaviotas: dos arcos unidos (silueta "m" con alas caídas)
-    def gaviota(x, y, s):
-        return (f'<path d="M{f(x-s)} {f(y)} Q{f(x-s*0.5)} {f(y-s*0.8)} {f(x)} {f(y)} '
-                f'Q{f(x+s*0.5)} {f(y-s*0.8)} {f(x+s)} {f(y)}" fill="none" '
-                f'stroke="#ffffff" stroke-opacity=".85" stroke-width="2.5" stroke-linecap="round"/>')
-    gulls = gaviota(120, 130, 14) + gaviota(165, 155, 10) + gaviota(330, 105, 12)
-    # espuma: banda blanca ondulada donde el mar toca la arena
-    foam = (f'<path d="M0 {HOR-14} Q42 {HOR-26} 84 {HOR-14} T168 {HOR-14} T252 {HOR-14} '
-            f'T336 {HOR-14} T420 {HOR-14} T504 {HOR-14} L500 {HOR+10} '
-            f'Q450 {HOR+22} 400 {HOR+10} T300 {HOR+10} T200 {HOR+10} T100 {HOR+10} T0 {HOR+10} Z" '
-            f'fill="#ffffff" opacity=".8"/>'
-            f'<path d="M0 {HOR-34} Q60 {HOR-44} 120 {HOR-34} T240 {HOR-34} T360 {HOR-34} T480 {HOR-34} L500 {HOR-34} L500 {HOR-28} '
-            f'Q440 {HOR-20} 380 {HOR-28} T260 {HOR-28} T140 {HOR-28} T20 {HOR-28} L0 {HOR-28} Z" '
-            f'fill="#ffffff" opacity=".4"/>')
-    # sombrilla inclinada sobre la arena (gajos alternados + poste + sombra)
-    ux, uy, ur, tilt = 118, 560, 96, -14
-    wedges = ""
+def playa_full_svg():
+    rnd = random.Random(27)
+    defs = (
+        '<linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" stop-color="#c3e9ff"/><stop offset="1" stop-color="#8fd6f8"/></linearGradient>'
+        '<linearGradient id="mar" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" stop-color="#0a5c95"/><stop offset=".22" stop-color="#0e7cb4"/>'
+        '<stop offset=".55" stop-color="#1ea6cf"/><stop offset=".85" stop-color="#55cfdd"/>'
+        '<stop offset="1" stop-color="#8ce8e4"/></linearGradient>'
+        '<linearGradient id="arena" x1="0" y1="0" x2="0" y2="1">'
+        '<stop offset="0" stop-color="#e9d3a0"/><stop offset="1" stop-color="#d3ad72"/></linearGradient>')
+    sky = '<rect width="500" height="420" fill="url(#cielo)"/>'
+    sun = ('<circle cx="390" cy="90" r="62" fill="#fff5c4" opacity=".4"/>'
+           '<circle cx="390" cy="90" r="33" fill="#fffadd"/>')
+    def nube(cx, cy, s, op):
+        g = f'<g fill="#ffffff" opacity="{op}">'
+        for (dx, dy, r) in [(-1.2, 0, .55), (-0.5, -0.4, .8), (0.3, -0.35, .72), (1.1, 0, .5)]:
+            g += f'<circle cx="{f(cx+dx*s)}" cy="{f(cy+dy*s)}" r="{f(r*s)}"/>'
+        g += f'<ellipse cx="{cx}" cy="{f(cy+0.12*s)}" rx="{f(1.7*s)}" ry="{f(0.5*s)}"/></g>'
+        return g
+    clouds = nube(105, 95, 34, .92) + nube(300, 160, 24, .8) + nube(455, 60, 20, .7)
+    # mar: bloque con degradado (oscuro en el horizonte, turquesa en la orilla)
+    sea = '<rect y="418" width="500" height="190" fill="url(#mar)"/>'
+    # destellos del sol sobre el agua (rayitas blancas cerca del horizonte)
+    glints = ""
+    for _ in range(46):
+        y = 424 + rnd.random()**1.6 * 120
+        x = rnd.uniform(4, 496)
+        w = rnd.uniform(5, 22) * (0.5 + (y-420)/190)
+        op = rnd.uniform(0.18, 0.5)
+        glints += f'<rect x="{f(x)}" y="{f(y)}" width="{f(w)}" height="1.6" rx="0.8" fill="#ffffff" opacity="{f(op)}"/>'
+    # crestas de olas que avanzan (líneas onduladas suaves)
+    def ola(y, amp, op, wdt):
+        d = f"M-10 {y} "
+        for x in range(0, 520, 52):
+            d += f"q13 {-amp} 26 0 t26 0 "
+        return f'<path d="{d}" fill="none" stroke="#eafcff" stroke-opacity="{op}" stroke-width="{wdt}"/>'
+    waves = ola(500, 5, .35, 2) + ola(535, 6, .5, 2.5) + ola(568, 7, .6, 3)
+    # velero en el horizonte
+    boat = ('<g transform="translate(88 402)">'
+            '<path d="M-20 14 L20 14 L12 22 L-14 22 Z" fill="#27435e"/>'
+            '<path d="M-2 12 L-2 -26 L-22 12 Z" fill="#ffffff"/>'
+            '<path d="M3 12 L3 -20 L16 12 Z" fill="#f1f5f9"/>'
+            '<rect x="-2.5" y="-26" width="2" height="38" fill="#64748b"/></g>')
+    gulls = ''
+    for (x, y, s) in [(150, 150, 13), (196, 175, 9), (60, 210, 10)]:
+        gulls += (f'<path d="M{f(x-s)} {f(y)} Q{f(x-s*0.5)} {f(y-s*0.8)} {f(x)} {f(y)} '
+                  f'Q{f(x+s*0.5)} {f(y-s*0.8)} {f(x+s)} {f(y)}" fill="none" '
+                  f'stroke="#ffffff" stroke-opacity=".9" stroke-width="2.4" stroke-linecap="round"/>')
+    # arena + franja de arena mojada + espuma de la orilla (borde festoneado)
+    sand = '<rect y="600" width="500" height="300" fill="url(#arena)"/>'
+    wet = '<path d="M0 596 Q125 580 250 594 T500 590 L500 648 Q300 664 140 652 T0 648 Z" fill="#c8ab77"/>'
+    foam = ('<path d="M0 588 Q125 572 250 586 T500 582 L500 606 Q420 618 340 608 Q300 622 240 610 '
+            'Q180 626 120 612 Q60 620 0 610 Z" fill="#ffffff" opacity=".92"/>'
+            '<path d="M0 620 Q140 634 260 624 T500 620 L500 628 Q320 642 180 632 T0 630 Z" fill="#ffffff" opacity=".4"/>')
+    # granitos de arena
+    grains = ""
+    for _ in range(60):
+        x, y = rnd.uniform(4, 496), rnd.uniform(660, 892)
+        grains += f'<circle cx="{f(x)}" cy="{f(y)}" r="{f(rnd.uniform(0.8, 1.7))}" fill="#a9803f" opacity=".3"/>'
+    # sombrilla: gajos + varillas + borde, inclinada, con sombra en la arena
+    ux, uy, ur, tilt = 118, 660, 96, -14
     cols = ["#f43f5e", "#fff7ed", "#fb923c", "#fff7ed", "#f43f5e", "#fff7ed"]
+    wedges, ribs = "", ""
     for i in range(6):
         a0 = math.pi + i*math.pi/6
         a1 = a0 + math.pi/6
@@ -330,124 +373,124 @@ def playa_svg():
         x1, y1 = ux + ur*math.cos(a1), uy + ur*math.sin(a1)
         wedges += (f'<path d="M{f(ux)} {f(uy)} L{f(x0)} {f(y0)} '
                    f'A{ur} {ur} 0 0 1 {f(x1)} {f(y1)} Z" fill="{cols[i]}"/>')
-    umbrella = (f'<ellipse cx="{ux+46}" cy="{uy+118}" rx="95" ry="16" fill="#a16207" opacity=".28"/>'
+        ribs += f'<path d="M{f(ux)} {f(uy)} L{f(x0)} {f(y0)}" stroke="#00000022" stroke-width="1.4"/>'
+    umbrella = (f'<ellipse cx="{ux+50}" cy="{uy+126}" rx="98" ry="15" fill="#8a6a33" opacity=".3"/>'
                 f'<g transform="rotate({tilt} {ux} {uy})">'
-                f'<rect x="{ux-3}" y="{uy-6}" width="6" height="130" rx="3" fill="#8a5a2b"/>'
-                f'{wedges}'
-                f'<path d="M{f(ux-ur)} {f(uy)} A{ur} {ur} 0 0 1 {f(ux+ur)} {f(uy)}" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="2"/>'
-                f'<circle cx="{ux}" cy="{uy-ur}" r="6" fill="#8a5a2b"/></g>')
-    # pelota de playa: círculo con gajos curvos alternados + brillo + sombra
-    bx, by, br = 372, 700, 52
+                f'<rect x="{ux-3}" y="{uy-4}" width="6" height="134" rx="3" fill="#7c5326"/>'
+                f'{wedges}{ribs}'
+                f'<path d="M{f(ux-ur)} {f(uy)} A{ur} {ur} 0 0 1 {f(ux+ur)} {f(uy)}" fill="none" stroke="#ffffff" stroke-opacity=".4" stroke-width="2.5"/>'
+                f'<circle cx="{ux}" cy="{uy-ur}" r="6" fill="#7c5326"/></g>')
+    # pelota, toalla, estrella y conchitas sobre la arena
+    bx, by, br = 372, 762, 50
     def lens(o1, o2, col):
         return (f'<path d="M{bx} {by-br} Q{f(bx+o1)} {by} {bx} {by+br} '
                 f'Q{f(bx+o2)} {by} {bx} {by-br} Z" fill="{col}"/>')
-    ball = (f'<ellipse cx="{bx+8}" cy="{by+br+12}" rx="58" ry="13" fill="#a16207" opacity=".3"/>'
+    ball = (f'<ellipse cx="{bx+8}" cy="{by+br+10}" rx="56" ry="12" fill="#8a6a33" opacity=".32"/>'
             f'<circle cx="{bx}" cy="{by}" r="{br}" fill="#fff7ed"/>'
             + lens(br*1.6, br*0.55, "#f43f5e") + lens(br*0.55, -br*0.55, "#0ea5e9")
             + lens(-br*0.55, -br*1.6, "#fbbf24")
-            + f'<circle cx="{bx}" cy="{by}" r="{br}" fill="none" stroke="#0f172a" stroke-opacity=".14" stroke-width="2"/>'
-            + f'<ellipse cx="{f(bx-br*0.35)}" cy="{f(by-br*0.45)}" rx="{f(br*0.3)}" ry="{f(br*0.18)}" fill="#ffffff" opacity=".7" transform="rotate(-28 {f(bx-br*0.35)} {f(by-br*0.45)})"/>')
-    # estrella de mar regordeta con puntitos
-    sx, sy, sr = 246, 806, 30
+            + f'<circle cx="{bx}" cy="{by}" r="{br}" fill="none" stroke="#0f172a" stroke-opacity=".15" stroke-width="2"/>'
+            + f'<ellipse cx="{f(bx-br*0.35)}" cy="{f(by-br*0.45)}" rx="{f(br*0.3)}" ry="{f(br*0.18)}" fill="#ffffff" opacity=".75" transform="rotate(-28 {f(bx-br*0.35)} {f(by-br*0.45)})"/>')
+    towel = ('<g transform="rotate(-7 220 786)">'
+             '<rect x="160" y="756" width="120" height="62" rx="8" fill="#38bdf8"/>'
+             '<rect x="160" y="768" width="120" height="10" fill="#ffffff" opacity=".85"/>'
+             '<rect x="160" y="789" width="120" height="10" fill="#ffffff" opacity=".85"/></g>')
+    sx, sy, sr = 258, 862, 26
     pts = []
     for i in range(10):
         a = -math.pi/2 + i*math.pi/5
         rr = sr if i % 2 == 0 else sr*0.46
         pts.append(f"{f(sx + rr*math.cos(a))} {f(sy + rr*math.sin(a))}")
-    star = (f'<ellipse cx="{sx+4}" cy="{sy+sr*0.75}" rx="{sr+8}" ry="9" fill="#a16207" opacity=".25"/>'
-            f'<path d="M{" L".join(pts)} Z" fill="#fb923c" stroke="#fb923c" '
-            f'stroke-width="12" stroke-linejoin="round"/>'
-            f'<circle cx="{sx-8}" cy="{sy-6}" r="2.4" fill="#c2570b"/>'
-            f'<circle cx="{sx+9}" cy="{sy-2}" r="2.4" fill="#c2570b"/>'
-            f'<circle cx="{sx}" cy="{sy+10}" r="2.4" fill="#c2570b"/>')
-    # toalla tendida junto a la sombrilla
-    towel = ('<g transform="rotate(-7 210 714)">'
-             '<rect x="150" y="682" width="120" height="64" rx="8" fill="#38bdf8"/>'
-             '<rect x="150" y="694" width="120" height="10" fill="#ffffff" opacity=".85"/>'
-             '<rect x="150" y="716" width="120" height="10" fill="#ffffff" opacity=".85"/></g>')
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">'
-            f'{gulls}{foam}{towel}{umbrella}{ball}{star}</svg>')
+    star = (f'<path d="M{" L".join(pts)} Z" fill="#fb923c" stroke="#fb923c" '
+            f'stroke-width="11" stroke-linejoin="round"/>'
+            f'<circle cx="{sx-7}" cy="{sy-5}" r="2.2" fill="#c2570b"/>'
+            f'<circle cx="{sx+8}" cy="{sy-1}" r="2.2" fill="#c2570b"/>'
+            f'<circle cx="{sx}" cy="{sy+9}" r="2.2" fill="#c2570b"/>')
+    shells = ('<path d="M64 848 a11 11 0 0 1 22 0 Z" fill="#fde8d0" stroke="#d9b28c" stroke-width="1.5"/>'
+              '<path d="M75 848 L69 838 M75 848 L75 836 M75 848 L81 838" stroke="#d9b28c" stroke-width="1.2"/>'
+              '<circle cx="452" cy="874" r="7" fill="#f3d9bd" stroke="#d9b28c" stroke-width="1.4"/>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900"><defs>{defs}</defs>'
+            f'{sky}{sun}{clouds}{gulls}{sea}{glints}{boat}{waves}{sand}{wet}{foam}{grains}'
+            f'{towel}{umbrella}{ball}{star}{shells}</svg>')
 
-# ---------------- SANDÍA ----------------
+# ---------------- BOSQUE (como foto: troncos altos + copa verde con luz) ----
 
-def sandia_svg():
-    rnd = random.Random(14)
-    seeds = ""
-    spots = [(70, 150), (300, 95), (430, 210), (150, 330), (390, 420), (60, 500),
-             (250, 560), (440, 640), (140, 680), (330, 250)]
-    for (x, y) in spots:
-        rot = rnd.uniform(-40, 40)
-        seeds += (f'<g transform="rotate({f(rot)} {x} {y})">'
-                  f'<path d="M{x} {y-13} C{x+9} {y-6} {x+9} {y+7} {x} {y+13} '
-                  f'C{x-9} {y+7} {x-9} {y-6} {x} {y-13} Z" fill="#1c1917"/>'
-                  f'<ellipse cx="{x-3}" cy="{y-5}" rx="2.6" ry="3.6" fill="#ffffff" opacity=".55"/></g>')
-    # cáscara curva abajo: banda blanca + verde claro + verde con vetas
-    rind = ('<path d="M0 782 Q250 742 500 782 L500 900 L0 900 Z" fill="#fdfcf5"/>'
-            '<path d="M0 806 Q250 766 500 806 L500 900 L0 900 Z" fill="#bbf7d0"/>'
-            '<path d="M0 824 Q250 784 500 824 L500 900 L0 900 Z" fill="#16a34a"/>')
-    stripes = ""
-    for i in range(7):
-        x = 20 + i*72
-        t = x / 500
-        y_arc = (1-t)**2*824 + 2*t*(1-t)*784 + t*t*824   # borde superior del verde
-        stripes += (f'<path d="M{x} 900 Q{x+6} {f(y_arc+40)} {x+2} {f(y_arc+16)}" '
-                    f'stroke="#0c7a35" stroke-width="15" fill="none" stroke-linecap="round"/>')
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">'
-            f'{seeds}{rind}{stripes}</svg>')
+def arbol(cx, base_y, top_y, w, rnd, tone=0):
+    # Tronco alto, delgado, con curvita natural y lado iluminado.
+    lean = rnd.uniform(-14, 14)
+    ctrl = (cx + lean, (base_y + top_y) / 2)
+    top = (cx + lean*1.6, top_y)
+    body = trunk((cx, base_y), ctrl, top, w, w*0.5)
+    darks = ["#33291f", "#3c3126", "#2c231a"]
+    lights = ["#5d5140", "#6a5c49", "#554938"]
+    g = f'<path d="{body}" fill="{darks[tone % 3]}"/>'
+    # canto iluminado (una franja angosta pegada a un lado del tronco)
+    edge = trunk((cx - w*0.28, base_y), (ctrl[0] - w*0.28, ctrl[1]), (top[0] - w*0.28, top[1]), w*0.3, w*0.16)
+    g += f'<path d="{edge}" fill="{lights[tone % 3]}" opacity=".8"/>'
+    # 2-3 ramas delgadas que suben hacia la copa
+    for _ in range(rnd.randint(2, 3)):
+        t = rnd.uniform(0.45, 0.8)
+        bx_, by_ = bez((cx, base_y), ctrl, top, t)
+        side = rnd.choice((-1, 1))
+        ex = bx_ + side * rnd.uniform(18, 42)
+        ey = by_ - rnd.uniform(46, 90)
+        g += (f'<path d="M{f(bx_)} {f(by_)} Q{f(bx_ + side*8)} {f(by_ - 30)} {f(ex)} {f(ey)}" '
+              f'stroke="{darks[tone % 3]}" stroke-width="{f(w*0.16)}" fill="none" stroke-linecap="round"/>')
+    return g
 
-# ---------------- BOSQUE ----------------
-
-def pino(cx, base, h, w, col, rnd, trunk_col="#3b2a1a"):
-    tiers = 4
-    d = ""
-    top = base - h
-    for k in range(tiers):
-        ty = top + k*h*0.2
-        by = top + (k+1)*h*0.26 + h*0.06
-        tw = w * (0.34 + 0.66*(k+1)/tiers)
-        # borde inferior dentado (3 muescas por lado)
-        left, right = cx - tw/2, cx + tw/2
-        pts = [f"{f(cx)} {f(ty)}"]
-        n = 4
-        for i in range(n+1):
-            x = left + (right-left)*i/n
-            y = by + (rnd.uniform(-3, 3) if 0 < i < n else 0) - (6 if i % 2 else 0)
-            pts.append(f"{f(x)} {f(y)}")
-        d += f'<path d="M{" L".join(pts)} Z" fill="{col}"/>'
-    d += f'<rect x="{f(cx-w*0.06)}" y="{f(base-6)}" width="{f(w*0.12)}" height="{f(h*0.12+6)}" fill="{trunk_col}"/>'
-    return d
+def follaje(rnd, y0, y1, n, cols, rmin, rmax, op=1):
+    g = f'<g opacity="{op}">'
+    for _ in range(n):
+        x = rnd.uniform(-20, 520)
+        y = y0 + (rnd.random()**1.4) * (y1 - y0)   # más denso arriba
+        r = rnd.uniform(rmin, rmax)
+        g += f'<circle cx="{f(x)}" cy="{f(y)}" r="{f(r)}" fill="{rnd.choice(cols)}"/>'
+    return g + '</g>'
 
 def bosque_svg():
-    rnd = random.Random(31)
-    layers = ""
-    # fila lejana (clara, con neblina detrás)
+    rnd = random.Random(52)
+    defs = ('<filter id="blur2"><feGaussianBlur stdDeviation="2.2"/></filter>'
+            '<linearGradient id="bosqueBg" x1="0" y1="0" x2="0" y2="1">'
+            '<stop offset="0" stop-color="#c8dd8a"/><stop offset=".35" stop-color="#8fae5c"/>'
+            '<stop offset=".68" stop-color="#4c6b35"/><stop offset="1" stop-color="#233c15"/></linearGradient>')
+    bg = '<rect width="500" height="900" fill="url(#bosqueBg)"/>'
+    # claritos de cielo que se cuelan entre las hojas
+    sky = ""
+    for _ in range(16):
+        x, y = rnd.uniform(0, 500), rnd.uniform(0, 210)
+        sky += f'<circle cx="{f(x)}" cy="{f(y)}" r="{f(rnd.uniform(7, 18))}" fill="#f3f9dd" opacity="{f(rnd.uniform(.5, .9))}"/>'
+    # capa LEJANA borrosa: troncos finos + follaje claro
     far = ""
-    for x in range(20, 500, 58):
-        far += pino(x + rnd.uniform(-10, 10), 560, rnd.uniform(95, 135), rnd.uniform(52, 66), "#2e6b4b", rnd, "#2e6b4b")
-    layers += f'<g opacity=".85">{far}</g>'
-    layers += '<rect x="0" y="470" width="500" height="130" fill="#9fd8bd" opacity=".16"/>'
-    # fila media
+    for x in range(10, 500, 34):
+        far += arbol(x + rnd.uniform(-8, 8), rnd.uniform(560, 640), rnd.uniform(30, 90), rnd.uniform(4, 7), rnd, rnd.randint(0, 2))
+    far = f'<g filter="url(#blur2)" opacity=".75">{far}</g>'
+    fol_far = follaje(rnd, -30, 250, 90, ["#c3da84", "#a9c86b", "#8fb757"], 14, 30, .9)
+    # capa MEDIA
     mid = ""
-    for x in range(-10, 520, 84):
-        mid += pino(x + rnd.uniform(-12, 12), 700, rnd.uniform(160, 215), rnd.uniform(76, 96), "#1b4a31", rnd, "#241708")
-    layers += mid
-    layers += '<rect x="0" y="600" width="500" height="120" fill="#9fd8bd" opacity=".1"/>'
-    # fila cercana (oscura, grandes)
+    for x in range(-6, 520, 62):
+        mid += arbol(x + rnd.uniform(-12, 12), rnd.uniform(700, 790), rnd.uniform(10, 70), rnd.uniform(8, 13), rnd, rnd.randint(0, 2))
+    fol_mid = follaje(rnd, -30, 300, 70, ["#93b859", "#77a144", "#5d8836"], 16, 36, .95)
+    # capa CERCANA: pocos troncos gruesos que enmarcan
     near = ""
-    for x in range(-20, 540, 120):
-        near += pino(x + rnd.uniform(-14, 14), 905, rnd.uniform(250, 330), rnd.uniform(120, 150), "#071c11", rnd, "#120b04")
-    layers += near
-    # dos gigantes que enmarcan desde las esquinas
-    layers += pino(28, 940, 430, 190, "#04120a", rnd, "#0b0602")
-    layers += pino(478, 950, 460, 200, "#04120a", rnd, "#0b0602")
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">{layers}</svg>'
+    for x in (36, 150, 322, 464):
+        near += arbol(x + rnd.uniform(-8, 8), 910, rnd.uniform(-30, 20), rnd.uniform(17, 24), rnd, rnd.randint(0, 2))
+    fol_near = follaje(rnd, -40, 190, 34, ["#4f7a2c", "#3c6322", "#2f541a"], 22, 46, .9)
+    # sotobosque: matas y hojitas iluminadas (como la alfombra verde de la foto)
+    piso = '<path d="M0 806 Q80 792 160 802 T330 800 T500 804 L500 900 L0 900 Z" fill="#2c4a1b"/>'
+    matas = follaje(rnd, 796, 880, 46, ["#3f6524", "#4f7a2c", "#365a1f"], 10, 22)
+    brotes = ""
+    for _ in range(70):
+        x, y = rnd.uniform(0, 500), rnd.uniform(800, 895)
+        brotes += f'<circle cx="{f(x)}" cy="{f(y)}" r="{f(rnd.uniform(1.4, 3))}" fill="#9cc861" opacity="{f(rnd.uniform(.35, .8))}"/>'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900"><defs>{defs}</defs>'
+            f'{bg}{sky}{fol_far}{far}{fol_mid}{mid}{piso}{near}{fol_near}{matas}{brotes}</svg>')
 
 import os
 out = "/Users/leocarreto/Desktop/socialice/icons"
 files = {
     "palmeras.svg": palms_svg, "discoball.svg": disco_svg, "luna.svg": luna_svg,
     "nubes.svg": nubes_svg, "globos.svg": globos_svg, "chicle.svg": chicle_svg,
-    "playa.svg": playa_svg, "sandia.svg": sandia_svg, "bosque.svg": bosque_svg,
+    "playa.svg": playa_full_svg, "bosque.svg": bosque_svg,
 }
 for name, fn in files.items():
     with open(os.path.join(out, name), "w") as fh:
