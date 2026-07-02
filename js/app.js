@@ -449,68 +449,50 @@ const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','�
 
 // Temas de fondo BOLD y únicos (cada uno con identidad propia; estilo Partiful)
 // Las tarjetas tienen su propio velo oscuro, así que el fondo puede ser vivo.
+/* Cada tema es UNA ESCENA compuesta (estilo Partiful), no un patrón en mosaico.
+   Todas las capas van con no-repeat: nada se repite ni se corta. Las partes
+   animadas (llamas, bola disco, rejilla, globos…) viven en CSS (.tema-<slug>). */
 const TEMAS = [
   { nombre: 'Medianoche', grad: 'linear-gradient(135deg,#2f7bff,#38bdf8)',
-    bg: 'radial-gradient(120% 80% at 50% -10%, #1e3a8a, transparent 60%), radial-gradient(1.6px 1.6px at 18% 28%, #fff, transparent), radial-gradient(1.6px 1.6px at 62% 18%, #cfe3ff, transparent), radial-gradient(2px 2px at 42% 62%, #fff, transparent), radial-gradient(1.6px 1.6px at 82% 72%, #bcd6ff, transparent), #060a18',
-    size: 'cover, 200px 200px, 260px 260px, 170px 170px, 230px 230px, cover' },
+    bg: 'radial-gradient(circle 34px at 76% 11%, #fdfeff 0 96%, transparent 100%), radial-gradient(circle 90px at 76% 11%, rgba(190,215,255,.4), transparent 70%), radial-gradient(1.8px 1.8px at 12% 22%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 30% 9%, #cfe3ff 60%, transparent), radial-gradient(2.2px 2.2px at 48% 30%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 61% 16%, #fff 60%, transparent), radial-gradient(1.8px 1.8px at 88% 34%, #cfe3ff 60%, transparent), radial-gradient(1.4px 1.4px at 22% 44%, #fff 60%, transparent), radial-gradient(2px 2px at 70% 52%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 40% 64%, #bcd6ff 60%, transparent), radial-gradient(1.8px 1.8px at 85% 72%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 15% 82%, #cfe3ff 60%, transparent), radial-gradient(120% 60% at 50% 112%, #14204d, transparent 70%), linear-gradient(180deg,#0c1334 0%,#0a0f26 48%,#05070f 100%)' },
   { nombre: 'Atardecer', grad: 'linear-gradient(135deg,#fb923c,#ec4899)',
-    bg: 'linear-gradient(180deg, #ff9a5b 0%, #ff5f9e 26%, #a23bb0 52%, #3a1450 80%, #120726 100%)',
-    size: 'cover' },
-  { nombre: 'Y2K', grad: 'linear-gradient(135deg,#f472b6,#22d3ee)',
-    bg: 'repeating-conic-gradient(from 0deg, #ff5fb2 0deg 90deg, #22c8e6 90deg 180deg)',
-    size: '64px 64px' },
+    bg: 'radial-gradient(circle 56px at 50% 40%, #fff6d0 0 55%, #ffd76a 68%, rgba(255,150,60,.6) 78%, transparent 85%), radial-gradient(75% 34% at 50% 42%, rgba(255,170,90,.55), transparent 72%), radial-gradient(120% 22% at 50% 55%, rgba(255,120,130,.35), transparent 70%), linear-gradient(180deg,#ff9a5b 0%,#ff5f9e 30%,#a23bb0 58%,#3a1450 82%,#120726 100%)' },
+  { nombre: 'Y2K', grad: 'linear-gradient(135deg,#dfe7f5,#8fb6ff)',
+    bg: 'radial-gradient(150px 95px at 24% 20%, rgba(255,255,255,.95), rgba(255,255,255,0) 70%), radial-gradient(190px 120px at 78% 55%, rgba(255,255,255,.55), transparent 70%), radial-gradient(120px 80px at 40% 86%, rgba(255,255,255,.5), transparent 70%), linear-gradient(160deg,#eef3fb 0%,#9fb4d8 22%,#f2f6fc 38%,#7f97c4 56%,#dbe4f3 72%,#8ea6cf 88%,#e8eef8 100%)' },
   { nombre: 'Vaporwave', grad: 'linear-gradient(135deg,#ec4899,#38bdf8)',
-    bg: 'radial-gradient(58% 30% at 50% 80%, #ffd0ec, #ff4fa3 42%, transparent 72%), repeating-linear-gradient(0deg, rgba(255,255,255,.07) 0 2px, transparent 2px 6px), linear-gradient(180deg, #1b0a47 0%, #4a1d7a 55%, #c25a9e 100%)',
-    size: 'cover, auto, cover' },
+    bg: 'radial-gradient(120% 26% at 50% 76%, rgba(255,120,190,.4), transparent 72%), linear-gradient(180deg,#241059 0%,#4a1d7a 42%,#b3438f 70%,#ff8d5a 100%)' },
   { nombre: 'Synthwave', grad: 'linear-gradient(135deg,#ff2bd6,#22d3ee)',
-    bg: 'radial-gradient(70% 38% at 50% 16%, #ff2bd6, transparent 62%), repeating-linear-gradient(0deg, transparent 0 37px, rgba(255,43,214,.4) 38px 40px), repeating-linear-gradient(90deg, transparent 0 37px, rgba(34,211,238,.3) 38px 40px), linear-gradient(180deg,#0a0424,#1a0640)',
-    size: 'cover, auto, auto, cover' },
-  { nombre: 'Lunares', grad: 'linear-gradient(135deg,#f43f5e,#fb7185)',
-    bg: 'radial-gradient(#ffffff 16%, transparent 18%), linear-gradient(135deg, #e11d48, #9f1239)',
-    size: '42px 42px, cover' },
-  { nombre: 'Rayas', grad: 'linear-gradient(135deg,#a855f7,#6366f1)',
-    bg: 'repeating-linear-gradient(45deg, #6d28d9 0 30px, #4c1d95 30px 60px)',
-    size: 'auto' },
+    bg: 'radial-gradient(70% 30% at 50% 40%, rgba(255,43,214,.35), transparent 65%), linear-gradient(180deg,#0a0424 0%,#1a0640 55%,#2a0a55 100%)' },
+  { nombre: 'Disco', grad: 'linear-gradient(135deg,#c0c8dd,#7b6bf0)',
+    bg: 'linear-gradient(180deg,#8a93ad,#8a93ad) 50% 0 / 2px 34px no-repeat, radial-gradient(70% 45% at 50% 0%, rgba(130,100,230,.4), transparent 70%), radial-gradient(110% 40% at 50% 108%, rgba(80,60,150,.45), transparent 70%), linear-gradient(180deg,#1a1229 0%,#130d20 55%,#0a0716 100%)' },
+  { nombre: 'Alberca', grad: 'linear-gradient(135deg,#22d3ee,#0ea5e9)',
+    bg: 'radial-gradient(60% 30% at 30% 18%, rgba(255,255,255,.35), transparent 65%), radial-gradient(50% 26% at 74% 48%, rgba(255,255,255,.25), transparent 65%), radial-gradient(55% 28% at 40% 78%, rgba(255,255,255,.22), transparent 65%), linear-gradient(180deg,#67e3f4 0%,#22b8e6 45%,#0b7fc4 100%)' },
   { nombre: 'Holográfico', grad: 'linear-gradient(135deg,#a1c4fd,#fbc2eb)',
-    bg: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 22%, #fbc2eb 50%, #c2a8ff 76%, #8ec5fc 100%)',
-    size: 'cover' },
+    bg: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 22%, #fbc2eb 50%, #c2a8ff 76%, #8ec5fc 100%)' },
   { nombre: 'Iridiscente', grad: 'linear-gradient(135deg,#a8edea,#fed6e3)',
-    bg: 'conic-gradient(from 210deg at 35% 30%, #a8edea, #fed6e3, #c5a3ff, #8ec5fc, #a8edea)',
-    size: 'cover' },
+    bg: 'conic-gradient(from 210deg at 35% 30%, #a8edea, #fed6e3, #c5a3ff, #8ec5fc, #a8edea)' },
   { nombre: 'Chicle', grad: 'linear-gradient(135deg,#ff9a9e,#fad0c4)',
-    bg: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 45%, #a18cd1 100%)',
-    size: 'cover' },
+    bg: 'radial-gradient(circle 110px at 76% 20%, rgba(255,255,255,.4), transparent 65%), linear-gradient(135deg,#ff9a9e 0%,#fecfef 45%,#a18cd1 100%)' },
   { nombre: 'Cromo', grad: 'linear-gradient(135deg,#c9d6ff,#e2e2e2)',
-    bg: 'linear-gradient(135deg, #e2e2e2 0%, #9aa7c7 20%, #f5f7fa 40%, #aab4d4 60%, #f5f7fa 80%, #9aa7c7 100%)',
-    size: 'cover' },
+    bg: 'linear-gradient(135deg, #e2e2e2 0%, #9aa7c7 20%, #f5f7fa 40%, #aab4d4 60%, #f5f7fa 80%, #9aa7c7 100%)' },
   { nombre: 'Mango', grad: 'linear-gradient(135deg,#f6d365,#fda085)',
-    bg: 'linear-gradient(135deg, #f6d365 0%, #fda085 55%, #c2456b 100%)',
-    size: 'cover' },
+    bg: 'radial-gradient(circle 62px at 50% 62%, #fff2b8 0 52%, #ffd166 68%, transparent 80%), radial-gradient(75% 38% at 50% 66%, rgba(255,140,60,.5), transparent 70%), linear-gradient(180deg,#f6d365 0%,#fda085 55%,#c2456b 100%)' },
   { nombre: 'Menta', grad: 'linear-gradient(135deg,#84fab0,#8fd3f4)',
-    bg: 'linear-gradient(135deg, #84fab0 0%, #8fd3f4 60%, #5b6ef0 100%)',
-    size: 'cover' },
+    bg: 'radial-gradient(70% 40% at 24% 18%, rgba(255,255,255,.35), transparent 65%), linear-gradient(135deg,#84fab0 0%,#8fd3f4 60%,#5b6ef0 100%)' },
   { nombre: 'Tropical', grad: 'linear-gradient(135deg,#10b981,#fbbf24)',
-    bg: 'radial-gradient(circle at 28% 18%, rgba(251,191,36,.22), transparent 42%), repeating-radial-gradient(circle at 50% 125%, rgba(16,185,129,.3) 0 24px, transparent 24px 50px), linear-gradient(160deg, #047857, #064e3b 60%, #022c22)',
-    size: 'cover, auto, cover' },
+    bg: 'radial-gradient(circle 48px at 50% 58%, #ffe9a8 0 55%, #fbbf24 70%, transparent 82%), radial-gradient(80% 32% at 50% 60%, rgba(251,146,60,.5), transparent 72%), linear-gradient(180deg,#0b3b4a 0%,#0e6a52 38%,#d97706 78%,#7c2d12 100%)' },
   { nombre: 'Fuego', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-    bg: 'radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)',
-    size: 'cover' },
+    bg: 'radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
   { nombre: 'Aurora', grad: 'linear-gradient(135deg,#22d3ee,#34d399)',
-    bg: 'radial-gradient(60% 42% at 24% 24%, #34d399, transparent 60%), radial-gradient(55% 46% at 76% 34%, #22d3ee, transparent 60%), radial-gradient(62% 52% at 56% 82%, #6366f1, transparent 60%), #041410',
-    size: 'cover' },
+    bg: 'radial-gradient(60% 42% at 24% 24%, #34d399, transparent 60%), radial-gradient(55% 46% at 76% 34%, #22d3ee, transparent 60%), radial-gradient(62% 52% at 56% 82%, #6366f1, transparent 60%), #041410' },
   { nombre: 'Galaxia', grad: 'linear-gradient(135deg,#7c3aed,#ec4899)',
-    bg: 'radial-gradient(60% 46% at 30% 24%, #5b21b6, transparent 60%), radial-gradient(55% 50% at 76% 60%, #9d174d, transparent 60%), radial-gradient(1.6px 1.6px at 20% 30%, #fff, transparent), radial-gradient(2px 2px at 65% 50%, #e9d5ff, transparent), radial-gradient(1.6px 1.6px at 85% 75%, #fff, transparent), #08041a',
-    size: 'cover, cover, 220px 220px, 260px 260px, 300px 300px, cover' },
-  { nombre: 'Confeti', grad: 'linear-gradient(135deg,#34d399,#f59e0b)',
-    bg: 'radial-gradient(#f43f5e 0 5px, transparent 6px), radial-gradient(#38bdf8 0 5px, transparent 6px), radial-gradient(#fbbf24 0 5px, transparent 6px), radial-gradient(#a855f7 0 5px, transparent 6px), linear-gradient(160deg,#1a1633,#0b0a16)',
-    posiciones: '0 0, 45px 22px, 22px 50px, 60px 64px, 0 0',
-    size: '90px 90px, 90px 90px, 90px 90px, 90px 90px, cover' },
+    bg: 'radial-gradient(60% 46% at 30% 24%, #5b21b6, transparent 62%), radial-gradient(55% 50% at 76% 60%, #9d174d, transparent 62%), radial-gradient(40% 34% at 60% 12%, rgba(56,189,248,.25), transparent 65%), radial-gradient(1.8px 1.8px at 18% 18%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 34% 40%, #e9d5ff 60%, transparent), radial-gradient(2.2px 2.2px at 55% 26%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 72% 14%, #fff 60%, transparent), radial-gradient(1.8px 1.8px at 88% 42%, #e9d5ff 60%, transparent), radial-gradient(1.4px 1.4px at 12% 58%, #fff 60%, transparent), radial-gradient(2px 2px at 44% 70%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 66% 84%, #e9d5ff 60%, transparent), radial-gradient(1.8px 1.8px at 90% 76%, #fff 60%, transparent), #08041a' },
+  { nombre: 'Fiesta', grad: 'linear-gradient(135deg,#f472b6,#fbbf24)',
+    bg: 'radial-gradient(90% 45% at 50% 112%, rgba(120,70,220,.4), transparent 72%), linear-gradient(180deg,#1c1140 0%,#241556 55%,#0e0a24 100%)' },
   { nombre: 'Cielo', grad: 'linear-gradient(135deg,#38bdf8,#a5f3fc)',
-    bg: 'radial-gradient(40% 30% at 22% 30%, rgba(255,255,255,.9), transparent 60%), radial-gradient(46% 32% at 70% 26%, rgba(255,255,255,.85), transparent 62%), radial-gradient(38% 28% at 48% 60%, rgba(255,255,255,.8), transparent 60%), linear-gradient(180deg, #38bdf8, #0ea5e9 60%, #0369a1)',
-    size: 'cover' },
+    bg: 'radial-gradient(circle 60px at 82% 14%, rgba(255,250,220,.9) 0 40%, rgba(255,250,220,.35) 62%, transparent 78%), linear-gradient(180deg,#7dd3fc 0%,#38bdf8 40%,#0284c7 100%)' },
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
-    bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12',
-    size: 'cover, cover' }
+    bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' }
 ];
 
 // Tipografías (no se muestran todas: se abren en un selector)
@@ -723,8 +705,8 @@ function pintarCrear() {
   const slug = (t.nombre || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
   temaBg.className = 'tema-' + slug;
   temaBg.style.background = t.bg;
-  temaBg.style.backgroundSize = t.size || 'auto';
-  temaBg.style.backgroundPosition = t.posiciones || 'center top';
+  // Nada se repite en mosaico: cada capa es parte de UNA escena (no un patrón)
+  temaBg.style.backgroundRepeat = 'no-repeat';
   temaBg.style.display = 'block';
 
   cont.innerHTML = `
@@ -880,38 +862,49 @@ function pintarCrear() {
 function pintarEfecto() {
   document.querySelectorAll('.efx-layer').forEach((n) => n.remove());
   const e = draft.efecto;
-  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos'];
-  if (!e || e === 'ninguno' || !conParticulas.includes(e)) return;
-  const cont = document.getElementById('screen-create');
-  if (!cont) return;
+  if (!e || e === 'ninguno' || e === 'neon') return; // neón vive en las tarjetas, no en una capa
+  // La capa vive a NIVEL DEL BODY (como la barra y #temaBg): si viviera dentro
+  // de la pantalla, cualquier transform de esta rompería su position:fixed y
+  // las partículas se quedarían pegadas arriba al hacer scroll.
   const layer = document.createElement('div');
-  layer.className = 'efx-layer';
+  layer.className = 'efx-layer efx-' + e;
+  document.body.appendChild(layer);
+  if (e === 'grano') layer.insertAdjacentHTML('beforeend', '<div class="efx-vhs-band"></div>');
+  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos'];
+  if (!conParticulas.includes(e)) return; // humo/grano son solo capas CSS
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const cols = ['#f43f5e', '#fb7185', '#fbbf24', '#facc15', '#34d399', '#22d3ee', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'];
-  const counts = { confeti: 32, burbujas: 26, destellos: 42, nieve: 40, corazones: 26, rayos: 5 };
+  const counts = { confeti: 34, burbujas: 26, destellos: 42, nieve: 44, corazones: 24, rayos: 5 };
   const n = counts[e];
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
     // Distribución PAREJA a lo ancho (ambos lados), no aleatoria que se amontona
     const leftPct = ((i + rnd(0.12, 0.88)) / n) * 100;
+    // Profundidad: ~30% de partículas "lejos" (chicas, difusas, lentas) y
+    // ~20% "cerca" (grandes, rápidas). Da tridimensionalidad, no lluvia plana.
+    const prof = Math.random();
+    const lejos = prof < 0.3, cerca = prof > 0.8;
+    const kProf = lejos ? 0.62 : cerca ? 1.45 : 1;          // escala de tamaño
+    const kDur = lejos ? 1.45 : cerca ? 0.78 : 1;           // lejos cae más lento
+    const blur = lejos ? 'filter:blur(1.6px);' : '';
     if (e === 'destellos') {
-      const sz = rnd(3, 9);
+      const sz = rnd(3, 8) * kProf;
       s.className = 'efp-spark ' + pick(['', '', 'star']);
-      s.style.cssText = `left:${leftPct}%;top:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(1, 2.6)}s;animation-delay:${rnd(0, 2.5)}s`;
+      s.style.cssText = `${blur}left:${leftPct}%;top:${rnd(0, 100)}%;width:${sz}px;height:${sz}px;animation-duration:${rnd(1, 2.6)}s;animation-delay:${rnd(0, 2.5)}s`;
     } else if (e === 'confeti') {
       // confeti REAL: tiras de papel (rectángulos/listones), nada de puntos
       const ribbon = Math.random() < 0.4;
-      const w = ribbon ? rnd(3, 5) : rnd(7, 12);
-      const h = ribbon ? rnd(16, 28) : rnd(12, 20);
+      const w = (ribbon ? rnd(3, 5) : rnd(7, 12)) * kProf;
+      const h = (ribbon ? rnd(16, 28) : rnd(12, 20)) * kProf;
+      const cd = rnd(2.6, 5) * kDur;
       s.className = 'efp-conf';
-      const cd = rnd(2.4, 5);
-      s.style.cssText = `left:${leftPct}%;width:${w}px;height:${h}px;background:${pick(cols)};--sway:${rnd(-70, 70)}px;animation-duration:${cd}s;animation-delay:-${rnd(0, cd)}s`;
+      s.style.cssText = `${blur}left:${leftPct}%;width:${w}px;height:${h}px;background:${pick(cols)};--sway:${rnd(-70, 70)}px;animation-duration:${cd}s;animation-delay:-${rnd(0, cd)}s`;
     } else if (e === 'burbujas') {
-      const sz = rnd(10, 30);
+      const sz = rnd(10, 28) * kProf;
+      const bd = rnd(4, 8) * kDur;
       s.className = 'efp-bub';
-      const bd = rnd(4, 8);
-      s.style.cssText = `left:${leftPct}%;width:${sz}px;height:${sz}px;--sway:${rnd(-30, 30)}px;animation-duration:${bd}s;animation-delay:-${rnd(0, bd)}s`;
+      s.style.cssText = `${blur}left:${leftPct}%;width:${sz}px;height:${sz}px;--sway:${rnd(-30, 30)}px;animation-duration:${bd}s;animation-delay:-${rnd(0, bd)}s`;
     } else if (e === 'rayos') {
       // reflectores de disco: repartidos a lo ancho (ambos lados) y siempre moviéndose
       const c = pick(['56,189,248', '168,85,247', '244,114,182', '34,211,238', '255,255,255']);
@@ -920,16 +913,16 @@ function pintarEfecto() {
       s.style.cssText = `left:${leftPct}%;--swing:${rnd(16, 32)}deg;background:linear-gradient(180deg, rgba(${c},.28), rgba(${c},.05) 70%, transparent 90%);animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s`;
     } else if (e === 'nieve') {
       // copos de nieve suaves (puntos blancos difusos, no emoji)
-      const sz = rnd(3, 8);
-      const ed = rnd(6, 13);
+      const sz = rnd(3, 7) * kProf;
+      const ed = rnd(6, 13) * kDur;
       s.className = 'efp-snow';
-      s.style.cssText = `left:${leftPct}%;width:${sz}px;height:${sz}px;opacity:${rnd(0.5, 0.95).toFixed(2)};--sway:${rnd(-40, 40)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
+      s.style.cssText = `${blur}left:${leftPct}%;width:${sz}px;height:${sz}px;opacity:${rnd(0.5, 0.95).toFixed(2)};--sway:${rnd(-40, 40)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
     } else {
-      // corazones: emoji que caen
-      s.className = 'efp-emoji';
+      // corazones: caen con vaivén suave (no giran como rehilete)
+      s.className = 'efp-emoji efp-heart';
       s.textContent = pick(['💜', '💙', '💖', '🩵']);
-      const ed = rnd(3.5, 7);
-      s.style.cssText = `left:${leftPct}%;font-size:${rnd(12, 22)}px;--sway:${rnd(-50, 50)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
+      const ed = rnd(4, 8) * kDur;
+      s.style.cssText = `${blur}left:${leftPct}%;font-size:${rnd(13, 22) * kProf}px;--sway:${rnd(-50, 50)}px;animation-duration:${ed}s;animation-delay:-${rnd(0, ed)}s`;
     }
     layer.appendChild(s);
   }
@@ -939,7 +932,6 @@ function pintarEfecto() {
     pila.className = 'efx-snow-pile';
     layer.appendChild(pila);
   }
-  cont.appendChild(layer);
 }
 
 /* --- Acciones de la página de creación --- */
