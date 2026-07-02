@@ -480,7 +480,7 @@ const TEMAS = [
   { nombre: 'Menta', grad: 'linear-gradient(135deg,#84fab0,#8fd3f4)',
     bg: 'radial-gradient(70% 40% at 24% 18%, rgba(255,255,255,.35), transparent 65%), linear-gradient(135deg,#84fab0 0%,#8fd3f4 60%,#5b6ef0 100%)' },
   { nombre: 'Tropical', grad: 'linear-gradient(135deg,#10b981,#fbbf24)',
-    bg: 'radial-gradient(circle 48px at 50% 58%, #ffe9a8 0 55%, #fbbf24 70%, transparent 82%), radial-gradient(80% 32% at 50% 60%, rgba(251,146,60,.5), transparent 72%), linear-gradient(180deg,#0b3b4a 0%,#0e6a52 38%,#d97706 78%,#7c2d12 100%)' },
+    bg: 'url("icons/tropical.jpg") center / cover no-repeat, linear-gradient(180deg,#123a5c 0%,#3b2a6b 45%,#d97706 80%,#7c2d12 100%)' },
   { nombre: 'Fuego', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
     bg: 'radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
   { nombre: 'Aurora', grad: 'linear-gradient(135deg,#22d3ee,#34d399)',
@@ -494,8 +494,8 @@ const TEMAS = [
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
     bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' },
   // Playa y Bosque son FOTOS REALES (Pexels, uso libre) con degradado de respaldo
-  { nombre: 'Playa', grad: 'linear-gradient(135deg,#38bdf8,#7dd3fc)',
-    bg: 'url("icons/playa.jpg") center / cover no-repeat, linear-gradient(180deg,#7cc4f2 0%,#3fb3e8 55%,#e9ddc4 75%,#d8c8a8 100%)' },
+  { nombre: 'Playa', grad: 'linear-gradient(135deg,#5fd4d0,#b5ecf2)',
+    bg: 'url("icons/playa.jpg") center / cover no-repeat, linear-gradient(180deg,#9fdfe6 0%,#5cc4cf 55%,#3aa7bd 100%)' },
   { nombre: 'Bosque', grad: 'linear-gradient(135deg,#4c6b35,#c8dd8a)',
     bg: 'url("icons/bosque.jpg") center / cover no-repeat, linear-gradient(180deg,#8a9a54 0%,#5c6e38 45%,#26331a 100%)' },
   // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario

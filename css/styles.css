@@ -3192,17 +3192,14 @@ body.creando .chip {
     linear-gradient(50deg, #f472b6, #f472b6) 22% 74% / 8px 4px no-repeat;
 }
 
-/* 🌴 Tropical: palmeras LITERALES (tronco curvo + frondas + cocos, dibujadas
-   en icons/palmeras.svg): dos grandes enmarcan desde abajo, frondas cuelgan
-   de arriba y hay palmeras lejanas junto al sol. Se mecen con el viento. */
+/* 🌴 Tropical: FOTO REAL de palmeras al atardecer (icons/tropical.jpg) con
+   acercamiento lentísimo tipo Ken Burns para que se sienta viva */
 .tema-tropical::before {
-  content: ''; position: absolute; inset: -3% -5%;
-  background: url("../icons/palmeras.svg") center / 100% 100% no-repeat;
-  filter: blur(.4px) drop-shadow(0 6px 16px rgba(0,0,0,.4));
-  transform-origin: 50% 0;
-  animation: hojasSway 9s ease-in-out infinite alternate;
+  content: ''; position: absolute; inset: 0;
+  background: url("../icons/tropical.jpg") center / cover no-repeat;
+  animation: fotoViva 20s ease-in-out infinite alternate;
 }
-@keyframes hojasSway { from { transform: rotate(-.5deg) translateX(-4px); } to { transform: rotate(.6deg) translateX(5px); } }
+@keyframes fotoViva { from { transform: scale(1); } to { transform: scale(1.07) translate(-1%, .8%); } }
 
 /* 🌿 Menta: bandas de luz suaves que se mecen */
 .tema-menta::before {
@@ -3211,16 +3208,31 @@ body.creando .chip {
   animation: glareSweep 8s ease-in-out infinite alternate;
 }
 
-/* 🏖️ Playa: FOTO REAL (icons/playa.jpg, va en el bg del tema); encima, un
-   brillo de sol que barre el agua */
+/* 🏖️ Playa: FOTO REAL de agua clarita (icons/playa.jpg). El agua SE MUEVE:
+   la foto ondula despacio (zoom + deriva) y un destello de sol la barre */
+.tema-playa::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("../icons/playa.jpg") center / cover no-repeat;
+  animation: aguaViva 9s ease-in-out infinite alternate;
+}
+@keyframes aguaViva {
+  from { transform: scale(1.02) translate(0, 0); }
+  to   { transform: scale(1.09) translate(-1.6%, 1.4%); }
+}
 .tema-playa::after {
-  content: ''; position: absolute; left: 0; right: 0; top: 48%; height: 20%;
-  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.28) 46%, rgba(255,255,255,.07) 54%, transparent 68%);
+  content: ''; position: absolute; inset: -10%;
+  background: linear-gradient(115deg, transparent 28%, rgba(255,255,255,.22) 44%, transparent 56%, rgba(255,255,255,.14) 68%, transparent 80%);
+  mix-blend-mode: screen;
   animation: glareSweep 7s ease-in-out infinite alternate;
 }
 
-/* 🌲 Bosque: FOTO REAL (icons/bosque.jpg, va en el bg del tema) + rayos de
+/* 🌲 Bosque: FOTO REAL (icons/bosque.jpg) con Ken Burns lento + rayos de
    luz cálida que se cuelan entre los troncos y derivan despacio */
+.tema-bosque::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("../icons/bosque.jpg") center / cover no-repeat;
+  animation: fotoViva 24s ease-in-out infinite alternate;
+}
 .tema-bosque::after {
   content: ''; position: absolute; left: -12%; right: -12%; top: -4%; height: 70%;
   background: linear-gradient(100deg, transparent 14%, rgba(255,240,190,.22) 18%, transparent 25%, rgba(255,240,190,.15) 34%, transparent 40%, rgba(255,240,190,.18) 55%, transparent 62%);
@@ -3249,7 +3261,6 @@ body.creando .chip {
 /* En laptop/iPad horizontal las escenas NO se estiran: se usa la variante
    ancha re-compuesta (los objetos guardan su proporción y se reparten) */
 @media (min-aspect-ratio: 1/1) {
-  .tema-tropical::before { background-image: url("../icons/palmeras-w.svg"); }
   .tema-cielo::before    { background-image: url("../icons/nubes-w.svg"); }
   .tema-fiesta::before   { background-image: url("../icons/globos-w.svg"); }
   .tema-chicle::before   { background-image: url("../icons/chicle-w.svg"); }

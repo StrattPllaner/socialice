@@ -513,10 +513,9 @@ def bosque_svg():
 import os
 out = "/Users/leocarreto/Desktop/socialice/icons"
 files = {
-    "palmeras.svg": palms_svg, "discoball.svg": disco_svg, "luna.svg": luna_svg,
+    "discoball.svg": disco_svg, "luna.svg": luna_svg,
     "nubes.svg": nubes_svg, "globos.svg": globos_svg, "chicle.svg": chicle_svg,
     # variantes ANCHAS (laptop/iPad horizontal): mismas escenas re-compuestas
-    "palmeras-w.svg": lambda: palms_svg(1600),
     "nubes-w.svg": lambda: nubes_svg(1600),
     "globos-w.svg": lambda: globos_svg(1600),
     "chicle-w.svg": lambda: chicle_svg(1600),
