@@ -464,7 +464,7 @@ const TEMAS = [
   { nombre: 'Synthwave', grad: 'linear-gradient(135deg,#ff2bd6,#22d3ee)',
     bg: 'radial-gradient(70% 30% at 50% 40%, rgba(255,43,214,.35), transparent 65%), linear-gradient(180deg,#0a0424 0%,#1a0640 55%,#2a0a55 100%)' },
   { nombre: 'Disco', grad: 'linear-gradient(135deg,#c0c8dd,#7b6bf0)',
-    bg: 'linear-gradient(180deg,#8a93ad,#8a93ad) 50% 0 / 2px 34px no-repeat, radial-gradient(70% 45% at 50% 0%, rgba(130,100,230,.4), transparent 70%), radial-gradient(34% 26% at 16% 62%, rgba(244,114,182,.22), transparent 70%), radial-gradient(30% 24% at 82% 44%, rgba(56,189,248,.2), transparent 70%), radial-gradient(30% 26% at 48% 84%, rgba(168,85,247,.24), transparent 70%), radial-gradient(110% 40% at 50% 108%, rgba(80,60,150,.45), transparent 70%), linear-gradient(180deg,#1a1229 0%,#130d20 55%,#0a0716 100%)' },
+    bg: 'radial-gradient(70% 45% at 50% 0%, rgba(130,100,230,.4), transparent 70%), radial-gradient(34% 26% at 16% 62%, rgba(244,114,182,.22), transparent 70%), radial-gradient(30% 24% at 82% 44%, rgba(56,189,248,.2), transparent 70%), radial-gradient(30% 26% at 48% 84%, rgba(168,85,247,.24), transparent 70%), radial-gradient(110% 40% at 50% 108%, rgba(80,60,150,.45), transparent 70%), linear-gradient(180deg,#1a1229 0%,#130d20 55%,#0a0716 100%)' },
   { nombre: 'Alberca', grad: 'linear-gradient(135deg,#22d3ee,#0ea5e9)',
     bg: 'radial-gradient(60% 30% at 30% 18%, rgba(255,255,255,.35), transparent 65%), radial-gradient(50% 26% at 74% 48%, rgba(255,255,255,.25), transparent 65%), radial-gradient(55% 28% at 40% 78%, rgba(255,255,255,.22), transparent 65%), linear-gradient(180deg,#67e3f4 0%,#22b8e6 45%,#0b7fc4 100%)' },
   { nombre: 'Holográfico', grad: 'linear-gradient(135deg,#a1c4fd,#fbc2eb)',
@@ -531,7 +531,7 @@ const EFECTOS = [
   { id: 'grano',     nombre: 'Cámara',    emoji: '📹' },
   { id: 'lluvia',      nombre: 'Lluvia',         emoji: '🌧️' },
   { id: 'luciernagas', nombre: 'Luciérnagas',    emoji: '🌟' },
-  { id: 'fugaces',     nombre: 'Estrella fugaz', emoji: '🌠' }
+  { id: 'aurora',      nombre: 'Aurora boreal',  emoji: '🌌' }
 ];
 
 // Animaciones para boletos especiales (el usuario elige)
@@ -711,6 +711,23 @@ function pintarCrear() {
   // Nada se repite en mosaico: cada capa es parte de UNA escena (no un patrón)
   temaBg.style.backgroundRepeat = 'no-repeat';
   temaBg.style.display = 'block';
+  // Cielo: la tormenta trae LLUVIA DE VERDAD (mismas gotas que el efecto
+  // Lluvia, no un patrón repetido). Aparece/desaparece con el ciclo de nubes.
+  temaBg.innerHTML = '';
+  if (slug === 'cielo') {
+    if (window.__storm) temaBg.classList.add('tormenta'); // atajo dev ?storm=1
+    const wrap = document.createElement('div');
+    wrap.className = 'cielo-lluvia';
+    const rr = (a, b) => a + Math.random() * (b - a);
+    for (let i = 0; i < 48; i++) {
+      const g = document.createElement('span');
+      g.className = 'efp-rain';
+      const dur = rr(0.7, 1.3);
+      g.style.cssText = `left:${((i + rr(0.1, 0.9)) / 48 * 100).toFixed(2)}%;height:${rr(12, 22).toFixed(1)}px;--sway:${rr(-26, 6).toFixed(0)}px;animation-duration:${dur.toFixed(2)}s;animation-delay:-${rr(0, dur).toFixed(2)}s`;
+      wrap.appendChild(g);
+    }
+    temaBg.appendChild(wrap);
+  }
 
   cont.innerHTML = `
     <div class="crear-page">
@@ -873,12 +890,12 @@ function pintarEfecto() {
   layer.className = 'efx-layer efx-' + e;
   document.body.appendChild(layer);
   if (e === 'grano') layer.insertAdjacentHTML('beforeend', '<div class="efx-vhs-band"></div>');
-  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos', 'lluvia', 'luciernagas', 'fugaces'];
-  if (!conParticulas.includes(e)) return; // humo/grano son solo capas CSS
+  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos', 'lluvia', 'luciernagas'];
+  if (!conParticulas.includes(e)) return; // humo/grano/aurora son solo capas CSS
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const cols = ['#f43f5e', '#fb7185', '#fbbf24', '#facc15', '#34d399', '#22d3ee', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'];
-  const counts = { confeti: 34, burbujas: 26, destellos: 42, nieve: 44, corazones: 24, rayos: 5, lluvia: 64, luciernagas: 18, fugaces: 7 };
+  const counts = { confeti: 34, burbujas: 26, destellos: 42, nieve: 44, corazones: 24, rayos: 5, lluvia: 64, luciernagas: 18 };
   const n = counts[e];
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
@@ -932,12 +949,6 @@ function pintarEfecto() {
       const wd = rnd(5, 9), bd = rnd(2.4, 4.5);
       s.className = 'efp-fly';
       s.style.cssText = `left:${leftPct}%;top:${rnd(6, 92)}%;width:${sz}px;height:${sz}px;--dx:${rnd(-60, 60)}px;--dy:${rnd(-70, 50)}px;animation-duration:${wd}s,${bd}s;animation-delay:-${rnd(0, wd)}s,-${rnd(0, bd)}s`;
-    } else if (e === 'fugaces') {
-      // estrellas fugaces: cruzan de vez en cuando (casi todo el ciclo invisibles)
-      const w = rnd(70, 130);
-      const sd = rnd(5, 11);
-      s.className = 'efp-shoot';
-      s.style.cssText = `left:${rnd(-10, 60)}%;top:${rnd(2, 48)}%;width:${w}px;animation-duration:${sd}s;animation-delay:-${rnd(0, sd)}s`;
     } else {
       // corazones: caen con vaivén suave (no giran como rehilete)
       s.className = 'efp-emoji efp-heart';
@@ -3188,6 +3199,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('splash')) splashIr(p.get('splash'));
   if (p.get('efx')) draft.efecto = p.get('efx');   // prueba: ?screen=create&efx=confeti
   if (p.get('tema')) draft.tema = +p.get('tema');  // prueba: ?screen=create&tema=2
+  if (p.get('storm')) window.__storm = true;       // prueba: tormenta fija en tema Cielo
   if (p.get('seq')) {  // prueba de navegación: ?seq=create,home,search
     document.getElementById('screen-splash').classList.remove('is-active');
     entrarApp();
