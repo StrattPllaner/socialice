@@ -470,7 +470,7 @@ const TEMAS = [
   { nombre: 'Holográfico', grad: 'linear-gradient(135deg,#a1c4fd,#fbc2eb)',
     bg: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 22%, #fbc2eb 50%, #c2a8ff 76%, #8ec5fc 100%)' },
   { nombre: 'Iridiscente', grad: 'linear-gradient(135deg,#a8edea,#fed6e3)',
-    bg: 'conic-gradient(from 210deg at 35% 30%, #a8edea, #fed6e3, #c5a3ff, #8ec5fc, #a8edea)' },
+    bg: 'radial-gradient(90% 80% at 18% 12%, #a8edea, transparent 62%), radial-gradient(85% 75% at 85% 22%, #fed6e3, transparent 64%), radial-gradient(90% 85% at 25% 88%, #c5a3ff, transparent 62%), radial-gradient(85% 80% at 88% 82%, #8ec5fc, transparent 64%), linear-gradient(135deg,#dceefc,#ffe9f3)' },
   { nombre: 'Chicle', grad: 'linear-gradient(135deg,#ff9a9e,#fad0c4)',
     bg: 'radial-gradient(circle 110px at 76% 20%, rgba(255,255,255,.4), transparent 65%), linear-gradient(135deg,#ff9a9e 0%,#fecfef 45%,#a18cd1 100%)' },
   { nombre: 'Cromo', grad: 'linear-gradient(135deg,#c9d6ff,#e2e2e2)',
@@ -492,8 +492,42 @@ const TEMAS = [
   { nombre: 'Cielo', grad: 'linear-gradient(135deg,#38bdf8,#a5f3fc)',
     bg: 'radial-gradient(circle 60px at 82% 14%, rgba(255,250,220,.9) 0 40%, rgba(255,250,220,.35) 62%, transparent 78%), linear-gradient(180deg,#7dd3fc 0%,#38bdf8 40%,#0284c7 100%)' },
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
-    bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' }
+    bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' },
+  { nombre: 'Playa', grad: 'linear-gradient(135deg,#38bdf8,#fbbf24)',
+    bg: 'radial-gradient(circle 44px at 80% 9%, #fff7cf 0 55%, #ffe27a 72%, transparent 84%), radial-gradient(60% 10% at 80% 10%, rgba(255,236,150,.5), transparent 75%), linear-gradient(180deg,#8fdcff 0%,#56c6f5 36%,#17a8de 45%,#0b7fc0 55%,#f4dda6 55.2%,#eac988 78%,#d9ad6c 100%)' },
+  { nombre: 'Sandía', grad: 'linear-gradient(135deg,#fb5f7d,#22c55e)',
+    bg: 'radial-gradient(85% 45% at 28% 16%, rgba(255,255,255,.28), transparent 70%), linear-gradient(180deg,#ff96ab 0%,#fb5f7d 48%,#ee3d57 100%)' },
+  { nombre: 'Bosque', grad: 'linear-gradient(135deg,#166534,#4ade80)',
+    bg: 'radial-gradient(70% 36% at 50% 0%, rgba(170,255,205,.2), transparent 70%), linear-gradient(180deg,#17402a 0%,#0d2b1a 55%,#04120a 100%)' },
+  // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario
+  { nombre: 'Tus colores', custom: true, grad: '', bg: '' }
 ];
+
+// Mezcla dos colores hex ("#rrggbb") en proporción t (0 = a, 1 = b)
+function mixHex(a, b, t) {
+  const pa = a.match(/\w\w/g).map((h) => parseInt(h, 16));
+  const pb = b.match(/\w\w/g).map((h) => parseInt(h, 16));
+  return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, '0')).join('');
+}
+
+// Tema personalizado: con 1-2 colores arma un fondo SEDOSO estilo Y2K
+// (bandas claras/oscuras del mismo color, nada recargado)
+function customTema(cols) {
+  const c1 = (cols && cols[0]) || '#8b5cf6';
+  const c2 = (cols && cols[1]) || mixHex(c1, '#0b1020', 0.38);
+  const l1 = mixHex(c1, '#ffffff', 0.72), l2 = mixHex(c2, '#ffffff', 0.66);
+  return {
+    nombre: 'Tus colores', custom: true,
+    grad: `linear-gradient(135deg,${c1},${c2})`,
+    bg: `radial-gradient(150px 95px at 24% 20%, rgba(255,255,255,.8), transparent 70%), radial-gradient(190px 120px at 78% 55%, rgba(255,255,255,.42), transparent 70%), radial-gradient(120px 80px at 40% 86%, rgba(255,255,255,.38), transparent 70%), linear-gradient(160deg, ${l1} 0%, ${c1} 22%, ${l2} 38%, ${c2} 56%, ${l1} 72%, ${c1} 88%, ${l2} 100%)`
+  };
+}
+
+// Tema efectivo del borrador (resuelve el personalizado con sus colores)
+function temaActual() {
+  const t = TEMAS[draft.tema] || TEMAS[0];
+  return t.custom ? customTema(draft.temaColors) : t;
+}
 
 // Tipografías (no se muestran todas: se abren en un selector)
 const FONTS = [
@@ -554,6 +588,7 @@ function nuevoDraft() {
     id: null,
     paso: 0,
     tema: 0,                      // fondo/tema de la página de creación
+    temaColors: ['#8b5cf6', '#38bdf8'], // colores del tema personalizado (1-2)
     efecto: 'ninguno',           // tipo de efecto del fondo
     tituloFont: 'classic',       // estilo de letra del título
     descripcion: '',
@@ -627,6 +662,7 @@ function editarFiesta(id) {
   draft.publico = e.publico !== false;
   draft.listaVisible = e.listaVisible || 'confirmados';
   draft.tema = e.tema || 0;
+  if (e.temaColors && e.temaColors.length) draft.temaColors = e.temaColors.slice();
   draft.tituloFont = e.tituloFont || 'classic';
   draft.descripcion = e.descripcion || '';
   draft.dressCode = e.dressCode || '';
@@ -688,7 +724,7 @@ let mostrarMapa = false;
 // --- Página de creación de evento (una sola página, con tema de fondo) ---
 function pintarCrear() {
   const editando = !!draft.id;
-  const t = TEMAS[draft.tema] || TEMAS[0];
+  const t = temaActual();
   const font = (FONTS.find((f) => f.id === draft.tituloFont) || FONTS[0]).css;
   const anim = draft.cover.anim && draft.cover.anim.length >= 2;
   const efxOn = draft.efecto && draft.efecto !== 'ninguno';
@@ -1086,15 +1122,19 @@ function agregarPregunta() {
 }
 function delPregunta(i) { draft.preguntas.splice(i, 1); pintarCrear(); }
 
-// Elegir tema de fondo
+// Elegir tema de fondo (el personalizado se pinta con los colores elegidos)
 function abrirTemas() {
   abrirSheet('Tema del evento', `
     <div class="tema-grid">
-      ${TEMAS.map((t, i) => `
-        <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" style="background:${t.bg}" onclick="setTema(${i})">
-          <span class="tema-pill" style="background:${t.grad}"></span>
-          <small>${t.nombre}</small>
-        </button>`).join('')}
+      ${TEMAS.map((t, i) => {
+        const tt = t.custom ? customTema(draft.temaColors) : t;
+        const click = t.custom ? 'abrirTemaCustom()' : `setTema(${i})`;
+        return `
+        <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" style="background:${tt.bg}" onclick="${click}">
+          <span class="tema-pill" style="background:${tt.grad}"></span>
+          <small>${t.custom ? '🎨 ' : ''}${t.nombre}</small>
+        </button>`;
+      }).join('')}
     </div>
   `);
 }
@@ -1104,6 +1144,55 @@ function setTema(i) {
   cerrarSheet();
   pintarCrear();
   toast(`Tema: ${TEMAS[i].nombre}`);
+}
+
+// --- Tema personalizado: elegir 1 o 2 colores y listo ---
+function abrirTemaCustom() {
+  const dos = draft.temaColors.length > 1;
+  const t = customTema(draft.temaColors);
+  abrirSheet('Tus colores', `
+    <p class="hint">Elige 1 o 2 colores y armamos un fondo suave y sedoso con ellos (para quienes no quieren fondos tan llenos).</p>
+    <div class="cc-row">
+      <label class="cc-swatch" style="background:${draft.temaColors[0]}">
+        <input type="color" value="${draft.temaColors[0]}" oninput="setColorCustom(0, this.value)">
+      </label>
+      ${dos ? `
+        <label class="cc-swatch" style="background:${draft.temaColors[1]}">
+          <input type="color" value="${draft.temaColors[1]}" oninput="setColorCustom(1, this.value)">
+        </label>
+        <button class="chip" onclick="quitarColorCustom()">✕ Solo un color</button>`
+      : `<button class="chip" onclick="agregarColorCustom()">＋ Segundo color</button>`}
+    </div>
+    <div class="cc-prev" id="ccPrev" style="background:${t.bg}"></div>
+    <button class="btn full" onclick="aplicarTemaCustom()">Usar estos colores</button>
+  `);
+}
+function setColorCustom(i, v) {
+  draft.temaColors[i] = v;
+  const prev = document.getElementById('ccPrev');
+  if (prev) prev.style.background = customTema(draft.temaColors).bg;
+  const sw = document.querySelectorAll('.cc-swatch')[i];
+  if (sw) sw.style.background = v;
+  // Si ya está activo, el fondo de la página se actualiza en vivo
+  if ((TEMAS[draft.tema] || {}).custom) {
+    const bg = document.getElementById('temaBg');
+    if (bg) bg.style.background = customTema(draft.temaColors).bg;
+  }
+}
+function agregarColorCustom() {
+  draft.temaColors[1] = mixHex(draft.temaColors[0], '#38bdf8', 0.6);
+  abrirTemaCustom();
+}
+function quitarColorCustom() {
+  draft.temaColors = [draft.temaColors[0]];
+  abrirTemaCustom();
+}
+function aplicarTemaCustom() {
+  draft.tema = TEMAS.findIndex((t) => t.custom);
+  draft.cover.grad = customTema(draft.temaColors).grad;
+  cerrarSheet();
+  pintarCrear();
+  toast('Tema: tus colores 🎨');
 }
 
 // Ajustes del evento (público, edad, etc.)
@@ -1624,6 +1713,7 @@ function guardarFiesta() {
     titleSize: draft.cover.titleSize,
     coverTextos: draft.cover.textos.map((t) => ({ ...t })),
     tema: draft.tema,
+    temaColors: draft.temaColors.slice(),
     tituloFont: draft.tituloFont,
     descripcion: draft.descripcion.trim(),
     dressCode: draft.dressCode.trim(),
@@ -2167,6 +2257,45 @@ function filtrarAmigos(texto) {
    =================================================================== */
 
 // --- Perfil ÚNICO (todo en una cuenta) ---
+// v3: portada grande con botones de vidrio, avatar cuadrado-redondeado a la
+// izquierda, pase de entrada estilo BOLETO con QR y pestañas de contenido.
+let pfTab = 'fiestas';
+function setPfTab(t) { pfTab = t; pintarPerfil(); }
+
+// Pseudo-QR decorativo y determinista (mismo usuario = mismo dibujo)
+function qrSVG(seed, cls = '') {
+  const N = 21;
+  let h = 2166136261;
+  for (const ch of seed) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
+  const rand = () => ((h = (Math.imul(h, 1664525) + 1013904223) >>> 0) / 4294967296);
+  const enFinder = (x, y) => (x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9);
+  let cells = '';
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    if (enFinder(x, y)) continue;
+    if (rand() < 0.46) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
+  }
+  const finder = (ox, oy) =>
+    `<path fill-rule="evenodd" d="M${ox} ${oy}h7v7h-7z M${ox + 1} ${oy + 1}v5h5v-5z"/>` +
+    `<rect x="${ox + 2}" y="${oy + 2}" width="3" height="3"/>`;
+  return `<svg class="${cls}" viewBox="0 0 ${N} ${N}" fill="#0b0e18" shape-rendering="crispEdges" aria-hidden="true">${finder(0, 0)}${finder(N - 7, 0)}${finder(0, N - 7)}${cells}</svg>`;
+}
+
+// El pase en grande (para enseñarlo en la puerta)
+function abrirPase() {
+  const u = DATA.usuario;
+  abrirSheet('Mi pase', `
+    <div class="pase-big">
+      <div class="pase-big-head">
+        <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
+        <div class="pase-big-id"><strong>${u.nombre}</strong><small>${u.usuario}</small></div>
+        <span class="pase-big-logo">S</span>
+      </div>
+      <div class="pase-big-qrbox">${qrSVG(u.usuario + '·' + u.nombre, 'pase-big-qr')}</div>
+      <p class="hint" style="text-align:center; margin-top:12px">Enséñalo en la puerta: el staff lo escanea y listo.<br>Vale para todas tus fiestas confirmadas.</p>
+    </div>
+  `);
+}
+
 function pintarPerfil() {
   const cont = document.getElementById('screen-profile');
   const u = DATA.usuario;
@@ -2178,76 +2307,42 @@ function pintarPerfil() {
     `${u.verificado ? `<span class="verif" title="Verificado">❄</span>` : ''}` +
     `${popular ? `<span class="popular" title="Popular · +1000 seguidores">★</span>` : ''}`;
 
-  cont.innerHTML = `
-    <header class="page-head row-between">
-      <h1>Perfil</h1>
-      <button class="icon-btn sm" onclick="abrirAjustes()">${icon('gear')}</button>
-    </header>
-
-    <section class="profile-hero ${popular ? 'is-popular' : ''}">
-      ${popular ? '<div class="hero-spark"><i>✦</i><i>✶</i><i>✦</i><i>✶</i><i>✦</i></div>' : ''}
-      <div class="hero-cover" style="${u.logo ? `background-image:url(${u.logo});background-size:cover;background-position:center` : `background:${u.color}`}"></div>
-      <div class="hero-body">
-        <div class="profile-avatar ${popular ? 'ring' : ''}" style="${avatarFondo(u)}">${avatarContenido(u)}</div>
-        <h2 class="hero-name">${u.nombre} ${insignia}</h2>
-        <p class="profile-user">${u.usuario}</p>
-        <p class="profile-bio">${u.bio}</p>
-
-        <div class="profile-stats">
-          <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
-          <span class="stat-sep"></span>
-          <div class="stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
-          <span class="stat-sep"></span>
-          <button class="stat as-btn" onclick="irA('friends')"><strong>${u.stats.amigos}</strong><small>amigos</small></button>
-          <span class="stat-sep"></span>
-          <button class="stat as-btn" onclick="verSeguidores()"><strong class="name-anim" style="background-image:${animGrad(['#2f7bff','#38bdf8','#7dd3fc','#22d3ee'])}">${u.stats.seguidores}</strong><small>seguidores</small></button>
+  const tabs = {
+    fiestas: () => `
+      <div class="privacy-card">
+        <div class="privacy-text">
+          <strong>${u.privado ? 'Perfil privado' : 'Perfil público'}</strong>
+          <small>${u.privado ? 'Solo tus amigos ven a qué fiestas vas.' : 'Cualquiera puede ver a qué fiestas vas.'}</small>
         </div>
-
-        ${redesHTML(u)}
-
-        <div class="profile-actions">
-          <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
-          <button class="icon-btn" onclick="compartir('mi perfil')">${icon('share')}</button>
-        </div>
+        <button class="toggle ${u.privado ? '' : 'is-on'}" onclick="alternarPrivacidad()"><span class="toggle-knob"></span></button>
       </div>
-    </section>
 
-    <!-- Privacidad -->
-    <div class="privacy-card">
-      <div class="privacy-text">
-        <strong>${u.privado ? 'Perfil privado' : 'Perfil público'}</strong>
-        <small>${u.privado ? 'Solo tus amigos ven a qué fiestas vas.' : 'Cualquiera puede ver a qué fiestas vas.'}</small>
+      ${(u.colaboradores && u.colaboradores.length) ? `
+        <div class="row-between"><h3>Mi equipo</h3></div>
+        <div class="colab-row">
+          ${u.colaboradores.map((c) => `
+            <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
+              <span class="colab-ava" style="background:${c.color}">${c.avatar}</span>
+              <span class="colab-name">${c.nombre.split(' ')[0]}</span>
+              <span class="colab-user">${c.usuario}</span>
+            </button>`).join('')}
+        </div>` : ''}
+
+      <div class="row-between"><h3>Mis eventos</h3><button class="cal-link" onclick="verCalendario()">Calendario</button></div>
+      <div class="event-list">
+        ${mios.length ? mios.map((e) => `
+          <div class="mio-wrap">
+            ${tarjetaEvento(e)}
+            <button class="mio-edit" onclick="event.stopPropagation(); editarFiesta('${e.id}')">Editar</button>
+          </div>`).join('') : `<button class="empty-cta" onclick="nuevaFiesta()">Aún no creas eventos · Crear uno</button>`}
       </div>
-      <button class="toggle ${u.privado ? '' : 'is-on'}" onclick="alternarPrivacidad()"><span class="toggle-knob"></span></button>
-    </div>
 
-    ${(u.colaboradores && u.colaboradores.length) ? `
-      <div class="row-between"><h3>Organizadores</h3></div>
-      <div class="colab-row">
-        ${u.colaboradores.map((c) => `
-          <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
-            <span class="colab-ava" style="background:${c.color}">${c.avatar}</span>
-            <span class="colab-name">${c.nombre.split(' ')[0]}</span>
-            <span class="colab-user">${c.usuario}</span>
-          </button>`).join('')}
-      </div>` : ''}
+      ${voy.length ? `
+        <div class="row-between"><h3>Voy a ir</h3><span class="see-all">${voy.length}</span></div>
+        <div class="mini-list">${voy.map((e) => filaFiesta(e, 'voy')).join('')}</div>` : ''}`,
 
-    <div class="row-between"><h3>Mis eventos</h3><button class="cal-link" onclick="verCalendario()">Calendario</button></div>
-    <div class="event-list">
-      ${mios.length ? mios.map((e) => `
-        <div class="mio-wrap">
-          ${tarjetaEvento(e)}
-          <button class="mio-edit" onclick="event.stopPropagation(); editarFiesta('${e.id}')">Editar</button>
-        </div>`).join('') : `<button class="empty-cta" onclick="nuevaFiesta()">Aún no creas eventos · Crear uno</button>`}
-    </div>
-
-    ${voy.length ? `
-      <div class="row-between"><h3>Voy a ir</h3><span class="see-all">${voy.length}</span></div>
-      <div class="mini-list">${voy.map((e) => filaFiesta(e, 'voy')).join('')}</div>` : ''}
-
-    ${historial.length ? `
-      <div class="row-between"><h3>Eventos anteriores</h3></div>
-      <div class="past-list">
+    recuerdos: () => historial.length ? `
+      <div class="past-list" style="margin-top:14px">
         ${historial.map((p) => `
           <article class="past2">
             <div class="past2-cover" style="background:${p.grad}">
@@ -2257,12 +2352,53 @@ function pintarPerfil() {
               ${p.fotos.map((f) => `<button class="past2-photo" onclick="toast('Foto de ${p.nombre}')"><span>${f}</span></button>`).join('')}
             </div>
           </article>`).join('')}
-      </div>` : ''}
+      </div>` : `<p class="empty">Cuando pasen tus fiestas, aquí quedan los recuerdos ✨</p>`,
 
-    <div class="row-between"><h3>Mis fotos</h3><span class="see-all" onclick="toast('Subir foto · próximamente')">Subir</span></div>
-    <div class="photo-grid">
-      ${['🌃','🪩','🥂','💃','✨','🎉'].map((f) => `<button class="photo-cell" onclick="toast('Foto de fiesta')">${f}</button>`).join('')}
+    fotos: () => `
+      <div class="row-between" style="margin-top:14px"><h3>Mis fotos</h3><span class="see-all" onclick="toast('Subir foto · próximamente')">Subir</span></div>
+      <div class="photo-grid">
+        ${['🌃','🪩','🥂','💃','✨','🎉'].map((f) => `<button class="photo-cell" onclick="toast('Foto de fiesta')">${f}</button>`).join('')}
+      </div>`
+  };
+
+  cont.innerHTML = `
+    <section class="pf2 ${popular ? 'is-popular' : ''}">
+      <div class="pf2-cover" style="${u.logo ? `background-image:url(${u.logo});background-size:cover;background-position:center` : `background:${u.color}`}">
+        <div class="pf2-topbtns">
+          <button class="pf2-fab" onclick="compartir('mi perfil')" aria-label="Compartir">${icon('share')}</button>
+          <button class="pf2-fab" onclick="abrirAjustes()" aria-label="Ajustes">${icon('gear')}</button>
+        </div>
+      </div>
+      <div class="pf2-head">
+        <div class="pf2-ava ${popular ? 'ring' : ''}" style="${avatarFondo(u)}">${avatarContenido(u)}</div>
+        <div class="pf2-id">
+          <h2>${u.nombre} ${insignia}</h2>
+          <p>${u.usuario}</p>
+        </div>
+        <button class="pf2-editbtn" onclick="editarPerfil()">Editar</button>
+      </div>
+      <p class="pf2-bio">${u.bio}</p>
+      ${redesHTML(u)}
+      <div class="pf2-stats">
+        <div class="pf2-stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
+        <div class="pf2-stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
+        <button class="pf2-stat" onclick="irA('friends')"><strong>${u.stats.amigos}</strong><small>amigos</small></button>
+        <button class="pf2-stat" onclick="verSeguidores()"><strong>${kilo(u.stats.seguidores)}</strong><small>seguidores</small></button>
+      </div>
+    </section>
+
+    <button class="pase-card" onclick="abrirPase()">
+      <span class="pase-qr">${qrSVG(u.usuario + '·' + u.nombre)}</span>
+      <span class="pase-info"><strong>MI PASE</strong><small>Enséñalo en la puerta para entrar</small></span>
+      <span class="pase-arrow">›</span>
+    </button>
+
+    <div class="pf2-tabs">
+      <button class="${pfTab === 'fiestas' ? 'on' : ''}" onclick="setPfTab('fiestas')">Fiestas</button>
+      <button class="${pfTab === 'recuerdos' ? 'on' : ''}" onclick="setPfTab('recuerdos')">Recuerdos</button>
+      <button class="${pfTab === 'fotos' ? 'on' : ''}" onclick="setPfTab('fotos')">Fotos</button>
     </div>
+    ${(tabs[pfTab] || tabs.fiestas)()}
   `;
 }
 
