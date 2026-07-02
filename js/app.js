@@ -239,7 +239,7 @@ function tarjetaEvento(e) {
       <div class="ev2-foot">
         <span class="ev2-host"><span class="ev2-host-ava" style="background:${h.color}">${h.avatar}</span>${h.nombre.split(' ')[0]}</span>
         <span class="ev2-going">
-          <span class="ev2-faces">${cara.map((g) => `<span class="ev2-face" style="background:${g.color}">${g.avatar}</span>`).join('')}</span>
+          <span class="ev2-faces ${puedeVerLista(e) ? '' : 'anon'}">${cara.map((g) => `<span class="ev2-face" style="background:${g.color}">${g.avatar}</span>`).join('')}</span>
           <span class="ev2-people ${casiLleno(e) ? 'full' : ''}">${e.proximamente ? totalInteresados(e) + ' interesados' : e.asistentes + (e.capacidad ? '/' + e.capacidad : '') + ' van'}</span>
         </span>
       </div>
@@ -591,6 +591,9 @@ function nuevoDraft() {
     },
     proximamente: false,          // marca la fiesta como "próximamente"
     publico: true,                // público (en el feed) o privado (solo invitación)
+    // Quién puede ver la lista de invitados. Protegida por defecto:
+    // 'confirmados' (solo quienes van) | 'todos' | 'nadie' (solo el anfitrión)
+    listaVisible: 'confirmados',
     // rango de edad (si se restringe, el mínimo SIEMPRE es 18)
     edad: { activo: false, max: null },
     // tipos de boleto (zonas/precios)
@@ -637,6 +640,7 @@ function editarFiesta(id) {
   };
   draft.proximamente = !!e.proximamente;
   draft.publico = e.publico !== false;
+  draft.listaVisible = e.listaVisible || 'confirmados';
   draft.tema = e.tema || 0;
   draft.tituloFont = e.tituloFont || 'classic';
   draft.descripcion = e.descripcion || '';
@@ -1088,6 +1092,14 @@ function abrirAjustesEvento() {
         <span class="toggle ${draft.proximamente ? 'is-on' : ''}" onclick="draft.proximamente=!draft.proximamente; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
       <label class="set-row"><div><strong>Requiere aprobación</strong><small>Tú apruebas a los invitados</small></div>
         <span class="toggle ${draft.requireApproval ? 'is-on' : ''}" onclick="draft.requireApproval=!draft.requireApproval; this.classList.toggle('is-on')"><span class="toggle-knob"></span></span></label>
+      <div class="set-row col">
+        <div><strong>Quién ve la lista de invitados</strong><small>Protege a tus asistentes: nadie de fuera ve quién va</small></div>
+        <div class="chips-row mini">
+          ${[['confirmados','Solo confirmados'],['nadie','Solo yo'],['todos','Todos']].map(([v, t]) => `
+            <button class="chip ${(draft.listaVisible || 'confirmados') === v ? 'is-active' : ''}"
+                    onclick="draft.listaVisible='${v}'; abrirAjustesEvento()">${t}</button>`).join('')}
+        </div>
+      </div>
     </div>
     <div class="sheet-actions"><button class="btn full" onclick="cerrarSheet()">Listo</button></div>
   `);
@@ -1597,6 +1609,7 @@ function guardarFiesta() {
     links: draft.links.map((l) => ({ ...l })),
     proximamente: draft.proximamente,
     publico: draft.publico !== false,
+    listaVisible: draft.listaVisible || 'confirmados',
     fecha: draft.proximamente ? 'Próximamente' : (draft.fecha.trim() || 'Fecha por confirmar'),
     capacidad,
     boletos: draft.boletos.map((b) => ({ ...b })),
@@ -2676,6 +2689,16 @@ function rsvpCounts(e) {
   return { van, tal, no };
 }
 
+// ¿Este usuario puede ver la lista de invitados? Protegida por defecto:
+// solo el anfitrión y los confirmados la ven, salvo que el anfitrión la abra.
+function puedeVerLista(e) {
+  if (e.organizador === DATA.usuario.nombre) return true;
+  const modo = e.listaVisible || 'confirmados';
+  if (modo === 'todos') return true;
+  if (modo === 'nadie') return false;
+  return e._rsvp === 'voy';
+}
+
 // Muestra deterministe de invitados desde el pool
 function invitadosMuestra(e, n) {
   const pool = DATA.gente || [];
@@ -2699,6 +2722,7 @@ function abrirEvento(id) {
   const c = rsvpCounts(e);
   const cuenta = cuentaRegresiva(e);
   const muestra = invitadosMuestra(e, 7);
+  const listaOk = puedeVerLista(e);
 
   abrirSheet(e.nombre, `
     <!-- Portada (no se toca) -->
@@ -2760,17 +2784,20 @@ function abrirEvento(id) {
         </div>
       </div>`}
 
-    <!-- Quién va -->
-    <div class="row-between"><h3>Quién va</h3><span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span></div>
+    <!-- Quién va (la lista con nombres solo se abre si puedeVerLista) -->
+    <div class="row-between"><h3>Quién va</h3>${listaOk ? `<span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span>` : ''}</div>
     <div class="rsvp-counts">
       <span class="rc voy" id="rcVoy">✅ ${c.van}</span>
       <span class="rc tal">🤔 ${c.tal}</span>
       <span class="rc no">🙅 ${c.no}</span>
     </div>
-    <div class="ava-stack" onclick="verListaInvitados('${e.id}')">
+    <div class="ava-stack ${listaOk ? '' : 'anon'}" onclick="verListaInvitados('${e.id}')">
       ${muestra.map((g) => `<span class="ava-mini" style="background:${g.color}">${g.avatar}</span>`).join('')}
       ${c.van > muestra.length ? `<span class="ava-more">+${c.van - muestra.length}</span>` : ''}
     </div>
+    ${listaOk ? '' : `<div class="lock-note">${icon('lock','mute')}<span>${(e.listaVisible || 'confirmados') === 'nadie'
+      ? 'El anfitrión mantiene la lista de invitados privada.'
+      : 'Lista protegida: confirma tu asistencia para ver quién va.'}</span></div>`}
     ${esMio ? `<div class="host-bar">
       <button class="ha" onclick="avisarTodos('${e.id}')">📣 Avisar a todos</button>
       <button class="ha" onclick="verListaInvitados('${e.id}')">👥 Gestionar invitados</button>
@@ -2891,8 +2918,14 @@ function interesadoPage(id) {
 // Lista completa de invitados con PESTAÑAS (Van / Tal vez / No) + buscador
 let _guestTab = 'van';
 function verListaInvitados(id, tab) {
-  _guestTab = tab || 'van';
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!puedeVerLista(e)) {
+    toast((e.listaVisible || 'confirmados') === 'nadie'
+      ? 'El anfitrión mantiene la lista privada 🔒'
+      : 'Confirma tu asistencia para ver la lista 🔒');
+    return;
+  }
+  _guestTab = tab || 'van';
   const c = rsvpCounts(e);
   const listas = {
     van: invitadosMuestra(e, Math.min(c.van, 40)),
@@ -3147,6 +3180,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'conect')  abrirConectados();
   if (p.get('evento')) { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); abrirEvento(p.get('evento')); }
   if (p.get('sheet') === 'ajustes') abrirAjustes();
+  if (p.get('sheet') === 'ajustesEvento') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirAjustesEvento(); }
   if (p.get('sheet') === 'editar')  editarPerfil();
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('paso')) { draft.paso = +p.get('paso'); pintarCrear(); }

@@ -1108,6 +1108,7 @@ body.no-scroll { overflow: hidden; }
 }
 .set-row:last-child, .set-link:last-child { border-bottom: none; }
 .set-row > div { display: flex; flex-direction: column; gap: 3px; }
+.set-row.col { flex-direction: column; align-items: stretch; gap: 10px; }
 .set-row strong, .set-link { font-size: .98rem; font-weight: 600; }
 .set-row small { color: var(--ink-faint); font-weight: 400; }
 .set-link { justify-content: space-between; }
@@ -2083,6 +2084,16 @@ body.no-scroll { overflow: hidden; }
 .ava-stack { display: flex; align-items: center; cursor: pointer; padding: 4px 0; }
 .ava-mini { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; border: 2px solid var(--bg-soft); margin-left: -10px; }
 .ava-mini:first-child { margin-left: 0; }
+/* Lista protegida: los avatares se ven difuminados (no se sabe quién es) */
+.ava-stack.anon .ava-mini, .ev2-faces.anon .ev2-face { filter: blur(4px) saturate(.65); }
+.ava-stack.anon { cursor: default; }
+.lock-note {
+  display: flex; align-items: center; gap: 9px;
+  margin: 6px 0 4px; padding: 11px 13px;
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: var(--r-md);
+  color: var(--ink-faint); font-size: .86rem;
+}
+.lock-note svg { width: 17px; height: 17px; flex: none; }
 .ava-more { margin-left: 8px; font-weight: 700; font-size: .85rem; color: var(--ink-soft); }
 
 /* Invitar */
