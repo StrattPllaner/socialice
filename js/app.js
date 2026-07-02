@@ -641,7 +641,9 @@ const PASOS = ['Portada', 'Detalles', 'Boletos', 'Equipo', 'Plano', 'Avisos'];
 let draft = nuevoDraft();
 
 // Empezar una fiesta nueva
-function nuevaFiesta() { draft = nuevoDraft(); irA('create'); }
+// Al crear una fiesta nueva, PRIMERO eliges tus colores (el tema por defecto
+// es el personalizado, así que no se planta un fondo que no escogiste)
+function nuevaFiesta() { draft = nuevoDraft(); irA('create'); abrirTemaCustom(); }
 
 // Editar un evento ya creado (carga sus datos al borrador)
 function editarFiesta(id) {
@@ -2721,6 +2723,7 @@ function nuevaFiestaTipo(publico) {
   draft = nuevoDraft();
   draft.publico = publico;
   irA('create');
+  abrirTemaCustom();
 }
 
 // Iconos SVG limpios para redes
@@ -2916,6 +2919,9 @@ function abrirEvento(id) {
   const listaOk = puedeVerLista(e);
 
   abrirSheet(e.nombre, `
+    <!-- En laptop la ficha se parte en 2 columnas (.ev-main | .ev-side);
+         en teléfono los wrappers son display:contents y no cambian nada -->
+    <div class="ev-main">
     <!-- Portada (no se toca) -->
     <div class="ev-cover" style="${coverStyle(e)}">
       <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
@@ -3003,6 +3009,8 @@ function abrirEvento(id) {
             <span class="zona-precio">${(+b.precio) > 0 ? '$' + b.precio : 'Gratis'}</span>
           </div>`).join('')}
       </div>` : ''}
+    </div>
+    <div class="ev-side">
 
     <!-- Detalles -->
     <div class="row-between"><h3>Detalles</h3></div>
@@ -3051,6 +3059,7 @@ function abrirEvento(id) {
     <div class="com-list" id="evComList">${comentariosHTML(e)}</div>
 
     ${esMio ? `<div class="sheet-actions"><button class="btn full" onclick="cerrarSheet(); editarFiesta('${e.id}')">✎ Editar evento</button></div>` : ''}
+    </div>
   `);
 }
 

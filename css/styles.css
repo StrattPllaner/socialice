@@ -2446,10 +2446,25 @@ body::before {
   .splash-head, .splash-body, .splash-bottom, .splash-foot { max-width: 460px; margin-left: auto; margin-right: auto; width: 100%; }
 }
 
+/* En teléfono los wrappers de la ficha del evento no afectan el flujo */
+.ev-main, .ev-side { display: contents; }
+
 /* --- Computadora / pantallas grandes --- */
 @media (min-width: 1100px) {
   :root { --app-max: 980px; }
   .event-list { grid-template-columns: repeat(3, 1fr); }
+
+  /* Ficha del evento en laptop: panel ancho, centrado y a DOS columnas
+     (portada/RSVP/quién va | detalles/álbum/comentarios) para ocupar bien */
+  .sheet:has(.ev-main) { max-width: 1080px; align-self: center; border-radius: 26px; padding: 10px 30px 26px; }
+  .sheet:has(.ev-main) .sheet-body {
+    display: grid; grid-template-columns: 1.08fr .92fr;
+    column-gap: 44px; align-items: start;
+  }
+  .ev-main, .ev-side { display: block; min-width: 0; }
+  .sheet:has(.ev-main) .ev-cover { height: 250px; }
+  .ev-side > .row-between:first-child { margin-top: 6px; }
+  .sheet:has(.ev-main) .album-grid { grid-template-columns: repeat(4, 1fr); }
   #screen-home, #screen-profile, #screen-create, #screen-friends, #screen-search {
     padding-left: 28px; padding-right: 28px;
   }
@@ -2919,6 +2934,14 @@ body.creando .post-compose,
 body.creando .news-list .post-card { background: rgba(8,10,18,.58) !important; }
 body.creando .crear-row { background: transparent !important; }
 body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+/* Los chips (+Link, +Playlist, Foto de fondo…) van del MISMO gris traslúcido
+   que las tarjetas, no azul marino sólido que desentona en temas claros */
+body.creando .chip {
+  background: rgba(8,10,18,.58);
+  border-color: rgba(255,255,255,.16);
+  color: var(--ink);
+  backdrop-filter: blur(6px);
+}
 
 /* Recuadro para elegir color animado del título */
 .anim-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 6px; }
@@ -3222,6 +3245,15 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 }
 .cc-swatch input[type="color"] { position: absolute; inset: -4px; width: calc(100% + 8px); height: calc(100% + 8px); opacity: 0; border: none; padding: 0; cursor: pointer; background: none; }
 .cc-prev { height: 130px; border-radius: var(--r-md); border: 1px solid var(--line); margin-bottom: 14px; }
+
+/* En laptop/iPad horizontal las escenas NO se estiran: se usa la variante
+   ancha re-compuesta (los objetos guardan su proporción y se reparten) */
+@media (min-aspect-ratio: 1/1) {
+  .tema-tropical::before { background-image: url("../icons/palmeras-w.svg"); }
+  .tema-cielo::before    { background-image: url("../icons/nubes-w.svg"); }
+  .tema-fiesta::before   { background-image: url("../icons/globos-w.svg"); }
+  .tema-chicle::before   { background-image: url("../icons/chicle-w.svg"); }
+}
 
 @media (prefers-reduced-motion: reduce) {
   #temaBg, #temaBg::before, #temaBg::after, #temaBg * { animation: none !important; }

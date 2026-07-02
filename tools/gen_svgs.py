@@ -86,11 +86,13 @@ def palm(bx, by, cxp, cyp, wb, wt, fr_len, seed, bend=40, nfr=11, droop=0.5):
               f"a{f(r)} {f(r)} 0 1 0 {f(2*r)} 0Z")
     return d
 
-def palms_svg():
+def palms_svg(W=500):
+    # W: ancho de la escena. 500 = teléfono (vertical); 1600 = laptop/iPad
+    # (las palmeras se pegan a los BORDES reales, nada se estira).
     parts = []
-    # --- lejanas (más claras, cerca del sol a 250,522) ---
-    far = palm(96, 640, 120, 520, 8, 5, 62, seed=11, bend=14, nfr=7, droop=0.55)
-    far += palm(392, 655, 372, 525, 8, 5, 60, seed=12, bend=-12, nfr=7, droop=0.55)
+    # --- lejanas (más claras, cerca del sol al centro) ---
+    far = palm(W/2 - 154, 640, W/2 - 130, 520, 8, 5, 62, seed=11, bend=14, nfr=7, droop=0.55)
+    far += palm(W/2 + 142, 655, W/2 + 122, 525, 8, 5, 60, seed=12, bend=-12, nfr=7, droop=0.55)
     parts.append(f'<path fill="#0e4a33" opacity=".9" d="{far}"/>')
     # --- capa media: fronda colgando de arriba + arbusto bajo ---
     rnd = random.Random(21)
@@ -98,16 +100,21 @@ def palms_svg():
     for a, L in [(52, 175), (72, 150), (34, 155)]:
         mid += frond(30, -30, a, L, droop=0.32, rnd=rnd)
     for a, L in [(128, 180), (108, 155), (146, 160)]:
-        mid += frond(475, -35, a, L, droop=0.32, rnd=rnd)
+        mid += frond(W - 25, -35, a, L, droop=0.32, rnd=rnd)
     for a, L in [(-118, 150), (-95, 170), (-68, 145), (-142, 125)]:
-        mid += frond(250, 940, a, L, droop=0.22, rnd=rnd)
+        mid += frond(W/2, 940, a, L, droop=0.22, rnd=rnd)
+    if W > 900:  # en pantallas anchas, arbustos extra para no dejar huecos abajo
+        for a, L in [(-105, 140), (-70, 120), (-130, 115)]:
+            mid += frond(W*0.22, 945, a, L, droop=0.22, rnd=rnd)
+        for a, L in [(-75, 140), (-110, 120), (-50, 115)]:
+            mid += frond(W*0.78, 945, a, L, droop=0.22, rnd=rnd)
     parts.append(f'<path fill="#0a3a27" d="{mid}"/>')
     # --- principales: una a cada lado, enmarcando ---
     left = palm(52, 950, 134, 442, 34, 15, 162, seed=5, bend=52, nfr=10, droop=0.5)
-    right = palm(452, 960, 356, 375, 38, 16, 172, seed=8, bend=-58, nfr=10, droop=0.5)
+    right = palm(W - 48, 960, W - 144, 375, 38, 16, 172, seed=8, bend=-58, nfr=10, droop=0.5)
     parts.append(f'<path fill="#052018" d="{left}{right}"/>')
     body = "".join(parts)
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">{body}</svg>')
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} 900">{body}</svg>')
 
 # ---------------- BOLA DISCO ----------------
 
@@ -225,7 +232,8 @@ def luna_svg():
 
 # ---------------- NUBES (Cielo) ----------------
 
-def nubes_svg():
+def nubes_svg(W=500):
+    k = W / 500
     rnd = random.Random(6)
     def cl(cx, cy, s):
         circles = []
@@ -243,24 +251,33 @@ def nubes_svg():
             g += f'<circle cx="{f(x)}" cy="{f(y)}" r="{f(cr)}"/>'
         g += f'<ellipse cx="{f(cx)}" cy="{f(cy)}" rx="{f(1.8*s)}" ry="{f(0.55*s)}"/></g>'
         return g
-    body = cl(105, 212, 50) + cl(330, 402, 42) + cl(190, 608, 28) + cl(432, 702, 22)
-    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">{body}</svg>'
+    body = cl(105*k, 212, 50) + cl(330*k, 402, 42) + cl(190*k, 608, 28) + cl(432*k, 702, 22)
+    if W > 900:  # nubes extra para llenar el cielo ancho
+        body += cl(250*k, 120, 34) + cl(60*k, 480, 26) + cl(470*k, 300, 30)
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} 900">{body}</svg>'
 
 # ---------------- GLOBOS (Fiesta) ----------------
 
 def lighten(c, t):
     return mix(c, (255, 255, 255), t)
 
-def globos_svg():
+def globos_svg(W=500):
+    k = W / 500
     balloons = [
-        (90, 216, 50, 62, (251, 113, 133), (190, 18, 60), -6),
-        (390, 144, 46, 58, (56, 189, 248), (3, 105, 161), 5),
-        (40, 558, 42, 54, (168, 85, 247), (107, 33, 168), -5),
-        (450, 522, 44, 56, (251, 191, 36), (180, 83, 9), 6),
-        (282, 756, 38, 48, (52, 211, 153), (4, 120, 87), -4),
+        (90*k, 216, 50, 62, (251, 113, 133), (190, 18, 60), -6),
+        (390*k, 144, 46, 58, (56, 189, 248), (3, 105, 161), 5),
+        (40*k, 558, 42, 54, (168, 85, 247), (107, 33, 168), -5),
+        (450*k, 522, 44, 56, (251, 191, 36), (180, 83, 9), 6),
+        (282*k, 756, 38, 48, (52, 211, 153), (4, 120, 87), -4),
     ]
+    if W > 900:  # globos extra para no dejar hueco el centro
+        balloons += [
+            (235*k, 396, 40, 50, (34, 211, 238), (8, 102, 138), 4),
+            (165*k, 640, 36, 46, (251, 146, 60), (154, 52, 18), -5),
+        ]
     defs, body = "", ""
     for i, (cx, cy, rx, ry, c, dk, rot) in enumerate(balloons):
+        cx = round(cx, 1)
         defs += (f'<radialGradient id="g{i}" cx="0.35" cy="0.3" r="1.05">'
                  f'<stop offset="0" stop-color="{hexc(lighten(c, 0.55))}"/>'
                  f'<stop offset=".45" stop-color="{hexc(c)}"/>'
@@ -274,20 +291,28 @@ def globos_svg():
                  f'fill="#ffffff" opacity=".6" transform="rotate(-28 {f(cx - rx*0.34)} {f(cy - ry*0.38)})"/>'
                  f'<path d="M{f(cx-6)} {f(cy+ry+7)} L{f(cx)} {f(cy+ry-2)} L{f(cx+6)} {f(cy+ry+7)} Z" fill="{hexc(dk)}"/>'
                  f'</g>')
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} 900">'
             f'<defs>{defs}</defs>{body}</svg>')
 
 # ---------------- CHICLES (Chicle) ----------------
 
-def chicle_svg():
+def chicle_svg(W=500):
+    k = W / 500
     bubbles = [
-        (110, 234, 46, (255, 158, 203), (236, 96, 164)),
-        (350, 396, 28, (255, 170, 210), (240, 110, 175)),
-        (410, 684, 56, (217, 179, 255), (168, 122, 235)),
-        (180, 594, 22, (255, 158, 203), (236, 96, 164)),
+        (110*k, 234, 46, (255, 158, 203), (236, 96, 164)),
+        (350*k, 396, 28, (255, 170, 210), (240, 110, 175)),
+        (410*k, 684, 56, (217, 179, 255), (168, 122, 235)),
+        (180*k, 594, 22, (255, 158, 203), (236, 96, 164)),
     ]
+    if W > 900:
+        bubbles += [
+            (255*k, 150, 34, (255, 158, 203), (236, 96, 164)),
+            (60*k, 470, 26, (217, 179, 255), (168, 122, 235)),
+            (300*k, 780, 30, (255, 170, 210), (240, 110, 175)),
+        ]
     defs, body = "", ""
     for i, (cx, cy, r, c, dk) in enumerate(bubbles):
+        cx = round(cx, 1)
         defs += (f'<radialGradient id="ch{i}" cx="0.34" cy="0.3" r="1">'
                  f'<stop offset="0" stop-color="#ffffff" stop-opacity=".95"/>'
                  f'<stop offset=".26" stop-color="{hexc(lighten(c, 0.35))}"/>'
@@ -297,7 +322,7 @@ def chicle_svg():
                  f'<ellipse cx="{f(cx - r*0.38)}" cy="{f(cy - r*0.42)}" rx="{f(r*0.26)}" ry="{f(r*0.16)}" '
                  f'fill="#ffffff" opacity=".85" transform="rotate(-30 {f(cx - r*0.38)} {f(cy - r*0.42)})"/>'
                  f'<circle cx="{f(cx + r*0.3)}" cy="{f(cy + r*0.44)}" r="{f(r*0.08)}" fill="#ffffff" opacity=".5"/>')
-    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 900">'
+    return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} 900">'
             f'<defs>{defs}</defs>{body}</svg>')
 
 # ---------------- PLAYA (escena completa: cielo, mar de verdad, arena) ----
@@ -490,6 +515,11 @@ out = "/Users/leocarreto/Desktop/socialice/icons"
 files = {
     "palmeras.svg": palms_svg, "discoball.svg": disco_svg, "luna.svg": luna_svg,
     "nubes.svg": nubes_svg, "globos.svg": globos_svg, "chicle.svg": chicle_svg,
+    # variantes ANCHAS (laptop/iPad horizontal): mismas escenas re-compuestas
+    "palmeras-w.svg": lambda: palms_svg(1600),
+    "nubes-w.svg": lambda: nubes_svg(1600),
+    "globos-w.svg": lambda: globos_svg(1600),
+    "chicle-w.svg": lambda: chicle_svg(1600),
     # playa y bosque ahora son FOTOS reales (icons/playa.jpg, icons/bosque.jpg)
 }
 for name, fn in files.items():
