@@ -490,7 +490,7 @@ out = "/Users/leocarreto/Desktop/socialice/icons"
 files = {
     "palmeras.svg": palms_svg, "discoball.svg": disco_svg, "luna.svg": luna_svg,
     "nubes.svg": nubes_svg, "globos.svg": globos_svg, "chicle.svg": chicle_svg,
-    "playa.svg": playa_full_svg, "bosque.svg": bosque_svg,
+    # playa y bosque ahora son FOTOS reales (icons/playa.jpg, icons/bosque.jpg)
 }
 for name, fn in files.items():
     with open(os.path.join(out, name), "w") as fh:

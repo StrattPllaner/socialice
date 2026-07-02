@@ -493,10 +493,11 @@ const TEMAS = [
     bg: 'radial-gradient(circle 60px at 82% 14%, rgba(255,250,220,.9) 0 40%, rgba(255,250,220,.35) 62%, transparent 78%), linear-gradient(180deg,#7dd3fc 0%,#38bdf8 40%,#0284c7 100%)' },
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
     bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' },
-  { nombre: 'Playa', grad: 'linear-gradient(135deg,#38bdf8,#fbbf24)',
-    bg: 'linear-gradient(180deg,#8fd6f8 0%,#8fd6f8 46%,#1ea6cf 56%,#e9d3a0 67%,#d3ad72 100%)' },
+  // Playa y Bosque son FOTOS REALES (Pexels, uso libre) con degradado de respaldo
+  { nombre: 'Playa', grad: 'linear-gradient(135deg,#38bdf8,#7dd3fc)',
+    bg: 'url("icons/playa.jpg") center / cover no-repeat, linear-gradient(180deg,#7cc4f2 0%,#3fb3e8 55%,#e9ddc4 75%,#d8c8a8 100%)' },
   { nombre: 'Bosque', grad: 'linear-gradient(135deg,#4c6b35,#c8dd8a)',
-    bg: 'linear-gradient(180deg,#c8dd8a 0%,#8fae5c 35%,#4c6b35 68%,#233c15 100%)' },
+    bg: 'url("icons/bosque.jpg") center / cover no-repeat, linear-gradient(180deg,#8a9a54 0%,#5c6e38 45%,#26331a 100%)' },
   // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario
   { nombre: 'Tus colores', custom: true, grad: '', bg: '' }
 ];
