@@ -2895,17 +2895,13 @@ body[data-screen="create"] .efx-layer { display: block; }
 /* Copos de nieve suaves (puntos blancos difusos, se ven reales) */
 .efp-snow { position: absolute; top: 0; border-radius: 50%; background: radial-gradient(circle, #fff 28%, rgba(255,255,255,.55) 58%, transparent 76%); box-shadow: 0 0 5px rgba(255,255,255,.55); animation-name: emojiFall; animation-timing-function: linear; animation-iteration-count: infinite; animation-fill-mode: both; }
 
-/* Nieve acumulada abajo: banco ORGÁNICO (montones blancos de distinto ancho) */
+/* Nieve acumulada abajo: manto ondulado que SE REPITE sin cortes a cualquier
+   ancho de pantalla (losa SVG con bordes empatados, nada de montones fijos
+   que dejan huecos en pantallas anchas) */
 .efx-snow-pile {
-  position: absolute; left: 0; right: 0; bottom: 0; height: 62px;
-  background:
-    radial-gradient(90px 42px at 10% 16px, #fff 60%, transparent 64%),
-    radial-gradient(130px 56px at 32% 22px, #fff 60%, transparent 64%),
-    radial-gradient(80px 38px at 52% 12px, #fff 60%, transparent 64%),
-    radial-gradient(140px 62px at 74% 24px, #fff 60%, transparent 64%),
-    radial-gradient(100px 46px at 94% 16px, #fff 60%, transparent 64%),
-    linear-gradient(180deg, transparent 0, #fff 24px, #eef4ff 100%);
-  box-shadow: 0 -2px 26px rgba(205,225,255,.45);
+  position: absolute; left: 0; right: 0; bottom: 0; height: 64px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 340 64' preserveAspectRatio='none'%3E%3Cpath d='M0 30 C30 30 42 14 84 14 C126 14 130 36 172 36 C214 36 220 8 264 8 C304 8 310 30 340 30 L340 64 L0 64 Z' fill='%23dbe7fa'/%3E%3Cpath d='M0 42 C28 42 44 26 88 26 C130 26 136 46 178 46 C220 46 228 22 272 22 C312 22 320 42 340 42 L340 64 L0 64 Z' fill='%23ffffff'/%3E%3C/svg%3E") left bottom / 340px 100% repeat-x;
+  filter: drop-shadow(0 -3px 20px rgba(205,225,255,.45));
   pointer-events: none; z-index: 44;
 }
 @media (prefers-reduced-motion: reduce) { .efx-snow-pile { height: 60px; animation: none; } }
@@ -2968,19 +2964,11 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
   animation: silverSweep 5.5s linear infinite;
 }
 
-/* ☁️ Cielo: nubes ESPONJOSAS (lóbulos agrupados, no manchas) que derivan */
+/* ☁️ Cielo: nubes ESPONJOSAS dibujadas (icons/nubes.svg: lóbulos con panza
+   sombreada, no manchas) que derivan por el cielo */
 .tema-cielo::before {
   content: ''; position: absolute; inset: 0;
-  background:
-    radial-gradient(52px 40px at 20% 24%, rgba(255,255,255,.95) 55%, transparent 74%),
-    radial-gradient(38px 30px at 27% 21%, rgba(255,255,255,.92) 55%, transparent 74%),
-    radial-gradient(44px 32px at 13% 23%, rgba(255,255,255,.9) 55%, transparent 74%),
-    radial-gradient(74px 24px at 20% 27%, #fff 58%, transparent 76%),
-    radial-gradient(46px 34px at 64% 44%, rgba(255,255,255,.92) 55%, transparent 74%),
-    radial-gradient(34px 26px at 71% 41%, rgba(255,255,255,.9) 55%, transparent 74%),
-    radial-gradient(62px 22px at 65% 47%, #fff 58%, transparent 76%),
-    radial-gradient(30px 20px at 38% 66%, rgba(255,255,255,.8) 55%, transparent 76%),
-    radial-gradient(46px 16px at 40% 68%, rgba(255,255,255,.75) 58%, transparent 78%);
+  background: url("../icons/nubes.svg") center / 100% 100% no-repeat;
   opacity: .96;
   animation: cloudDrift 30s ease-in-out infinite alternate;
 }
@@ -3151,37 +3139,20 @@ body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
   animation: twinkleBg 2.2s ease-in-out infinite alternate;
 }
 
-/* 🍬 Chicle: bombas de chicle glossy que flotan */
+/* 🍬 Chicle: bombas de chicle glossy DIBUJADAS (icons/chicle.svg: esfera con
+   degradado, brillo grande y chispita) que flotan */
 .tema-chicle::before {
   content: ''; position: absolute; inset: 0;
-  background:
-    radial-gradient(circle 46px at 22% 26%, rgba(255,255,255,.6) 0 16%, rgba(255,182,213,.55) 42%, rgba(255,150,190,.22) 74%, transparent 82%),
-    radial-gradient(circle 28px at 70% 44%, rgba(255,255,255,.55) 0 18%, rgba(255,182,213,.5) 48%, transparent 80%),
-    radial-gradient(circle 56px at 82% 76%, rgba(255,255,255,.5) 0 14%, rgba(214,170,255,.45) 44%, transparent 82%),
-    radial-gradient(circle 22px at 36% 66%, rgba(255,255,255,.5) 0 18%, rgba(255,182,213,.42) 50%, transparent 80%);
+  background: url("../icons/chicle.svg") center / 100% 100% no-repeat;
   animation: globosFloat 7s ease-in-out infinite alternate;
 }
 @keyframes globosFloat { from { transform: translateY(0); } to { transform: translateY(-14px); } }
 
-/* 🎈 Fiesta: globos que flotan + confeti grande puesto a mano */
+/* 🎈 Fiesta: globos DE VERDAD (icons/globos.svg: brillo, nudo e hilo ondulado)
+   que flotan + confeti grande puesto a mano */
 .tema-fiesta::before {
   content: ''; position: absolute; inset: 0;
-  background:
-    linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.08)) 18.4% 31% / 1.5px 46px no-repeat,
-    linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.08)) 78.4% 23% / 1.5px 42px no-repeat,
-    linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.08)) 8.4% 69% / 1.5px 42px no-repeat,
-    linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.08)) 90.2% 65% / 1.5px 42px no-repeat,
-    linear-gradient(rgba(255,255,255,.4), rgba(255,255,255,.08)) 56.8% 90% / 1.5px 38px no-repeat,
-    radial-gradient(13px 15px at 16% 20.6%, rgba(255,255,255,.55), transparent 70%),
-    radial-gradient(50px 62px at 18% 24%, #fb7185 0 56%, #be123c 88%, transparent 91%),
-    radial-gradient(12px 14px at 76% 12.6%, rgba(255,255,255,.5), transparent 70%),
-    radial-gradient(46px 58px at 78% 16%, #38bdf8 0 56%, #0369a1 88%, transparent 91%),
-    radial-gradient(11px 13px at 6.5% 58.6%, rgba(255,255,255,.5), transparent 70%),
-    radial-gradient(42px 54px at 8% 62%, #a855f7 0 56%, #6b21a8 88%, transparent 91%),
-    radial-gradient(12px 14px at 88.5% 55%, rgba(255,255,255,.5), transparent 70%),
-    radial-gradient(44px 56px at 90% 58%, #fbbf24 0 56%, #b45309 88%, transparent 91%),
-    radial-gradient(10px 12px at 55% 80.8%, rgba(255,255,255,.45), transparent 70%),
-    radial-gradient(38px 48px at 56.5% 84%, #34d399 0 56%, #047857 88%, transparent 91%);
+  background: url("../icons/globos.svg") center / 100% 100% no-repeat;
   animation: globosFloat 6s ease-in-out infinite alternate;
 }
 .tema-fiesta::after {
