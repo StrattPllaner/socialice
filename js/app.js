@@ -478,7 +478,7 @@ const TEMAS = [
   { nombre: 'Tropical', grad: 'linear-gradient(135deg,#10b981,#fbbf24)',
     bg: 'url("icons/tropical.jpg") center / cover no-repeat, linear-gradient(180deg,#123a5c 0%,#3b2a6b 45%,#d97706 80%,#7c2d12 100%)' },
   { nombre: 'Fuego', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-    bg: 'url("icons/fuego.jpg") center / cover no-repeat, radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
+    bg: 'radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
   { nombre: 'Aurora', grad: 'linear-gradient(135deg,#22d3ee,#34d399)',
     bg: 'radial-gradient(1.6px 1.6px at 18% 22%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 64% 12%, #dfefff 60%, transparent), radial-gradient(1.8px 1.8px at 84% 30%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 35% 42%, #cfeaf5 60%, transparent), radial-gradient(1.6px 1.6px at 50% 7%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 10% 58%, #fff 60%, transparent), linear-gradient(180deg,#03111e 0%,#04202b 55%,#020d14 100%)' },
   { nombre: 'Galaxia', grad: 'linear-gradient(135deg,#7c3aed,#ec4899)',
