@@ -2634,6 +2634,23 @@ body[data-screen="create"] .bottom-nav { display: none; }
 
 @media (min-width: 1000px) { .crear-page { padding-bottom: 120px; } }
 
+/* En teléfono los wrappers de crear no afectan el flujo */
+.cr-left, .cr-right { display: contents; }
+
+/* CREAR en laptop/tablet: DOS columnas que aprovechan todo el espacio.
+   Izquierda (fija al hacer scroll): título + portada cuadrada + fecha.
+   Derecha: organiza, datos, descripción, mapa, boletos, publicaciones. */
+@media (min-width: 900px) {
+  .crear-page {
+    max-width: 1200px;
+    display: grid; grid-template-columns: minmax(360px, 470px) minmax(0, 1fr);
+    column-gap: 44px; align-items: start;
+  }
+  .crear-bar { grid-column: 1 / -1; }
+  .cr-left, .cr-right { display: block; min-width: 0; }
+  .cr-left { position: sticky; top: calc(16px + env(safe-area-inset-top)); }
+}
+
 /* ================================================================== */
 /* CREAR v2: tema full-screen, fecha compacta, color título, efectos  */
 /* ================================================================== */

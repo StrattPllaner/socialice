@@ -772,6 +772,9 @@ function pintarCrear() {
         <button class="save-btn" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Guardar'}</button>
       </div>
 
+      <!-- En laptop/tablet: 2 columnas (cr-left fija: título+portada+fecha /
+           cr-right: todo el formulario). En teléfono, display:contents. -->
+      <div class="cr-left">
       <!-- Título + acceso a tipografías y color -->
       <div class="titulo-card">
         <div class="titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
@@ -806,6 +809,8 @@ function pintarCrear() {
           <input class="fecha-time" type="text" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value">
         </div>
       </div>
+      </div>
+      <div class="cr-right">
 
       <!-- Anfitrión: botones arriba junto al título, sin estado vacío -->
       <div class="crear-block host-block">
@@ -891,6 +896,7 @@ function pintarCrear() {
       <div class="news-list" id="newsList"></div>
 
       <button class="btn full" style="margin:24px 0" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Publicar evento'}</button>
+      </div>
     </div>
   `;
 
