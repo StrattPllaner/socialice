@@ -2620,9 +2620,13 @@ body[data-screen="create"] .bottom-nav { display: none; }
 
 /* Selector de tema */
 .tema-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
-.tema-swatch { aspect-ratio: 1; border-radius: var(--r-md); cursor: pointer; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding: 12px; position: relative; }
+.tema-swatch { aspect-ratio: 1; border-radius: var(--r-md); cursor: pointer; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding: 12px; position: relative; overflow: hidden; background: #0a0f1c; }
 .tema-swatch.on { border-color: #fff; }
-.tema-pill { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 44px; height: 18px; border-radius: var(--r-pill); }
+/* VISTA PREVIA REAL: el div lleva la clase tema-<slug>, así hereda la escena
+   completa (bola disco, llamas, auroras, fotos…) en miniatura y animada */
+.tema-prev { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; background-size: cover; background-position: center; background-repeat: no-repeat; }
+.tema-pill { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); width: 44px; height: 18px; border-radius: var(--r-pill); z-index: 2; }
+.tema-swatch small { position: relative; z-index: 2; }
 .tema-swatch small { color: #fff; font-weight: 700; font-size: .82rem; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 /* Lápiz del tema personalizado (cambiar colores SIN salir del selector) */
 .tema-edit {
@@ -2927,6 +2931,42 @@ body[data-screen="create"] .efx-layer { display: block; }
 }
 @keyframes flyWander { from { transform: translate(0,0); } to { transform: translate(var(--dx,30px), var(--dy,-40px)); } }
 @keyframes flyBlink { 0%,100% { opacity: .05; } 12% { opacity: 1; } 30% { opacity: .35; } 55% { opacity: .9; } 80% { opacity: .15; } }
+
+/* Láser de antro: líneas delgadas saturadas que barren desde arriba
+   (mismo columpio que los reflectores pero finas y neón) */
+.efp-laser {
+  position: absolute; top: -4%; width: 2.5px; height: 145vh; border-radius: 2px;
+  transform-origin: top center; mix-blend-mode: screen;
+  animation-name: beamSwing; animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite; animation-direction: alternate; animation-fill-mode: both;
+}
+
+/* Estrobo: destello doble breve y pausa (suave, sin ametrallar) */
+.efx-layer.efx-estrobo::before {
+  content: ''; position: absolute; inset: 0; background: #fff; opacity: 0;
+  animation: strobeFlash 2.6s linear infinite;
+}
+@keyframes strobeFlash {
+  0%, 84%, 100% { opacity: 0; }
+  86% { opacity: .5; }
+  88% { opacity: 0; }
+  90% { opacity: .45; }
+  92% { opacity: 0; }
+}
+
+/* Bengalas frías: chispas brillantes que brotan hacia arriba y se apagan */
+.efp-chispa {
+  position: absolute; bottom: 0; border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 6px 2px rgba(255,240,180,.95), 0 0 16px 5px rgba(255,190,80,.5);
+  animation-name: chispaSube; animation-timing-function: ease-out;
+  animation-iteration-count: infinite; animation-fill-mode: both;
+}
+@keyframes chispaSube {
+  0%   { transform: translate(0, 0) scale(1); opacity: 1; }
+  70%  { opacity: .9; }
+  100% { transform: translate(var(--dx, 0px), var(--alto, -34vh)) scale(.4); opacity: 0; }
+}
 
 /* Aurora boreal: cortinas de luz verdes/cian/violeta que ondean en el cielo.
    Dos capas: manchas grandes difusas (::before) + rayos verticales (::after) */
@@ -3308,6 +3348,12 @@ body.creando .chip {
   background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.22) 45%, transparent 58%);
   animation: glareSweep 9s ease-in-out infinite alternate;
 }
+/* …y en modo ANIMADO el gradiente FLUYE entre los colores elegidos */
+.tema-tuscolores.anim, .cc-prev.anim {
+  background-size: 320% 320% !important;
+  animation: customFlow 9s ease-in-out infinite alternate;
+}
+@keyframes customFlow { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
 
 /* Editor del tema personalizado (1-2 colores + vista previa) */
 .cc-row { display: flex; align-items: center; gap: 12px; margin: 14px 0; }
@@ -3327,7 +3373,8 @@ body.creando .chip {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #temaBg, #temaBg::before, #temaBg::after, #temaBg * { animation: none !important; }
+  #temaBg, #temaBg::before, #temaBg::after, #temaBg *,
+  .tema-prev, .tema-prev::before, .tema-prev::after { animation: none !important; }
 }
 
 /* ===== Partiful: saludo inicio, pestañas invitados, host-bar, preguntas ===== */

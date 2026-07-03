@@ -454,7 +454,7 @@ const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','�
    animadas (llamas, bola disco, rejilla, globos…) viven en CSS (.tema-<slug>). */
 const TEMAS = [
   { nombre: 'Medianoche', grad: 'linear-gradient(135deg,#2f7bff,#38bdf8)',
-    bg: 'url("icons/luna.svg") 50% 8px / 112px 112px no-repeat, radial-gradient(1.8px 1.8px at 12% 22%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 30% 9%, #cfe3ff 60%, transparent), radial-gradient(2.2px 2.2px at 48% 30%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 61% 16%, #fff 60%, transparent), radial-gradient(1.8px 1.8px at 88% 34%, #cfe3ff 60%, transparent), radial-gradient(1.4px 1.4px at 22% 44%, #fff 60%, transparent), radial-gradient(2px 2px at 70% 52%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 40% 64%, #bcd6ff 60%, transparent), radial-gradient(1.8px 1.8px at 85% 72%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 15% 82%, #cfe3ff 60%, transparent), radial-gradient(120% 60% at 50% 112%, #14204d, transparent 70%), linear-gradient(180deg,#0c1334 0%,#0a0f26 48%,#05070f 100%)' },
+    bg: 'url(icons/luna.svg) 50% 8px / 112px 112px no-repeat, radial-gradient(1.8px 1.8px at 12% 22%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 30% 9%, #cfe3ff 60%, transparent), radial-gradient(2.2px 2.2px at 48% 30%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 61% 16%, #fff 60%, transparent), radial-gradient(1.8px 1.8px at 88% 34%, #cfe3ff 60%, transparent), radial-gradient(1.4px 1.4px at 22% 44%, #fff 60%, transparent), radial-gradient(2px 2px at 70% 52%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 40% 64%, #bcd6ff 60%, transparent), radial-gradient(1.8px 1.8px at 85% 72%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 15% 82%, #cfe3ff 60%, transparent), radial-gradient(120% 60% at 50% 112%, #14204d, transparent 70%), linear-gradient(180deg,#0c1334 0%,#0a0f26 48%,#05070f 100%)' },
   { nombre: 'Atardecer', grad: 'linear-gradient(135deg,#fb923c,#ec4899)',
     bg: 'radial-gradient(circle 56px at 50% 40%, #fff6d0 0 55%, #ffd76a 68%, rgba(255,150,60,.6) 78%, transparent 85%), radial-gradient(75% 34% at 50% 42%, rgba(255,170,90,.55), transparent 72%), radial-gradient(120% 22% at 50% 55%, rgba(255,120,130,.35), transparent 70%), linear-gradient(180deg,#ff9a5b 0%,#ff5f9e 30%,#a23bb0 58%,#3a1450 82%,#120726 100%)' },
   { nombre: 'Y2K', grad: 'linear-gradient(135deg,#dfe7f5,#8fb6ff)',
@@ -476,7 +476,7 @@ const TEMAS = [
   { nombre: 'Menta', grad: 'linear-gradient(135deg,#84fab0,#8fd3f4)',
     bg: 'radial-gradient(70% 40% at 24% 18%, rgba(255,255,255,.35), transparent 65%), linear-gradient(135deg,#84fab0 0%,#8fd3f4 60%,#5b6ef0 100%)' },
   { nombre: 'Tropical', grad: 'linear-gradient(135deg,#10b981,#fbbf24)',
-    bg: 'url("icons/tropical.jpg") center / cover no-repeat, linear-gradient(180deg,#123a5c 0%,#3b2a6b 45%,#d97706 80%,#7c2d12 100%)' },
+    bg: 'url(icons/tropical.jpg) center / cover no-repeat, linear-gradient(180deg,#123a5c 0%,#3b2a6b 45%,#d97706 80%,#7c2d12 100%)' },
   { nombre: 'Fuego', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
     bg: 'radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
   { nombre: 'Aurora', grad: 'linear-gradient(135deg,#22d3ee,#34d399)',
@@ -491,9 +491,9 @@ const TEMAS = [
     bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' },
   // Playa y Bosque son FOTOS REALES (Pexels, uso libre) con degradado de respaldo
   { nombre: 'Playa', grad: 'linear-gradient(135deg,#5fd4d0,#b5ecf2)',
-    bg: 'url("icons/playa.jpg") center / cover no-repeat, linear-gradient(180deg,#9fdfe6 0%,#5cc4cf 55%,#3aa7bd 100%)' },
+    bg: 'url(icons/playa.jpg) center / cover no-repeat, linear-gradient(180deg,#9fdfe6 0%,#5cc4cf 55%,#3aa7bd 100%)' },
   { nombre: 'Bosque', grad: 'linear-gradient(135deg,#4c6b35,#c8dd8a)',
-    bg: 'url("icons/bosque.jpg") center / cover no-repeat, linear-gradient(180deg,#8a9a54 0%,#5c6e38 45%,#26331a 100%)' },
+    bg: 'url(icons/bosque.jpg) center / cover no-repeat, linear-gradient(180deg,#8a9a54 0%,#5c6e38 45%,#26331a 100%)' },
   // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario
   { nombre: 'Tus colores', custom: true, grad: '', bg: '' }
 ];
@@ -505,23 +505,31 @@ function mixHex(a, b, t) {
   return '#' + pa.map((v, i) => Math.round(v + (pb[i] - v) * t).toString(16).padStart(2, '0')).join('');
 }
 
+// Nombre del tema → slug para su clase CSS (tema-<slug>)
+function temaSlug(nombre) {
+  return (nombre || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+}
+
 // Tema personalizado: con 1-2 colores arma un fondo SEDOSO estilo Y2K
-// (bandas claras/oscuras del mismo color, nada recargado)
-function customTema(cols) {
+// (bandas claras/oscuras del mismo color, nada recargado). Si anim=true, el
+// fondo es UN gradiente pandeable que fluye entre los colores (clase .anim).
+function customTema(cols, anim) {
   const c1 = (cols && cols[0]) || '#8b5cf6';
   const c2 = (cols && cols[1]) || mixHex(c1, '#0b1020', 0.38);
   const l1 = mixHex(c1, '#ffffff', 0.72), l2 = mixHex(c2, '#ffffff', 0.66);
   return {
     nombre: 'Tus colores', custom: true,
     grad: `linear-gradient(135deg,${c1},${c2})`,
-    bg: `radial-gradient(150px 95px at 24% 20%, rgba(255,255,255,.8), transparent 70%), radial-gradient(190px 120px at 78% 55%, rgba(255,255,255,.42), transparent 70%), radial-gradient(120px 80px at 40% 86%, rgba(255,255,255,.38), transparent 70%), linear-gradient(160deg, ${l1} 0%, ${c1} 22%, ${l2} 38%, ${c2} 56%, ${l1} 72%, ${c1} 88%, ${l2} 100%)`
+    bg: anim
+      ? `linear-gradient(115deg, ${l1} 0%, ${c1} 25%, ${l2} 50%, ${c2} 75%, ${l1} 100%)`
+      : `radial-gradient(150px 95px at 24% 20%, rgba(255,255,255,.8), transparent 70%), radial-gradient(190px 120px at 78% 55%, rgba(255,255,255,.42), transparent 70%), radial-gradient(120px 80px at 40% 86%, rgba(255,255,255,.38), transparent 70%), linear-gradient(160deg, ${l1} 0%, ${c1} 22%, ${l2} 38%, ${c2} 56%, ${l1} 72%, ${c1} 88%, ${l2} 100%)`
   };
 }
 
 // Tema efectivo del borrador (resuelve el personalizado con sus colores)
 function temaActual() {
   const t = TEMAS[draft.tema] || TEMAS[0];
-  return t.custom ? customTema(draft.temaColors) : t;
+  return t.custom ? customTema(draft.temaColors, draft.temaAnim) : t;
 }
 
 // Tipografías (no se muestran todas: se abren en un selector)
@@ -560,7 +568,10 @@ const EFECTOS = [
   { id: 'grano',     nombre: 'Cámara',    emoji: '📹' },
   { id: 'lluvia',      nombre: 'Lluvia',         emoji: '🌧️' },
   { id: 'luciernagas', nombre: 'Luciérnagas',    emoji: '🌟' },
-  { id: 'aurora',      nombre: 'Aurora boreal',  emoji: '🌌' }
+  { id: 'aurora',      nombre: 'Aurora boreal',  emoji: '🌌' },
+  { id: 'laser',       nombre: 'Láser',          emoji: '✴️' },
+  { id: 'estrobo',     nombre: 'Estrobo',        emoji: '⚡' },
+  { id: 'bengalas',    nombre: 'Bengalas',       emoji: '🎇' }
 ];
 
 // Animaciones para boletos especiales (el usuario elige)
@@ -585,6 +596,7 @@ function nuevoDraft() {
     // Por defecto arranca con el tema PERSONALIZADO (suave, con tus colores)
     tema: TEMAS.findIndex((t) => t.custom),
     temaColors: ['#8b5cf6', '#38bdf8'], // colores del tema personalizado (1-2)
+    temaAnim: false,                    // si el tema personalizado fluye animado
     efecto: 'ninguno',           // tipo de efecto del fondo
     tituloFont: 'classic',       // estilo de letra del título
     descripcion: '',
@@ -661,6 +673,7 @@ function editarFiesta(id) {
   draft.listaVisible = e.listaVisible || 'confirmados';
   draft.tema = e.tema || 0;
   if (e.temaColors && e.temaColors.length) draft.temaColors = e.temaColors.slice();
+  draft.temaAnim = !!e.temaAnim;
   draft.tituloFont = e.tituloFont || 'classic';
   draft.descripcion = e.descripcion || '';
   draft.dressCode = e.dressCode || '';
@@ -739,8 +752,10 @@ function pintarCrear() {
   document.body.classList.add('creando');
   let temaBg = document.getElementById('temaBg');
   if (!temaBg) { temaBg = document.createElement('div'); temaBg.id = 'temaBg'; document.body.prepend(temaBg); }
-  const slug = (t.nombre || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  const slug = temaSlug(t.nombre);
   temaBg.className = 'tema-' + slug;
+  // Tus colores + animado: el gradiente fluye entre los colores elegidos
+  if (t.custom && draft.temaAnim) temaBg.classList.add('anim');
   temaBg.style.background = t.bg;
   // Nada se repite en mosaico: cada capa es parte de UNA escena (no un patrón)
   temaBg.style.backgroundRepeat = 'no-repeat';
@@ -933,12 +948,12 @@ function pintarEfecto() {
   layer.className = 'efx-layer efx-' + e;
   document.body.appendChild(layer);
   if (e === 'grano') layer.insertAdjacentHTML('beforeend', '<div class="efx-vhs-band"></div>');
-  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos', 'lluvia', 'luciernagas'];
-  if (!conParticulas.includes(e)) return; // humo/grano/aurora son solo capas CSS
+  const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos', 'lluvia', 'luciernagas', 'laser', 'bengalas'];
+  if (!conParticulas.includes(e)) return; // humo/grano/aurora/estrobo son solo capas CSS
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pick = (a) => a[Math.floor(Math.random() * a.length)];
   const cols = ['#f43f5e', '#fb7185', '#fbbf24', '#facc15', '#34d399', '#22d3ee', '#38bdf8', '#a855f7', '#f472b6', '#ffffff'];
-  const counts = { confeti: 34, burbujas: 26, destellos: 42, nieve: 44, corazones: 24, rayos: 5, lluvia: 64, luciernagas: 18 };
+  const counts = { confeti: 34, burbujas: 26, destellos: 42, nieve: 44, corazones: 24, rayos: 5, lluvia: 64, luciernagas: 18, laser: 9, bengalas: 54 };
   const n = counts[e];
   for (let i = 0; i < n; i++) {
     const s = document.createElement('span');
@@ -986,6 +1001,20 @@ function pintarEfecto() {
       const ld = rnd(0.7, 1.3) * kDur;
       s.className = 'efp-rain';
       s.style.cssText = `${blur}left:${leftPct}%;height:${h}px;--sway:${rnd(-26, 6)}px;animation-duration:${ld}s;animation-delay:-${rnd(0, ld)}s`;
+    } else if (e === 'laser') {
+      // láseres de antro: líneas delgadas saturadas que barren desde arriba
+      const c = pick(['0,255,140', '255,0,170', '0,210,255', '255,230,0', '170,80,255']);
+      const dur = rnd(1.6, 3.4);
+      s.className = 'efp-laser';
+      s.style.cssText = `left:${leftPct}%;--swing:${rnd(24, 46)}deg;background:linear-gradient(180deg, rgba(${c},.9), rgba(${c},.25) 70%, transparent);box-shadow:0 0 6px rgba(${c},.8), 0 0 18px rgba(${c},.4);animation-duration:${dur}s;animation-delay:-${rnd(0, dur)}s`;
+    } else if (e === 'bengalas') {
+      // bengalas frías (como en las mesas del antro): chispas que brotan
+      // hacia arriba desde 3 fuentes y se apagan
+      const cx2 = pick([18, 50, 82]) + rnd(-4, 4);
+      const bd = rnd(0.8, 1.7);
+      const sz = rnd(1.8, 3.2);
+      s.className = 'efp-chispa';
+      s.style.cssText = `left:${cx2.toFixed(1)}%;width:${sz.toFixed(1)}px;height:${sz.toFixed(1)}px;--dx:${rnd(-46, 46).toFixed(0)}px;--alto:${rnd(-46, -24).toFixed(0)}vh;animation-duration:${bd.toFixed(2)}s;animation-delay:-${rnd(0, bd).toFixed(2)}s`;
     } else if (e === 'luciernagas') {
       // puntitos ámbar que vagan lento y parpadean (dos animaciones)
       const sz = rnd(3, 5.5) * kProf;
@@ -1130,7 +1159,9 @@ function agregarPregunta() {
 function delPregunta(i) { draft.preguntas.splice(i, 1); pintarCrear(); }
 
 // Elegir tema de fondo. "Tus colores" va HASTA ARRIBA: un toque lo equipa
-// y el lápiz abre el editor de colores (así sí se puede equipar directo).
+// y el lápiz abre el editor de colores. Cada mosaico trae VISTA PREVIA REAL:
+// un div con la clase tema-<slug> renderiza la escena completa (bola disco,
+// llamas, auroras…) en miniatura y ANIMADA, no solo el gradiente.
 function abrirTemas() {
   const idxC = TEMAS.findIndex((t) => t.custom);
   const orden = [idxC, ...TEMAS.map((_, i) => i).filter((i) => i !== idxC)];
@@ -1138,9 +1169,11 @@ function abrirTemas() {
     <div class="tema-grid">
       ${orden.map((i) => {
         const t = TEMAS[i];
-        const tt = t.custom ? customTema(draft.temaColors) : t;
+        const tt = t.custom ? customTema(draft.temaColors, draft.temaAnim) : t;
+        const anim = t.custom && draft.temaAnim ? ' anim' : '';
         return `
-        <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" style="background:${tt.bg}" onclick="setTema(${i})">
+        <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" onclick="setTema(${i})">
+          <span class="tema-prev tema-${temaSlug(t.nombre)}${anim}" style="background:${tt.bg}"></span>
           ${t.custom ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirTemaCustom()" title="Cambiar colores">✎</span>` : ''}
           <span class="tema-pill" style="background:${tt.grad}"></span>
           <small>${t.custom ? '🎨 ' : ''}${t.nombre}</small>
@@ -1158,10 +1191,10 @@ function setTema(i) {
   toast(`Tema: ${tt.nombre}`);
 }
 
-// --- Tema personalizado: elegir 1 o 2 colores y listo ---
+// --- Tema personalizado: elegir 1 o 2 colores (y si fluye animado) ---
 function abrirTemaCustom() {
   const dos = draft.temaColors.length > 1;
-  const t = customTema(draft.temaColors);
+  const t = customTema(draft.temaColors, draft.temaAnim);
   abrirSheet('Tus colores', `
     <p class="hint">Elige 1 o 2 colores y armamos un fondo suave y sedoso con ellos (para quienes no quieren fondos tan llenos).</p>
     <div class="cc-row">
@@ -1174,22 +1207,29 @@ function abrirTemaCustom() {
         </label>
         <button class="chip" onclick="quitarColorCustom()">✕ Solo un color</button>`
       : `<button class="chip" onclick="agregarColorCustom()">＋ Segundo color</button>`}
+      <button class="chip ${draft.temaAnim ? 'is-active' : ''}" onclick="toggleTemaAnim()">✨ Animado</button>
     </div>
-    <div class="cc-prev" id="ccPrev" style="background:${t.bg}"></div>
+    <div class="cc-prev ${draft.temaAnim ? 'anim' : ''}" id="ccPrev" style="background:${t.bg}"></div>
     <button class="btn full" onclick="aplicarTemaCustom()">Usar estos colores</button>
   `);
 }
 function setColorCustom(i, v) {
   draft.temaColors[i] = v;
   const prev = document.getElementById('ccPrev');
-  if (prev) prev.style.background = customTema(draft.temaColors).bg;
+  if (prev) prev.style.background = customTema(draft.temaColors, draft.temaAnim).bg;
   const sw = document.querySelectorAll('.cc-swatch')[i];
   if (sw) sw.style.background = v;
   // Si ya está activo, el fondo de la página se actualiza en vivo
   if ((TEMAS[draft.tema] || {}).custom) {
     const bg = document.getElementById('temaBg');
-    if (bg) bg.style.background = customTema(draft.temaColors).bg;
+    if (bg) bg.style.background = customTema(draft.temaColors, draft.temaAnim).bg;
   }
+}
+// El fondo personalizado puede FLUIR animado entre los colores elegidos
+function toggleTemaAnim() {
+  draft.temaAnim = !draft.temaAnim;
+  abrirTemaCustom();
+  if ((TEMAS[draft.tema] || {}).custom) pintarCrear();
 }
 function agregarColorCustom() {
   draft.temaColors[1] = mixHex(draft.temaColors[0], '#38bdf8', 0.6);
@@ -1727,6 +1767,7 @@ function guardarFiesta() {
     coverTextos: draft.cover.textos.map((t) => ({ ...t })),
     tema: draft.tema,
     temaColors: draft.temaColors.slice(),
+    temaAnim: !!draft.temaAnim,
     tituloFont: draft.tituloFont,
     descripcion: draft.descripcion.trim(),
     dressCode: draft.dressCode.trim(),
@@ -3399,6 +3440,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'ajustesEvento') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirAjustesEvento(); }
   if (p.get('sheet') === 'editar')  editarPerfil();
   if (p.get('sheet') === 'temaCustom') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirTemaCustom(); }
+  if (p.get('sheet') === 'temas') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirTemas(); }
   if (p.get('sheet') === 'pases') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('profile'); abrirPases(); }
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('paso')) { draft.paso = +p.get('paso'); pintarCrear(); }
