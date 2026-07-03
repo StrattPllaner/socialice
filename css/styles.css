@@ -2643,24 +2643,42 @@ body[data-screen="create"] .bottom-nav { display: none; }
 @media (min-width: 900px) {
   .crear-page {
     max-width: 1750px;
-    display: grid; grid-template-columns: minmax(340px, 460px) minmax(0, 1fr);
+    display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
     column-gap: 40px; align-items: start;
     padding-left: 40px; padding-right: 40px;
   }
-  .crear-bar { grid-column: 1 / -1; grid-row: 1; }
+  /* La barra de arriba se queda pegada al hacer scroll (Guardar siempre a la vista) */
+  .crear-bar { grid-column: 1 / -1; grid-row: 1; position: sticky; top: 10px; z-index: 30; pointer-events: none; }
+  .crear-bar > * { pointer-events: auto; }
   .cr-left, .cr-mid, .cr-right { display: block; min-width: 0; }
   .cr-left { grid-column: 1; grid-row: 2 / span 2; position: sticky; top: calc(16px + env(safe-area-inset-top)); }
   .cr-mid { grid-column: 2; grid-row: 2; }
   .cr-right { grid-column: 2; grid-row: 3; }
+  /* La descripción respira más en pantalla grande */
+  .crear-desc { min-height: 150px; }
+  /* La barra Tema/Efecto/Ajustes se ancla ABAJO-DERECHA en tablet (flota
+     sobre contenido que hace scroll, nunca sobre la columna fija) */
+  .crear-toolbar {
+    left: auto; transform: none;
+    right: max(40px, calc((100vw - 1750px) / 2 + 40px));
+    bottom: 22px;
+    box-shadow: 0 14px 44px rgba(0,0,0,.5);
+  }
 }
 
 /* CREAR en laptop: TRES columnas — todo distribuido hasta los lados.
    Portada | formulario (organiza/datos/descripción/mapa) | boletos+posts */
 @media (min-width: 1280px) {
-  .crear-page { grid-template-columns: minmax(320px, 440px) minmax(0, 1fr) minmax(0, 1fr); column-gap: 44px; }
+  .crear-page { grid-template-columns: minmax(300px, 380px) minmax(0, 1fr) minmax(0, 1fr); column-gap: 44px; }
   .cr-mid { grid-column: 2; grid-row: 2; }
   .cr-right { grid-column: 3; grid-row: 2; }
-  .cr-right > .row-between:first-child { margin-top: 0; }
+  /* Los inicios de columna quedan al mismo nivel */
+  .cr-right > .row-between:first-child { margin-top: 4px; margin-bottom: 14px; }
+  /* En laptop la barra vive abajo-izquierda, bajo la portada fija */
+  .crear-toolbar {
+    right: auto;
+    left: max(40px, calc((100vw - 1750px) / 2 + 40px));
+  }
 }
 
 /* ================================================================== */
