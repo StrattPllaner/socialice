@@ -465,8 +465,6 @@ const TEMAS = [
     bg: 'radial-gradient(70% 30% at 50% 40%, rgba(255,43,214,.35), transparent 65%), linear-gradient(180deg,#0a0424 0%,#1a0640 55%,#2a0a55 100%)' },
   { nombre: 'Disco', grad: 'linear-gradient(135deg,#c0c8dd,#7b6bf0)',
     bg: 'radial-gradient(70% 45% at 50% 0%, rgba(130,100,230,.4), transparent 70%), radial-gradient(34% 26% at 16% 62%, rgba(244,114,182,.22), transparent 70%), radial-gradient(30% 24% at 82% 44%, rgba(56,189,248,.2), transparent 70%), radial-gradient(30% 26% at 48% 84%, rgba(168,85,247,.24), transparent 70%), radial-gradient(110% 40% at 50% 108%, rgba(80,60,150,.45), transparent 70%), linear-gradient(180deg,#1a1229 0%,#130d20 55%,#0a0716 100%)' },
-  { nombre: 'Alberca', grad: 'linear-gradient(135deg,#22d3ee,#0ea5e9)',
-    bg: 'radial-gradient(60% 30% at 30% 18%, rgba(255,255,255,.35), transparent 65%), radial-gradient(50% 26% at 74% 48%, rgba(255,255,255,.25), transparent 65%), radial-gradient(55% 28% at 40% 78%, rgba(255,255,255,.22), transparent 65%), linear-gradient(180deg,#67e3f4 0%,#22b8e6 45%,#0b7fc4 100%)' },
   { nombre: 'Holográfico', grad: 'linear-gradient(135deg,#a1c4fd,#fbc2eb)',
     bg: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 22%, #fbc2eb 50%, #c2a8ff 76%, #8ec5fc 100%)' },
   { nombre: 'Iridiscente', grad: 'linear-gradient(135deg,#a8edea,#fed6e3)',
@@ -475,16 +473,14 @@ const TEMAS = [
     bg: 'radial-gradient(circle 110px at 76% 20%, rgba(255,255,255,.4), transparent 65%), linear-gradient(135deg,#ff9a9e 0%,#fecfef 45%,#a18cd1 100%)' },
   { nombre: 'Cromo', grad: 'linear-gradient(135deg,#c9d6ff,#e2e2e2)',
     bg: 'linear-gradient(135deg, #e2e2e2 0%, #9aa7c7 20%, #f5f7fa 40%, #aab4d4 60%, #f5f7fa 80%, #9aa7c7 100%)' },
-  { nombre: 'Mango', grad: 'linear-gradient(135deg,#f6d365,#fda085)',
-    bg: 'radial-gradient(circle 62px at 50% 62%, #fff2b8 0 52%, #ffd166 68%, transparent 80%), radial-gradient(75% 38% at 50% 66%, rgba(255,140,60,.5), transparent 70%), linear-gradient(180deg,#f6d365 0%,#fda085 55%,#c2456b 100%)' },
   { nombre: 'Menta', grad: 'linear-gradient(135deg,#84fab0,#8fd3f4)',
     bg: 'radial-gradient(70% 40% at 24% 18%, rgba(255,255,255,.35), transparent 65%), linear-gradient(135deg,#84fab0 0%,#8fd3f4 60%,#5b6ef0 100%)' },
   { nombre: 'Tropical', grad: 'linear-gradient(135deg,#10b981,#fbbf24)',
     bg: 'url("icons/tropical.jpg") center / cover no-repeat, linear-gradient(180deg,#123a5c 0%,#3b2a6b 45%,#d97706 80%,#7c2d12 100%)' },
   { nombre: 'Fuego', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
-    bg: 'radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
+    bg: 'url("icons/fuego.jpg") center / cover no-repeat, radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
   { nombre: 'Aurora', grad: 'linear-gradient(135deg,#22d3ee,#34d399)',
-    bg: 'radial-gradient(60% 42% at 24% 24%, #34d399, transparent 60%), radial-gradient(55% 46% at 76% 34%, #22d3ee, transparent 60%), radial-gradient(62% 52% at 56% 82%, #6366f1, transparent 60%), #041410' },
+    bg: 'radial-gradient(1.6px 1.6px at 18% 22%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 64% 12%, #dfefff 60%, transparent), radial-gradient(1.8px 1.8px at 84% 30%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 35% 42%, #cfeaf5 60%, transparent), radial-gradient(1.6px 1.6px at 50% 7%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 10% 58%, #fff 60%, transparent), linear-gradient(180deg,#03111e 0%,#04202b 55%,#020d14 100%)' },
   { nombre: 'Galaxia', grad: 'linear-gradient(135deg,#7c3aed,#ec4899)',
     bg: 'radial-gradient(60% 46% at 30% 24%, #5b21b6, transparent 62%), radial-gradient(55% 50% at 76% 60%, #9d174d, transparent 62%), radial-gradient(40% 34% at 60% 12%, rgba(56,189,248,.25), transparent 65%), radial-gradient(1.8px 1.8px at 18% 18%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 34% 40%, #e9d5ff 60%, transparent), radial-gradient(2.2px 2.2px at 55% 26%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 72% 14%, #fff 60%, transparent), radial-gradient(1.8px 1.8px at 88% 42%, #e9d5ff 60%, transparent), radial-gradient(1.4px 1.4px at 12% 58%, #fff 60%, transparent), radial-gradient(2px 2px at 44% 70%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 66% 84%, #e9d5ff 60%, transparent), radial-gradient(1.8px 1.8px at 90% 76%, #fff 60%, transparent), #08041a' },
   { nombre: 'Fiesta', grad: 'linear-gradient(135deg,#f472b6,#fbbf24)',
@@ -1104,7 +1100,7 @@ function agregarCoanfitrion() {
   abrirSheet('Agregar co‑anfitriones', `
     <p class="hint">Toca a tus amigos para sumarlos como organizadores.</p>
     <div class="chips-row mini wrap">
-      ${DATA.amigos.map((a) => `<button class="chip" onclick="addOrgObj('${a.nombre}','${a.avatar}'); cerrarSheet()">${a.avatar} ${a.nombre.split(' ')[0]}</button>`).join('')}
+      ${DATA.amigos.map((a) => `<button class="chip" onclick="addOrgObj('${a.nombre}','${a.avatar}','${a.color}'); cerrarSheet()">${a.avatar} ${a.nombre.split(' ')[0]}</button>`).join('')}
     </div>
   `);
 }
@@ -1124,15 +1120,19 @@ function agregarPregunta() {
 }
 function delPregunta(i) { draft.preguntas.splice(i, 1); pintarCrear(); }
 
-// Elegir tema de fondo (el personalizado se pinta con los colores elegidos)
+// Elegir tema de fondo. "Tus colores" va HASTA ARRIBA: un toque lo equipa
+// y el lápiz abre el editor de colores (así sí se puede equipar directo).
 function abrirTemas() {
+  const idxC = TEMAS.findIndex((t) => t.custom);
+  const orden = [idxC, ...TEMAS.map((_, i) => i).filter((i) => i !== idxC)];
   abrirSheet('Tema del evento', `
     <div class="tema-grid">
-      ${TEMAS.map((t, i) => {
+      ${orden.map((i) => {
+        const t = TEMAS[i];
         const tt = t.custom ? customTema(draft.temaColors) : t;
-        const click = t.custom ? 'abrirTemaCustom()' : `setTema(${i})`;
         return `
-        <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" style="background:${tt.bg}" onclick="${click}">
+        <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" style="background:${tt.bg}" onclick="setTema(${i})">
+          ${t.custom ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirTemaCustom()" title="Cambiar colores">✎</span>` : ''}
           <span class="tema-pill" style="background:${tt.grad}"></span>
           <small>${t.custom ? '🎨 ' : ''}${t.nombre}</small>
         </button>`;
@@ -1141,11 +1141,12 @@ function abrirTemas() {
   `);
 }
 function setTema(i) {
+  const tt = TEMAS[i].custom ? customTema(draft.temaColors) : TEMAS[i];
   draft.tema = i;
-  draft.cover.grad = TEMAS[i].grad;
+  draft.cover.grad = tt.grad;
   cerrarSheet();
   pintarCrear();
-  toast(`Tema: ${TEMAS[i].nombre}`);
+  toast(`Tema: ${tt.nombre}`);
 }
 
 // --- Tema personalizado: elegir 1 o 2 colores y listo ---
@@ -1244,7 +1245,7 @@ function pasoHTML(paso) {
     </div>
     <p class="filtro-label" style="margin-top:6px">Sugerencias</p>
     <div class="chips-row mini wrap">
-      ${DATA.amigos.map((a) => `<button class="chip" onclick="addOrgObj('${a.nombre}','${a.avatar}')">${a.avatar} ${a.nombre.split(' ')[0]}</button>`).join('')}
+      ${DATA.amigos.map((a) => `<button class="chip" onclick="addOrgObj('${a.nombre}','${a.avatar}','${a.color}')">${a.avatar} ${a.nombre.split(' ')[0]}</button>`).join('')}
     </div>
     <div id="orgList" style="margin-top:14px"></div>`;
   if (paso === 4) return pasoPlano();
@@ -1539,11 +1540,12 @@ function resizeTitulo(d) {
 function pintarOrganizadores() {
   const cont = document.getElementById('orgList');
   if (!cont) return;
-  // Sin estado vacío: si no hay equipo, no ocupa espacio
+  // Sin estado vacío: si no hay equipo, no ocupa espacio.
+  // MISMA fila que el anfitrión (avatar de color + nombre, sin cajita).
   cont.innerHTML = draft.organizadores.map((o, i) => `
         <div class="org-row">
-          <div class="org-ava">${o.avatar}</div>
-          <span class="org-name">${o.nombre}</span>
+          <span class="host-ava" style="background:${o.color || 'var(--grad-cool)'}">${o.avatar}</span>
+          <strong>${o.nombre}</strong>
           <button class="guest-del" onclick="delOrganizador(${i})">✕</button>
         </div>`).join('');
 }
@@ -1555,9 +1557,9 @@ function addOrganizador() {
   inp.value = '';
   pintarOrganizadores();
 }
-function addOrgObj(nombre, avatar) {
+function addOrgObj(nombre, avatar, color) {
   if (draft.organizadores.some((o) => o.nombre === nombre)) return;
-  draft.organizadores.push({ nombre, avatar });
+  draft.organizadores.push({ nombre, avatar, color: color || 'var(--grad-cool)' });
   pintarOrganizadores();
   toast(`${nombre.split(' ')[0]} agregado al equipo`);
 }
