@@ -2635,20 +2635,32 @@ body[data-screen="create"] .bottom-nav { display: none; }
 @media (min-width: 1000px) { .crear-page { padding-bottom: 120px; } }
 
 /* En teléfono los wrappers de crear no afectan el flujo */
-.cr-left, .cr-right { display: contents; }
+.cr-left, .cr-mid, .cr-right { display: contents; }
 
-/* CREAR en laptop/tablet: DOS columnas que aprovechan todo el espacio.
+/* CREAR en tablet: DOS columnas a lo ancho.
    Izquierda (fija al hacer scroll): título + portada cuadrada + fecha.
-   Derecha: organiza, datos, descripción, mapa, boletos, publicaciones. */
+   Derecha: el resto (formulario arriba, boletos/publicaciones abajo). */
 @media (min-width: 900px) {
   .crear-page {
-    max-width: 1200px;
-    display: grid; grid-template-columns: minmax(360px, 470px) minmax(0, 1fr);
-    column-gap: 44px; align-items: start;
+    max-width: 1750px;
+    display: grid; grid-template-columns: minmax(340px, 460px) minmax(0, 1fr);
+    column-gap: 40px; align-items: start;
+    padding-left: 40px; padding-right: 40px;
   }
-  .crear-bar { grid-column: 1 / -1; }
-  .cr-left, .cr-right { display: block; min-width: 0; }
-  .cr-left { position: sticky; top: calc(16px + env(safe-area-inset-top)); }
+  .crear-bar { grid-column: 1 / -1; grid-row: 1; }
+  .cr-left, .cr-mid, .cr-right { display: block; min-width: 0; }
+  .cr-left { grid-column: 1; grid-row: 2 / span 2; position: sticky; top: calc(16px + env(safe-area-inset-top)); }
+  .cr-mid { grid-column: 2; grid-row: 2; }
+  .cr-right { grid-column: 2; grid-row: 3; }
+}
+
+/* CREAR en laptop: TRES columnas — todo distribuido hasta los lados.
+   Portada | formulario (organiza/datos/descripción/mapa) | boletos+posts */
+@media (min-width: 1280px) {
+  .crear-page { grid-template-columns: minmax(320px, 440px) minmax(0, 1fr) minmax(0, 1fr); column-gap: 44px; }
+  .cr-mid { grid-column: 2; grid-row: 2; }
+  .cr-right { grid-column: 3; grid-row: 2; }
+  .cr-right > .row-between:first-child { margin-top: 0; }
 }
 
 /* ================================================================== */

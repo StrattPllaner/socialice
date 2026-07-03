@@ -810,7 +810,7 @@ function pintarCrear() {
         </div>
       </div>
       </div>
-      <div class="cr-right">
+      <div class="cr-mid">
 
       <!-- Anfitrión: botones arriba junto al título, sin estado vacío -->
       <div class="crear-block host-block">
@@ -866,6 +866,9 @@ function pintarCrear() {
         </div>
         <div class="venue-controls" id="venueControls"></div>
       </div>
+
+      </div>
+      <div class="cr-right">
 
       <!-- Boletos y zonas (con animación para boletos especiales) -->
       <div class="row-between"><h3>Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>
