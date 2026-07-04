@@ -489,9 +489,10 @@ const TEMAS = [
     bg: 'radial-gradient(circle 60px at 82% 14%, rgba(255,250,220,.9) 0 40%, rgba(255,250,220,.35) 62%, transparent 78%), linear-gradient(180deg,#7dd3fc 0%,#38bdf8 40%,#0284c7 100%)' },
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
     bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' },
-  // Playa y Bosque son FOTOS REALES (Pexels, uso libre) con degradado de respaldo
+  // Playa es VIDEO real (icons/playa.mp4); el gradiente aqua es solo el
+  // respaldo si el video no puede reproducirse. Bosque es foto real.
   { nombre: 'Playa', grad: 'linear-gradient(135deg,#5fd4d0,#b5ecf2)',
-    bg: 'url(icons/playa.jpg) center / cover no-repeat, linear-gradient(180deg,#9fdfe6 0%,#5cc4cf 55%,#3aa7bd 100%)' },
+    bg: 'linear-gradient(180deg,#c6ebe6 0%,#9fd8d4 55%,#7ec4c4 100%)' },
   { nombre: 'Bosque', grad: 'linear-gradient(135deg,#4c6b35,#c8dd8a)',
     bg: 'url(icons/bosque.jpg) center / cover no-repeat, linear-gradient(180deg,#8a9a54 0%,#5c6e38 45%,#26331a 100%)' },
   // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario
@@ -777,16 +778,17 @@ function pintarCrear() {
     }
     temaBg.appendChild(wrap);
   }
-  // Playa: el fondo es un VIDEO REAL de agua (icons/playa.mp4, 1080p en loop);
-  // la foto queda de póster mientras carga y las capas CSS se apagan.
+  // Playa: el fondo es un VIDEO REAL de agua (icons/playa.mp4, 1080p en loop)
+  // reproducido MÁS LENTO (0.55x) para que el agua ondule con calma.
   if (slug === 'playa') {
     temaBg.classList.add('con-video');
     const v = document.createElement('video');
     v.className = 'tema-video';
     v.src = 'icons/playa.mp4';
-    v.poster = 'icons/playa.jpg';
     v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
     v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+    v.playbackRate = 0.55;
+    v.addEventListener('loadeddata', () => { v.playbackRate = 0.55; });
     temaBg.appendChild(v);
     v.play().catch(() => {});
   }
@@ -1184,9 +1186,12 @@ function abrirTemas() {
         const t = TEMAS[i];
         const tt = t.custom ? customTema(draft.temaColors, draft.temaAnim) : t;
         const anim = t.custom && draft.temaAnim ? ' anim' : '';
+        const slug = temaSlug(t.nombre);
+        // Playa: la vista previa también es el VIDEO (no queda nada del diseño viejo)
+        const video = slug === 'playa' ? '<video src="icons/playa.mp4" muted loop autoplay playsinline></video>' : '';
         return `
         <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" onclick="setTema(${i})">
-          <span class="tema-prev tema-${temaSlug(t.nombre)}${anim}" style="background:${tt.bg}"></span>
+          <span class="tema-prev tema-${slug}${anim}" style="background:${tt.bg}">${video}</span>
           ${t.custom ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirTemaCustom()" title="Cambiar colores">✎</span>` : ''}
           <span class="tema-pill" style="background:${tt.grad}"></span>
           <small>${t.custom ? '🎨 ' : ''}${t.nombre}</small>
@@ -1194,6 +1199,12 @@ function abrirTemas() {
       }).join('')}
     </div>
   `);
+  // El video de la vista previa también va lento y arranca aunque el
+  // autoplay del markup se quede dormido
+  document.querySelectorAll('.tema-prev video').forEach((v) => {
+    v.playbackRate = 0.55;
+    v.play().catch(() => {});
+  });
 }
 function setTema(i) {
   const tt = TEMAS[i].custom ? customTema(draft.temaColors) : TEMAS[i];

@@ -3303,32 +3303,12 @@ body.creando .chip {
   animation: glareSweep 8s ease-in-out infinite alternate;
 }
 
-/* 🏖️ Playa: VIDEO REAL de agua en loop (icons/playa.mp4). El video llena la
-   pantalla sin deformarse (object-fit cover) y mientras carga se ve la foto.
-   Cuando el video está puesto (.con-video), las capas CSS se apagan. */
+/* 🏖️ Playa: VIDEO REAL de agua en loop (icons/playa.mp4, a 0.55x para que
+   ondule con calma). Llena la pantalla sin deformarse (object-fit cover);
+   si el video no puede reproducirse, queda el gradiente aqua del tema. */
 .tema-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 #temaBg.con-video::before, #temaBg.con-video::after { display: none; }
-/* Respaldo (si el video no puede reproducirse): la foto con deriva doble —
-   dos copias en direcciones opuestas; la de arriba en soft-light ondula */
-.tema-playa::before {
-  content: ''; position: absolute; inset: -5%;
-  background: url("../icons/playa.jpg") center / cover no-repeat;
-  animation: aguaDeriva 13s ease-in-out infinite alternate;
-}
-@keyframes aguaDeriva {
-  from { transform: translate(-1.4%, -1%); }
-  to   { transform: translate(1.4%, 1%); }
-}
-.tema-playa::after {
-  content: ''; position: absolute; inset: -5%;
-  background: url("../icons/playa.jpg") center / cover no-repeat;
-  mix-blend-mode: soft-light; opacity: .7;
-  animation: aguaDeriva2 8.5s ease-in-out infinite alternate;
-}
-@keyframes aguaDeriva2 {
-  from { transform: translate(1.2%, .9%); }
-  to   { transform: translate(-1.2%, -.9%); }
-}
+.tema-prev video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
 /* 🌲 Bosque: FOTO REAL (icons/bosque.jpg) con Ken Burns lento + rayos de
    luz cálida que se cuelan entre los troncos y derivan despacio */
