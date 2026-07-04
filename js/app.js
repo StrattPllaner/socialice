@@ -777,6 +777,19 @@ function pintarCrear() {
     }
     temaBg.appendChild(wrap);
   }
+  // Playa: el fondo es un VIDEO REAL de agua (icons/playa.mp4, 1080p en loop);
+  // la foto queda de póster mientras carga y las capas CSS se apagan.
+  if (slug === 'playa') {
+    temaBg.classList.add('con-video');
+    const v = document.createElement('video');
+    v.className = 'tema-video';
+    v.src = 'icons/playa.mp4';
+    v.poster = 'icons/playa.jpg';
+    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+    temaBg.appendChild(v);
+    v.play().catch(() => {});
+  }
 
   cont.innerHTML = `
     <div class="crear-page">

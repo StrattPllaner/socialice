@@ -3303,9 +3303,13 @@ body.creando .chip {
   animation: glareSweep 8s ease-in-out infinite alternate;
 }
 
-/* 🏖️ Playa: FOTO REAL de agua clarita (icons/playa.jpg). Movimiento NATURAL:
-   dos copias de la foto derivan en direcciones opuestas (sin zoom que
-   "estira"); la de arriba va en soft-light y el cruce ondula como agua real */
+/* 🏖️ Playa: VIDEO REAL de agua en loop (icons/playa.mp4). El video llena la
+   pantalla sin deformarse (object-fit cover) y mientras carga se ve la foto.
+   Cuando el video está puesto (.con-video), las capas CSS se apagan. */
+.tema-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+#temaBg.con-video::before, #temaBg.con-video::after { display: none; }
+/* Respaldo (si el video no puede reproducirse): la foto con deriva doble —
+   dos copias en direcciones opuestas; la de arriba en soft-light ondula */
 .tema-playa::before {
   content: ''; position: absolute; inset: -5%;
   background: url("../icons/playa.jpg") center / cover no-repeat;
