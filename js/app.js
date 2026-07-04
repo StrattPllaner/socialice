@@ -79,6 +79,9 @@ function irA(nombre) {
 function entrarApp() {
   pintarNav();
   irA('home');
+  // Los videos de fondo se precargan desde YA (en segundo plano): cuando el
+  // usuario llegue a los temas, arrancan al instante
+  calentarVideos();
 }
 
 // Moverse dentro del splash (bienvenida / rol / login / registro).
@@ -518,6 +521,41 @@ const TEMA_VIDEOS = {
   tropical: { src: 'icons/tropical.mp4', rate: 1 }
 };
 
+// Pool de <video>: cada video se crea UNA vez y se reutiliza al cambiar de
+// tema (nada de re-descargar ni re-arrancar desde cero)
+const _videoPool = {};
+function temaVideoEl(slug) {
+  const tv = TEMA_VIDEOS[slug];
+  if (!tv) return null;
+  let v = _videoPool[slug];
+  if (!v) {
+    v = document.createElement('video');
+    v.className = 'tema-video';
+    v.src = tv.src;
+    v.preload = 'auto';
+    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
+    v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
+    v.playbackRate = tv.rate;
+    v.addEventListener('loadeddata', () => { v.playbackRate = tv.rate; });
+    _videoPool[slug] = v;
+  }
+  return v;
+}
+
+// Precarga los videos en segundo plano (al entrar a crear, así al elegir el
+// tema ya están bajados; el SW los deja en la caché normal del navegador)
+let _videosCalentados = false;
+function calentarVideos() {
+  if (_videosCalentados) return;
+  _videosCalentados = true;
+  setTimeout(() => {
+    Object.keys(TEMA_VIDEOS).forEach((slug) => {
+      temaVideoEl(slug);
+      fetch(TEMA_VIDEOS[slug].src).catch(() => {});
+    });
+  }, 1200);
+}
+
 // Tema personalizado: con 1-2 colores arma un fondo SEDOSO estilo Y2K
 // (bandas claras/oscuras del mismo color, nada recargado). Si anim=true, el
 // fondo es UN gradiente pandeable que fluye entre los colores (clase .anim).
@@ -785,22 +823,15 @@ function pintarCrear() {
     }
     temaBg.appendChild(wrap);
   }
-  // Temas con VIDEO real de fondo (playa, tropical): se inyecta el <video>
-  // en loop, silencioso y a su velocidad configurada; si no puede
-  // reproducirse queda el gradiente del tema como respaldo.
-  const tv = TEMA_VIDEOS[slug];
-  if (tv) {
+  // Temas con VIDEO real de fondo (playa, tropical): se REUTILIZA el <video>
+  // del pool (ya precargado); si no puede reproducirse queda el gradiente.
+  const vEl = temaVideoEl(slug);
+  if (vEl) {
     temaBg.classList.add('con-video');
-    const v = document.createElement('video');
-    v.className = 'tema-video';
-    v.src = tv.src;
-    v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
-    v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-    v.playbackRate = tv.rate;
-    v.addEventListener('loadeddata', () => { v.playbackRate = tv.rate; });
-    temaBg.appendChild(v);
-    v.play().catch(() => {});
+    temaBg.appendChild(vEl);
+    vEl.play().catch(() => {});
   }
+  calentarVideos();
 
   cont.innerHTML = `
     <div class="crear-page">
