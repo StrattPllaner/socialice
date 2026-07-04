@@ -3287,13 +3287,8 @@ body.creando .chip {
     linear-gradient(50deg, #f472b6, #f472b6) 22% 74% / 8px 4px no-repeat;
 }
 
-/* 🌴 Tropical: FOTO REAL de palmeras al atardecer (icons/tropical.jpg) con
-   acercamiento lentísimo tipo Ken Burns para que se sienta viva */
-.tema-tropical::before {
-  content: ''; position: absolute; inset: 0;
-  background: url("../icons/tropical.jpg") center / cover no-repeat;
-  animation: fotoViva 20s ease-in-out infinite alternate;
-}
+/* 🌴 Tropical: VIDEO REAL de palmeras al atardecer (icons/tropical.mp4, en
+   loop); si no puede reproducirse queda el gradiente atardecer del tema */
 @keyframes fotoViva { from { transform: scale(1); } to { transform: scale(1.07) translate(-1%, .8%); } }
 
 /* 🌿 Menta: bandas de luz suaves que se mecen */

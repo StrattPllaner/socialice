@@ -475,8 +475,8 @@ const TEMAS = [
     bg: 'linear-gradient(135deg, #e2e2e2 0%, #9aa7c7 20%, #f5f7fa 40%, #aab4d4 60%, #f5f7fa 80%, #9aa7c7 100%)' },
   { nombre: 'Menta', grad: 'linear-gradient(135deg,#84fab0,#8fd3f4)',
     bg: 'radial-gradient(70% 40% at 24% 18%, rgba(255,255,255,.35), transparent 65%), linear-gradient(135deg,#84fab0 0%,#8fd3f4 60%,#5b6ef0 100%)' },
-  { nombre: 'Tropical', grad: 'linear-gradient(135deg,#10b981,#fbbf24)',
-    bg: 'url(icons/tropical.jpg) center / cover no-repeat, linear-gradient(180deg,#123a5c 0%,#3b2a6b 45%,#d97706 80%,#7c2d12 100%)' },
+  { nombre: 'Tropical', grad: 'linear-gradient(135deg,#f59e0b,#f97316)',
+    bg: 'linear-gradient(180deg,#f6b56b 0%,#ef9741 45%,#d96c1e 78%,#8a3a10 100%)' },
   { nombre: 'Fuego', grad: 'linear-gradient(135deg,#f59e0b,#ef4444)',
     bg: 'radial-gradient(85% 62% at 50% 122%, #fbbf24, #ef4444 34%, #7f1d1d 64%, #190606 100%)' },
   { nombre: 'Aurora', grad: 'linear-gradient(135deg,#22d3ee,#34d399)',
@@ -510,6 +510,13 @@ function mixHex(a, b, t) {
 function temaSlug(nombre) {
   return (nombre || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
 }
+
+// Temas cuyo fondo es un VIDEO real en loop (aportados por el usuario).
+// rate = velocidad de reproducción (la playa va lenta para que ondule con calma)
+const TEMA_VIDEOS = {
+  playa:    { src: 'icons/playa.mp4',    rate: 0.55 },
+  tropical: { src: 'icons/tropical.mp4', rate: 1 }
+};
 
 // Tema personalizado: con 1-2 colores arma un fondo SEDOSO estilo Y2K
 // (bandas claras/oscuras del mismo color, nada recargado). Si anim=true, el
@@ -778,17 +785,19 @@ function pintarCrear() {
     }
     temaBg.appendChild(wrap);
   }
-  // Playa: el fondo es un VIDEO REAL de agua (icons/playa.mp4, 1080p en loop)
-  // reproducido MÁS LENTO (0.55x) para que el agua ondule con calma.
-  if (slug === 'playa') {
+  // Temas con VIDEO real de fondo (playa, tropical): se inyecta el <video>
+  // en loop, silencioso y a su velocidad configurada; si no puede
+  // reproducirse queda el gradiente del tema como respaldo.
+  const tv = TEMA_VIDEOS[slug];
+  if (tv) {
     temaBg.classList.add('con-video');
     const v = document.createElement('video');
     v.className = 'tema-video';
-    v.src = 'icons/playa.mp4';
+    v.src = tv.src;
     v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
     v.setAttribute('muted', ''); v.setAttribute('playsinline', '');
-    v.playbackRate = 0.55;
-    v.addEventListener('loadeddata', () => { v.playbackRate = 0.55; });
+    v.playbackRate = tv.rate;
+    v.addEventListener('loadeddata', () => { v.playbackRate = tv.rate; });
     temaBg.appendChild(v);
     v.play().catch(() => {});
   }
@@ -1187,8 +1196,9 @@ function abrirTemas() {
         const tt = t.custom ? customTema(draft.temaColors, draft.temaAnim) : t;
         const anim = t.custom && draft.temaAnim ? ' anim' : '';
         const slug = temaSlug(t.nombre);
-        // Playa: la vista previa también es el VIDEO (no queda nada del diseño viejo)
-        const video = slug === 'playa' ? '<video src="icons/playa.mp4" muted loop autoplay playsinline></video>' : '';
+        // Temas con video: la vista previa también es el VIDEO real
+        const tv = TEMA_VIDEOS[slug];
+        const video = tv ? `<video src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>` : '';
         return `
         <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" onclick="setTema(${i})">
           <span class="tema-prev tema-${slug}${anim}" style="background:${tt.bg}">${video}</span>
@@ -1199,10 +1209,10 @@ function abrirTemas() {
       }).join('')}
     </div>
   `);
-  // El video de la vista previa también va lento y arranca aunque el
+  // Los videos de la vista previa van a su velocidad y arrancan aunque el
   // autoplay del markup se quede dormido
   document.querySelectorAll('.tema-prev video').forEach((v) => {
-    v.playbackRate = 0.55;
+    v.playbackRate = +v.dataset.rate || 1;
     v.play().catch(() => {});
   });
 }
