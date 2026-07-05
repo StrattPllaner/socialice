@@ -488,8 +488,9 @@ const TEMAS = [
     bg: 'radial-gradient(60% 46% at 30% 24%, #5b21b6, transparent 62%), radial-gradient(55% 50% at 76% 60%, #9d174d, transparent 62%), radial-gradient(40% 34% at 60% 12%, rgba(56,189,248,.25), transparent 65%), radial-gradient(1.8px 1.8px at 18% 18%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 34% 40%, #e9d5ff 60%, transparent), radial-gradient(2.2px 2.2px at 55% 26%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 72% 14%, #fff 60%, transparent), radial-gradient(1.8px 1.8px at 88% 42%, #e9d5ff 60%, transparent), radial-gradient(1.4px 1.4px at 12% 58%, #fff 60%, transparent), radial-gradient(2px 2px at 44% 70%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 66% 84%, #e9d5ff 60%, transparent), radial-gradient(1.8px 1.8px at 90% 76%, #fff 60%, transparent), #08041a' },
   { nombre: 'Fiesta', grad: 'linear-gradient(135deg,#f472b6,#fbbf24)',
     bg: 'radial-gradient(90% 45% at 50% 112%, rgba(120,70,220,.4), transparent 72%), linear-gradient(180deg,#1c1140 0%,#241556 55%,#0e0a24 100%)' },
+  // Cielo es VIDEO real (icons/cielo.mp4); el gradiente azul es solo respaldo
   { nombre: 'Cielo', grad: 'linear-gradient(135deg,#38bdf8,#a5f3fc)',
-    bg: 'radial-gradient(circle 60px at 82% 14%, rgba(255,250,220,.9) 0 40%, rgba(255,250,220,.35) 62%, transparent 78%), linear-gradient(180deg,#7dd3fc 0%,#38bdf8 40%,#0284c7 100%)' },
+    bg: 'linear-gradient(180deg,#2e7cd6 0%,#5aa7e8 55%,#a8d1f4 100%)' },
   { nombre: 'Minimal', grad: 'linear-gradient(135deg,#94a3b8,#475569)',
     bg: 'radial-gradient(100% 70% at 50% 0%, #1b2233, transparent 70%), #0a0c12' },
   // Playa es VIDEO real (icons/playa.mp4); el gradiente aqua es solo el
@@ -518,7 +519,9 @@ function temaSlug(nombre) {
 // rate = velocidad de reproducción (la playa va lenta para que ondule con calma)
 const TEMA_VIDEOS = {
   playa:    { src: 'icons/playa.mp4',    rate: 0.55 },
-  tropical: { src: 'icons/tropical.mp4', rate: 1 }
+  tropical: { src: 'icons/tropical.mp4', rate: 1 },
+  cielo:    { src: 'icons/cielo.mp4',    rate: 1 },
+  fuego:    { src: 'icons/fuego.mp4',    rate: 0.6 }
 };
 
 // Pool de <video>: cada video se crea UNA vez y se reutiliza al cambiar de
@@ -806,25 +809,10 @@ function pintarCrear() {
   // Nada se repite en mosaico: cada capa es parte de UNA escena (no un patrón)
   temaBg.style.backgroundRepeat = 'no-repeat';
   temaBg.style.display = 'block';
-  // Cielo: la tormenta trae LLUVIA DE VERDAD (mismas gotas que el efecto
-  // Lluvia, no un patrón repetido). Aparece/desaparece con el ciclo de nubes.
   temaBg.innerHTML = '';
-  if (slug === 'cielo') {
-    if (window.__storm) temaBg.classList.add('tormenta'); // atajo dev ?storm=1
-    const wrap = document.createElement('div');
-    wrap.className = 'cielo-lluvia';
-    const rr = (a, b) => a + Math.random() * (b - a);
-    for (let i = 0; i < 48; i++) {
-      const g = document.createElement('span');
-      g.className = 'efp-rain';
-      const dur = rr(0.7, 1.3);
-      g.style.cssText = `left:${((i + rr(0.1, 0.9)) / 48 * 100).toFixed(2)}%;height:${rr(12, 22).toFixed(1)}px;--sway:${rr(-26, 6).toFixed(0)}px;animation-duration:${dur.toFixed(2)}s;animation-delay:-${rr(0, dur).toFixed(2)}s`;
-      wrap.appendChild(g);
-    }
-    temaBg.appendChild(wrap);
-  }
-  // Temas con VIDEO real de fondo (playa, tropical): se REUTILIZA el <video>
-  // del pool (ya precargado); si no puede reproducirse queda el gradiente.
+  // Temas con VIDEO real de fondo (playa, tropical, cielo, fuego): se
+  // REUTILIZA el <video> del pool (ya precargado); si no puede reproducirse
+  // queda el gradiente del tema como respaldo.
   const vEl = temaVideoEl(slug);
   if (vEl) {
     temaBg.classList.add('con-video');
@@ -3486,7 +3474,6 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('splash')) splashIr(p.get('splash'));
   if (p.get('efx')) draft.efecto = p.get('efx');   // prueba: ?screen=create&efx=confeti
   if (p.get('tema')) draft.tema = +p.get('tema');  // prueba: ?screen=create&tema=2
-  if (p.get('storm')) window.__storm = true;       // prueba: tormenta fija en tema Cielo
   if (p.get('seq')) {  // prueba de navegación: ?seq=create,home,search
     document.getElementById('screen-splash').classList.remove('is-active');
     entrarApp();
