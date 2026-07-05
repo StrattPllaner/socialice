@@ -3097,8 +3097,9 @@ body.creando .chip {
   animation: auroraCortina 7s ease-in-out infinite alternate;
 }
 
-/* ⭐ Estrellas que titilan (galaxia / medianoche): puestas A MANO, sin mosaico */
-.tema-galaxia::before, .tema-medianoche::before {
+/* ⭐ Estrellas que titilan (galaxia): puestas A MANO, sin mosaico.
+   (Medianoche ya no las usa: ahora es VIDEO real de luna, icons/medianoche.mp4) */
+.tema-galaxia::before {
   content: ''; position: absolute; inset: 0;
   background:
     radial-gradient(2px 2px at 26% 26%, #fff 60%, transparent),
@@ -3112,17 +3113,13 @@ body.creando .chip {
 @keyframes twinkleBg { from { opacity: .3; } to { opacity: .95; } }
 
 /* ☄️ Cometa que cruza el cielo cada cierto tiempo (casi siempre oculto) */
-.tema-medianoche::after, .tema-galaxia::after {
-  content: ''; position: absolute; left: 0; top: 0; width: 150px; height: 2.5px; border-radius: 2px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.06) 55%, #fff);
-  box-shadow: 0 0 8px rgba(255,255,255,.45);
-  opacity: 0;
-  animation: cometa 19s linear infinite;
-}
 .tema-galaxia::after {
+  content: ''; position: absolute; left: 0; top: 0; width: 150px; height: 2.5px; border-radius: 2px;
   background: linear-gradient(90deg, transparent, rgba(191,227,255,.08) 55%, #cfe8ff);
   box-shadow: 0 0 8px rgba(160,210,255,.5);
-  animation-duration: 13s; animation-delay: -5s;
+  opacity: 0;
+  animation: cometa 13s linear infinite;
+  animation-delay: -5s;
 }
 @keyframes cometa {
   0%    { opacity: 0; transform: translate(-14vw, 4vh) rotate(30deg); }
@@ -3160,12 +3157,27 @@ body.creando .chip {
 /* 🪩 Disco y ❄️ Nevado son VIDEOS reales (icons/disco.mp4 / icons/nevado.mp4);
    el respaldo es el gradiente del tema, sin capas dibujadas */
 
-/* El video de Disco cambia de color como luces de antro: un filtro gira el
-   tono completo (verde → azul → morado → magenta → rojo → dorado → verde) */
+/* Las luces del Disco se pintan del color ELEGIDO por el usuario (filtro
+   hue-rotate fijo puesto desde JS); .vfx-hue es la opción multicolor: el
+   tono gira solo en loop (verde → azul → morado → magenta → dorado) */
 .vfx-hue { animation: vHue 12s linear infinite; }
 @keyframes vHue {
   from { filter: hue-rotate(0deg); }
   to   { filter: hue-rotate(360deg); }
+}
+
+/* Selector del color de las luces del Disco */
+.disco-prev { border-radius: 16px; overflow: hidden; aspect-ratio: 16/10; margin: 10px 0 14px; background: #0a0716; }
+.disco-prev video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.disco-dots { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 0 0 16px; }
+.disco-dot {
+  width: 44px; height: 44px; border-radius: 50%; cursor: pointer;
+  border: 3px solid rgba(255,255,255,.14);
+  transition: transform .15s, border-color .15s, box-shadow .15s;
+}
+.disco-dot.on {
+  border-color: #fff; transform: scale(1.12);
+  box-shadow: 0 0 0 3px rgba(255,255,255,.22), 0 0 20px rgba(255,255,255,.3);
 }
 
 @keyframes glareSweep { from { transform: translateX(-8%); } to { transform: translateX(8%); } }

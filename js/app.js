@@ -456,8 +456,10 @@ const COVER_EMOJIS = ['🎉','🌃','✨','🔊','🪩','🌇','🍸','🎶','�
    Todas las capas van con no-repeat: nada se repite ni se corta. Las partes
    animadas (llamas, bola disco, rejilla, globos…) viven en CSS (.tema-<slug>). */
 const TEMAS = [
+  // Medianoche es VIDEO real (icons/medianoche.mp4, luna entre nubes);
+  // el gradiente azul noche es solo respaldo
   { nombre: 'Medianoche', grad: 'linear-gradient(135deg,#2f7bff,#38bdf8)',
-    bg: 'url(icons/luna.svg) 50% 8px / 112px 112px no-repeat, radial-gradient(1.8px 1.8px at 12% 22%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 30% 9%, #cfe3ff 60%, transparent), radial-gradient(2.2px 2.2px at 48% 30%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 61% 16%, #fff 60%, transparent), radial-gradient(1.8px 1.8px at 88% 34%, #cfe3ff 60%, transparent), radial-gradient(1.4px 1.4px at 22% 44%, #fff 60%, transparent), radial-gradient(2px 2px at 70% 52%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 40% 64%, #bcd6ff 60%, transparent), radial-gradient(1.8px 1.8px at 85% 72%, #fff 60%, transparent), radial-gradient(1.4px 1.4px at 15% 82%, #cfe3ff 60%, transparent), radial-gradient(120% 60% at 50% 112%, #14204d, transparent 70%), linear-gradient(180deg,#0c1334 0%,#0a0f26 48%,#05070f 100%)' },
+    bg: 'radial-gradient(120% 60% at 50% 112%, #14204d, transparent 70%), linear-gradient(180deg,#0c1334 0%,#0a0f26 48%,#05070f 100%)' },
   { nombre: 'Atardecer', grad: 'linear-gradient(135deg,#fb923c,#ec4899)',
     bg: 'radial-gradient(circle 56px at 50% 40%, #fff6d0 0 55%, #ffd76a 68%, rgba(255,150,60,.6) 78%, transparent 85%), radial-gradient(75% 34% at 50% 42%, rgba(255,170,90,.55), transparent 72%), radial-gradient(120% 22% at 50% 55%, rgba(255,120,130,.35), transparent 70%), linear-gradient(180deg,#ff9a5b 0%,#ff5f9e 30%,#a23bb0 58%,#3a1450 82%,#120726 100%)' },
   { nombre: 'Y2K', grad: 'linear-gradient(135deg,#dfe7f5,#8fb6ff)',
@@ -521,15 +523,34 @@ function temaSlug(nombre) {
 
 // Temas cuyo fondo es un VIDEO real en loop (aportados por el usuario).
 // rate = velocidad de reproducción (la playa va lenta para que ondule con calma)
-// hue = el video cambia de color en vivo (filtro que gira el tono, clase .vfx-hue)
 const TEMA_VIDEOS = {
-  playa:    { src: 'icons/playa.mp4',    rate: 0.55 },
-  tropical: { src: 'icons/tropical.mp4', rate: 1 },
-  cielo:    { src: 'icons/cielo.mp4',    rate: 1 },
-  fuego:    { src: 'icons/fuego.mp4',    rate: 0.6 },
-  disco:    { src: 'icons/disco.mp4',    rate: 1, hue: true },
-  nevado:   { src: 'icons/nevado.mp4',   rate: 1 }
+  playa:      { src: 'icons/playa.mp4',      rate: 0.55 },
+  tropical:   { src: 'icons/tropical.mp4',   rate: 1 },
+  cielo:      { src: 'icons/cielo.mp4',      rate: 1 },
+  fuego:      { src: 'icons/fuego.mp4',      rate: 0.6 },
+  disco:      { src: 'icons/disco.mp4',      rate: 1 },
+  nevado:     { src: 'icons/nevado.mp4',     rate: 1 },
+  medianoche: { src: 'icons/medianoche.mp4', rate: 1 }
 };
+
+// Colores elegibles para las LUCES del tema Disco: un filtro gira el tono
+// del video al color elegido ('anim' = multicolor, van rotando solas)
+const DISCO_COLORES = [
+  { nombre: 'Verde',      hue: 0,      c: '#a8e63c' },
+  { nombre: 'Azul',       hue: 140,    c: '#3cb4e6' },
+  { nombre: 'Morado',     hue: 200,    c: '#8b5cf6' },
+  { nombre: 'Rosa',       hue: 250,    c: '#f45fd0' },
+  { nombre: 'Rojo',       hue: 290,    c: '#f4504a' },
+  { nombre: 'Dorado',     hue: 330,    c: '#f5b93c' },
+  { nombre: 'Multicolor', hue: 'anim', c: 'conic-gradient(#f44,#fb3,#4d4,#3cf,#86f,#f4c,#f44)' }
+];
+
+// Aplica al <video> de Disco el color elegido en draft.discoHue
+function aplicarDiscoHue(v) {
+  if (!v) return;
+  v.classList.toggle('vfx-hue', draft.discoHue === 'anim');
+  v.style.filter = (typeof draft.discoHue === 'number' && draft.discoHue) ? `hue-rotate(${draft.discoHue}deg)` : '';
+}
 
 // Pool de <video>: cada video se crea UNA vez y se reutiliza al cambiar de
 // tema (nada de re-descargar ni re-arrancar desde cero)
@@ -540,7 +561,7 @@ function temaVideoEl(slug) {
   let v = _videoPool[slug];
   if (!v) {
     v = document.createElement('video');
-    v.className = 'tema-video' + (tv.hue ? ' vfx-hue' : '');
+    v.className = 'tema-video';
     v.src = tv.src;
     v.preload = 'auto';
     v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
@@ -560,7 +581,7 @@ let _videosCalentados = false;
 function calentarVideos() {
   if (_videosCalentados) return;
   _videosCalentados = true;
-  const orden = ['nevado', 'cielo', 'fuego', 'disco', 'playa', 'tropical'];
+  const orden = ['nevado', 'cielo', 'medianoche', 'fuego', 'disco', 'playa', 'tropical'];
   setTimeout(async () => {
     for (const slug of orden) {
       if (!TEMA_VIDEOS[slug]) continue;
@@ -657,6 +678,7 @@ function nuevoDraft() {
     tema: TEMAS.findIndex((t) => t.custom),
     temaColors: ['#8b5cf6', '#38bdf8'], // colores del tema personalizado (1-2)
     temaAnim: false,                    // si el tema personalizado fluye animado
+    discoHue: 0,                        // color de las luces del tema Disco ('anim' = multicolor)
     efecto: 'ninguno',           // tipo de efecto del fondo
     tituloFont: 'classic',       // estilo de letra del título
     descripcion: '',
@@ -734,6 +756,7 @@ function editarFiesta(id) {
   draft.tema = e.tema || 0;
   if (e.temaColors && e.temaColors.length) draft.temaColors = e.temaColors.slice();
   draft.temaAnim = !!e.temaAnim;
+  draft.discoHue = e.discoHue || 0;
   draft.tituloFont = e.tituloFont || 'classic';
   draft.descripcion = e.descripcion || '';
   draft.dressCode = e.dressCode || '';
@@ -828,6 +851,7 @@ function pintarCrear() {
   if (vEl) {
     temaBg.classList.add('con-video');
     temaBg.appendChild(vEl);
+    if (slug === 'disco') aplicarDiscoHue(vEl);
     vEl.play().catch(() => {});
   }
   calentarVideos();
@@ -1228,11 +1252,16 @@ function abrirTemas() {
         const slug = temaSlug(t.nombre);
         // Temas con video: la vista previa también es el VIDEO real
         const tv = TEMA_VIDEOS[slug];
-        const video = tv ? `<video${tv.hue ? ' class="vfx-hue"' : ''} src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>` : '';
+        // Disco: la vista previa sale del color de luces elegido
+        const hueAttr = slug === 'disco'
+          ? (draft.discoHue === 'anim' ? ' class="vfx-hue"' : (draft.discoHue ? ` style="filter:hue-rotate(${draft.discoHue}deg)"` : ''))
+          : '';
+        const video = tv ? `<video${hueAttr} src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>` : '';
         return `
         <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" onclick="setTema(${i})">
           <span class="tema-prev tema-${slug}${anim}" style="background:${tt.bg}">${video}</span>
           ${t.custom ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirTemaCustom()" title="Cambiar colores">✎</span>` : ''}
+          ${slug === 'disco' ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirDiscoColor()" title="Color de las luces">✎</span>` : ''}
           <span class="tema-pill" style="background:${tt.grad}"></span>
           <small>${t.custom ? '🎨 ' : ''}${t.nombre}</small>
         </button>`;
@@ -1309,6 +1338,37 @@ function aplicarTemaCustom() {
   cerrarSheet();
   pintarCrear();
   toast('Tema: tus colores 🎨');
+}
+
+// --- Disco: elegir el COLOR de las luces (un filtro gira el tono del video;
+// 'anim' = multicolor, los colores van rotando solos) ---
+function abrirDiscoColor() {
+  abrirSheet('Luces del disco', `
+    <p class="hint">Elige de qué color se ven las luces de la bola de espejos, o multicolor para que vayan cambiando solas.</p>
+    <div class="disco-prev"><video id="discoPrevVid" src="${TEMA_VIDEOS.disco.src}" muted loop autoplay playsinline></video></div>
+    <div class="disco-dots">
+      ${DISCO_COLORES.map((d) => `
+        <button class="disco-dot ${draft.discoHue === d.hue ? 'on' : ''}" style="background:${d.c}" title="${d.nombre}"
+          onclick="setDiscoHue(${typeof d.hue === 'number' ? d.hue : `'anim'`})"></button>`).join('')}
+    </div>
+    <button class="btn full" onclick="aplicarDiscoColor()">Usar este color</button>
+  `);
+  const pv = document.getElementById('discoPrevVid');
+  aplicarDiscoHue(pv);
+  pv.play().catch(() => {});
+}
+function setDiscoHue(h) {
+  draft.discoHue = h;
+  aplicarDiscoHue(document.getElementById('discoPrevVid'));
+  document.querySelectorAll('.disco-dot').forEach((b, i) => b.classList.toggle('on', DISCO_COLORES[i].hue === h));
+  // Si Disco ya está de fondo, el color cambia EN VIVO
+  if (temaSlug((TEMAS[draft.tema] || {}).nombre) === 'disco') aplicarDiscoHue(_videoPool.disco);
+}
+function aplicarDiscoColor() {
+  draft.tema = TEMAS.findIndex((t) => temaSlug(t.nombre) === 'disco');
+  cerrarSheet();
+  pintarCrear();
+  toast('Luces del disco 🪩');
 }
 
 // Ajustes del evento (público, edad, etc.)
@@ -1832,6 +1892,7 @@ function guardarFiesta() {
     tema: draft.tema,
     temaColors: draft.temaColors.slice(),
     temaAnim: !!draft.temaAnim,
+    discoHue: draft.discoHue,
     tituloFont: draft.tituloFont,
     descripcion: draft.descripcion.trim(),
     dressCode: draft.dressCode.trim(),
@@ -3504,6 +3565,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'editar')  editarPerfil();
   if (p.get('sheet') === 'temaCustom') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirTemaCustom(); }
   if (p.get('sheet') === 'temas') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirTemas(); }
+  if (p.get('sheet') === 'discoColor') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirDiscoColor(); }
   if (p.get('sheet') === 'pases') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('profile'); abrirPases(); }
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('paso')) { draft.paso = +p.get('paso'); pintarCrear(); }
