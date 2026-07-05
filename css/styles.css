@@ -3157,28 +3157,8 @@ body.creando .chip {
 }
 @keyframes gridScroll { from { background-position: 0 0, 0 0, 0 0; } to { background-position: 0 0, 0 0, 0 36px; } }
 
-/* 🪩 Disco: bola de espejos DE VERDAD (imagen SVG con facetas iluminadas,
-   cadena y destellos que parpadean: icons/discoball.svg) + luces del salón */
-.tema-disco::after {
-  content: ''; position: absolute; left: 50%; top: 0; width: 132px; height: 158px; margin-left: -66px;
-  background: url("../icons/discoball.svg") center top / contain no-repeat;
-  filter: drop-shadow(0 0 26px rgba(190,200,255,.55)) drop-shadow(0 6px 60px rgba(140,120,255,.45));
-  transform-origin: 50% 0;
-  animation: discoSway 7s ease-in-out infinite alternate;
-}
-@keyframes discoSway { from { transform: rotate(-2deg); } to { transform: rotate(2deg); } }
-/* Haces que SALEN de la bola y giran por todo el salón (reflejos reales) */
-.tema-disco::before {
-  content: ''; position: absolute; left: 50%; top: 90px; width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax;
-  background: conic-gradient(from 0deg,
-    transparent 0 24deg, rgba(214,220,255,.17) 26deg 33deg, transparent 35deg 96deg,
-    rgba(244,114,182,.16) 98deg 105deg, transparent 107deg 168deg,
-    rgba(56,189,248,.16) 170deg 177deg, transparent 179deg 250deg,
-    rgba(168,85,247,.15) 252deg 259deg, transparent 261deg 318deg,
-    rgba(251,191,36,.12) 320deg 326deg, transparent 328deg 360deg);
-  animation: discoBeams 24s linear infinite;
-}
-@keyframes discoBeams { to { transform: rotate(360deg); } }
+/* 🪩 Disco y ❄️ Nevado son VIDEOS reales (icons/disco.mp4 / icons/nevado.mp4);
+   el respaldo es el gradiente del tema, sin capas dibujadas */
 
 @keyframes glareSweep { from { transform: translateX(-8%); } to { transform: translateX(8%); } }
 

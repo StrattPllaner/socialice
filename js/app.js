@@ -466,8 +466,9 @@ const TEMAS = [
     bg: 'radial-gradient(120% 26% at 50% 76%, rgba(255,120,190,.4), transparent 72%), linear-gradient(180deg,#241059 0%,#4a1d7a 42%,#b3438f 70%,#ff8d5a 100%)' },
   { nombre: 'Synthwave', grad: 'linear-gradient(135deg,#ff2bd6,#22d3ee)',
     bg: 'radial-gradient(70% 30% at 50% 40%, rgba(255,43,214,.35), transparent 65%), linear-gradient(180deg,#0a0424 0%,#1a0640 55%,#2a0a55 100%)' },
+  // Disco es VIDEO real (icons/disco.mp4); el gradiente oscuro es solo respaldo
   { nombre: 'Disco', grad: 'linear-gradient(135deg,#c0c8dd,#7b6bf0)',
-    bg: 'radial-gradient(70% 45% at 50% 0%, rgba(130,100,230,.4), transparent 70%), radial-gradient(34% 26% at 16% 62%, rgba(244,114,182,.22), transparent 70%), radial-gradient(30% 24% at 82% 44%, rgba(56,189,248,.2), transparent 70%), radial-gradient(30% 26% at 48% 84%, rgba(168,85,247,.24), transparent 70%), radial-gradient(110% 40% at 50% 108%, rgba(80,60,150,.45), transparent 70%), linear-gradient(180deg,#1a1229 0%,#130d20 55%,#0a0716 100%)' },
+    bg: 'radial-gradient(60% 40% at 50% 30%, rgba(160,200,60,.25), transparent 70%), linear-gradient(180deg,#151a0e 0%,#0e120a 55%,#070905 100%)' },
   { nombre: 'Holográfico', grad: 'linear-gradient(135deg,#a1c4fd,#fbc2eb)',
     bg: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 22%, #fbc2eb 50%, #c2a8ff 76%, #8ec5fc 100%)' },
   { nombre: 'Iridiscente', grad: 'linear-gradient(135deg,#a8edea,#fed6e3)',
@@ -499,6 +500,9 @@ const TEMAS = [
     bg: 'linear-gradient(180deg,#c6ebe6 0%,#9fd8d4 55%,#7ec4c4 100%)' },
   { nombre: 'Bosque', grad: 'linear-gradient(135deg,#4c6b35,#c8dd8a)',
     bg: 'url(icons/bosque.jpg) center / cover no-repeat, linear-gradient(180deg,#8a9a54 0%,#5c6e38 45%,#26331a 100%)' },
+  // Nevado es VIDEO real (icons/nevado.mp4); el gradiente helado es solo respaldo
+  { nombre: 'Nevado', grad: 'linear-gradient(135deg,#c8d5de,#8fa6b5)',
+    bg: 'linear-gradient(180deg,#b9c4cc 0%,#9aa9b3 50%,#6d7f8b 100%)' },
   // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario
   { nombre: 'Tus colores', custom: true, grad: '', bg: '' }
 ];
@@ -521,7 +525,9 @@ const TEMA_VIDEOS = {
   playa:    { src: 'icons/playa.mp4',    rate: 0.55 },
   tropical: { src: 'icons/tropical.mp4', rate: 1 },
   cielo:    { src: 'icons/cielo.mp4',    rate: 1 },
-  fuego:    { src: 'icons/fuego.mp4',    rate: 0.6 }
+  fuego:    { src: 'icons/fuego.mp4',    rate: 0.6 },
+  disco:    { src: 'icons/disco.mp4',    rate: 1 },
+  nevado:   { src: 'icons/nevado.mp4',   rate: 1 }
 };
 
 // Pool de <video>: cada video se crea UNA vez y se reutiliza al cambiar de

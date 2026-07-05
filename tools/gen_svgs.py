@@ -513,7 +513,8 @@ def bosque_svg():
 import os
 out = "/Users/leocarreto/Desktop/socialice/icons"
 files = {
-    "discoball.svg": disco_svg, "luna.svg": luna_svg,
+    # disco ahora es VIDEO real (icons/disco.mp4); discoball.svg eliminado
+    "luna.svg": luna_svg,
     "globos.svg": globos_svg, "chicle.svg": chicle_svg,
     # variantes ANCHAS (laptop/iPad horizontal): mismas escenas re-compuestas
     "globos-w.svg": lambda: globos_svg(1600),
