@@ -1005,6 +1005,7 @@ function pintarCrear() {
     <button onclick="abrirTemas()"><span class="ct-ico" style="background:${t.grad}"></span>Tema</button>
     <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()"><span class="ct-fx">${(EFECTOS.find((e) => e.id === draft.efecto) || EFECTOS[0]).emoji}</span>Efecto</button>
     <button onclick="abrirAjustesEvento()"><span class="ct-fx">⚙️</span>Ajustes</button>
+    <button onclick="vistaPreviaEvento()"><span class="ct-fx">👁️</span>Vista</button>
   `;
 
   pintarBoletos();
@@ -1870,13 +1871,14 @@ function addNoticia() {
 function delNoticia(i) { draft.noticias.splice(i, 1); pintarNoticias(); }
 
 // --- Guardar / publicar (crea o actualiza el evento) ---
-function guardarFiesta() {
-  if (!draft.nombre.trim()) { toast('Ponle un nombre a tu fiesta'); return; }
+// Convierte el borrador actual en el objeto de evento publicado
+// (lo usan guardarFiesta y la VISTA PREVIA)
+function draftAEvento() {
   const capacidad = draft.boletos.reduce((s, b) => s + (+b.cantidad || 0), 0);
   // Precio: el más barato de los boletos
   const precios = draft.boletos.map((b) => +b.precio || 0);
   const minPrecio = precios.length ? Math.min(...precios) : 0;
-  const campos = {
+  return {
     nombre: draft.nombre.trim(),
     lugar: draft.lugar.trim() || 'Lugar por confirmar',
     ciudad: draft.ciudad.trim() || 'Ciudad',
@@ -1913,6 +1915,11 @@ function guardarFiesta() {
     precio: minPrecio > 0 ? `$${minPrecio}` : 'Gratis',
     cuando: 'semana'
   };
+}
+
+function guardarFiesta() {
+  if (!draft.nombre.trim()) { toast('Ponle un nombre a tu fiesta'); return; }
+  const campos = draftAEvento();
 
   if (draft.id) {
     // Editando: actualizamos el evento existente
@@ -1931,6 +1938,19 @@ function guardarFiesta() {
   }
   draft = nuevoDraft();
   irA('profile');
+}
+
+// VISTA PREVIA: abre la ficha del evento tal cual se verá ya publicado,
+// SIN guardarlo (el evento temporal nunca toca el feed)
+function vistaPreviaEvento() {
+  const campos = draftAEvento();
+  if (!campos.nombre) campos.nombre = 'Evento sin título';
+  DATA.eventos = DATA.eventos.filter((e) => e.id !== '__preview');
+  DATA.eventos.push({ id: '__preview', asistentes: 0, cat: [], ...campos });
+  abrirEvento('__preview');
+  // La ficha ya quedó pintada: el evento temporal se borra de inmediato
+  DATA.eventos = DATA.eventos.filter((e) => e.id !== '__preview');
+  toast('Así se verá tu evento 👀');
 }
 
 // --- Pisos / niveles ---
@@ -3567,6 +3587,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'temaCustom') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirTemaCustom(); }
   if (p.get('sheet') === 'temas') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirTemas(); }
   if (p.get('sheet') === 'discoColor') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirDiscoColor(); }
+  if (p.get('sheet') === 'preview') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); vistaPreviaEvento(); }
   if (p.get('sheet') === 'pases') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('profile'); abrirPases(); }
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('paso')) { draft.paso = +p.get('paso'); pintarCrear(); }
