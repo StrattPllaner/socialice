@@ -882,13 +882,6 @@ function pintarCrear() {
         </div>
       </div>
 
-      <!-- Portada -->
-      <div class="cover-banner ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
-        ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Agrega una portada</button>'}
-        <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
-        <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
-      </div>
-
       <!-- Fecha y hora: fecha con selector, hora manual (sin forzar el 0) -->
       <div class="fecha-block">
         <div class="fecha-row">
@@ -901,7 +894,6 @@ function pintarCrear() {
           <input class="fecha-date" type="date" value="${draft.fechaFin}" oninput="draft.fechaFin=this.value">
           <input class="fecha-time" type="text" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value">
         </div>
-      </div>
       </div>
       <div class="cr-mid">
 
@@ -961,7 +953,16 @@ function pintarCrear() {
       </div>
 
       </div>
+      </div>
       <div class="cr-right">
+
+      <!-- Portada (en laptop vive a la DERECHA, estilo Partiful; en teléfono
+           sube entre el título y la fecha vía order) -->
+      <div class="cover-banner ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
+        ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Agrega una portada</button>'}
+        <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+        <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
+      </div>
 
       <!-- Boletos y zonas (con animación para boletos especiales) -->
       <div class="row-between"><h3>Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>

@@ -2551,8 +2551,8 @@ body[data-screen="create"] .bottom-nav { display: none; }
 .save-btn:active, .round-btn:active, .pub-toggle:active { transform: scale(.95); }
 
 /* Título + estilos de letra */
-.titulo-card { background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 16px; margin-bottom: 16px; backdrop-filter: blur(8px); }
-.titulo-input { width: 100%; border: none; background: none; outline: none; color: var(--ink); font-size: 2.2rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.05; }
+.titulo-card { background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; margin-bottom: 16px; backdrop-filter: blur(8px); }
+.titulo-input { width: 100%; border: none; background: none; outline: none; color: var(--ink); font-size: clamp(2.4rem, 7vw, 2.9rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.02; }
 .titulo-input::placeholder { color: rgba(255,255,255,.45); }
 .font-row { display: flex; gap: 8px; overflow-x: auto; margin-top: 12px; scrollbar-width: none; }
 .font-row::-webkit-scrollbar { display: none; }
@@ -2561,7 +2561,12 @@ body[data-screen="create"] .bottom-nav { display: none; }
 
 /* Portada */
 /* Portada CUADRADA simétrica (1:1): la foto se adapta al marco (cover) */
-.cover-banner { position: relative; aspect-ratio: 1 / 1; border-radius: var(--r-lg); display: grid; place-items: center; overflow: hidden; margin-bottom: 16px; background-size: cover; background-position: center; }
+.cover-banner {
+  position: relative; aspect-ratio: 1 / 1; border-radius: var(--r-lg);
+  display: grid; place-items: center; overflow: hidden; margin-bottom: 16px;
+  background-size: cover; background-position: center;
+  box-shadow: 0 26px 70px rgba(0,0,0,.45), 0 4px 18px rgba(0,0,0,.3);
+}
 .cover-banner-emoji { font-size: 3.4rem; filter: drop-shadow(0 4px 12px rgba(0,0,0,.35)); }
 .cover-edit { position: absolute; bottom: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.3); color: #fff; cursor: pointer; backdrop-filter: blur(6px); }
 
@@ -2638,51 +2643,50 @@ body[data-screen="create"] .bottom-nav { display: none; }
 
 @media (min-width: 1000px) { .crear-page { padding-bottom: 120px; } }
 
-/* En teléfono los wrappers de crear no afectan el flujo */
+/* En teléfono los wrappers se disuelven y una columna flex permite ORDENAR:
+   la portada (que en el markup vive a la derecha, estilo Partiful) sube
+   entre el título y la fecha */
+.crear-page { display: flex; flex-direction: column; }
 .cr-left, .cr-mid, .cr-right { display: contents; }
+.crear-bar { order: -10; }
+.titulo-card { order: -3; }
+.cover-banner { order: -2; }
+.fecha-block { order: -1; }
 
-/* CREAR en tablet: DOS columnas a lo ancho.
-   Izquierda (fija al hacer scroll): título + portada cuadrada + fecha.
-   Derecha: el resto (formulario arriba, boletos/publicaciones abajo). */
+/* CREAR en tablet/laptop, estilo PARTIFUL: el formulario a la IZQUIERDA
+   (título gigante, fecha, datos, descripción) y a la DERECHA la portada
+   grande con boletos y publicaciones debajo. Las herramientas (Tema/Efecto/
+   Ajustes) viven en un RIEL vertical al borde derecho, como panel de diseño */
 @media (min-width: 900px) {
   .crear-page {
-    max-width: 1750px;
-    display: grid; grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-    column-gap: 40px; align-items: start;
-    padding-left: 40px; padding-right: 40px;
+    max-width: 1300px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(320px, 38%, 480px);
+    column-gap: 52px; align-items: start;
+    padding-left: 48px; padding-right: 140px;
   }
   /* La barra de arriba se queda pegada al hacer scroll (Guardar siempre a la vista) */
   .crear-bar { grid-column: 1 / -1; grid-row: 1; position: sticky; top: 10px; z-index: 30; pointer-events: none; }
   .crear-bar > * { pointer-events: auto; }
-  .cr-left, .cr-mid, .cr-right { display: block; min-width: 0; }
-  .cr-left { grid-column: 1; grid-row: 2 / span 2; position: sticky; top: calc(16px + env(safe-area-inset-top)); }
-  .cr-mid { grid-column: 2; grid-row: 2; }
-  .cr-right { grid-column: 2; grid-row: 3; }
-  /* La descripción respira más en pantalla grande */
+  /* Cada columna es UNA celda (nada se estira por la columna de al lado) */
+  .cr-left { display: block; min-width: 0; grid-column: 1; grid-row: 2; }
+  .cr-mid { display: block; min-width: 0; }
+  .cr-right { display: block; min-width: 0; grid-column: 2; grid-row: 2; }
+  /* Título ENORME de cartel, como hecho por un diseñador */
+  .crear-page .titulo-input { font-size: clamp(2.8rem, 4.4vw, 4.2rem); }
   .crear-desc { min-height: 150px; }
-  /* La barra Tema/Efecto/Ajustes se ancla ABAJO-DERECHA en tablet (flota
-     sobre contenido que hace scroll, nunca sobre la columna fija) */
+  /* Riel vertical de herramientas pegado al borde derecho */
   .crear-toolbar {
-    left: auto; transform: none;
-    right: max(40px, calc((100vw - 1750px) / 2 + 40px));
-    bottom: 22px;
+    left: auto; right: 24px; bottom: auto; top: 50%; transform: translateY(-50%);
+    flex-direction: column; gap: 6px; padding: 10px 8px;
+    border-radius: 26px;
     box-shadow: 0 14px 44px rgba(0,0,0,.5);
   }
+  .crear-toolbar button { padding: 12px 14px; }
 }
 
-/* CREAR en laptop: TRES columnas — todo distribuido hasta los lados.
-   Portada | formulario (organiza/datos/descripción/mapa) | boletos+posts */
-@media (min-width: 1280px) {
-  .crear-page { grid-template-columns: minmax(300px, 380px) minmax(0, 1fr) minmax(0, 1fr); column-gap: 44px; }
-  .cr-mid { grid-column: 2; grid-row: 2; }
-  .cr-right { grid-column: 3; grid-row: 2; }
-  /* Los inicios de columna quedan al mismo nivel */
-  .cr-right > .row-between:first-child { margin-top: 4px; margin-bottom: 14px; }
-  /* En laptop la barra vive abajo-izquierda, bajo la portada fija */
-  .crear-toolbar {
-    right: auto;
-    left: max(40px, calc((100vw - 1750px) / 2 + 40px));
-  }
+@media (min-width: 1440px) {
+  .crear-page { max-width: 1440px; column-gap: 76px; }
 }
 
 /* ================================================================== */
@@ -2702,7 +2706,7 @@ html, body { overscroll-behavior: none; }
 
 /* Título: contenteditable más compacto + placeholder */
 .titulo-card { padding: 14px; }
-.titulo-input { width: 100%; outline: none; color: var(--ink); font-size: 1.7rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; min-height: 1.4em; }
+.titulo-input { width: 100%; outline: none; color: var(--ink); font-size: clamp(2rem, 6.4vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; min-height: 1.4em; }
 .titulo-input:empty::before { content: attr(data-ph); color: rgba(255,255,255,.45); }
 .titulo-input.name-anim { -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; background-size: 300% auto; animation: nameflow 4s linear infinite; }
 
@@ -3035,8 +3039,12 @@ body.creando .fecha-row input,
 body.creando .crear-row,
 body.creando .zona-card input,
 body.creando .post-compose textarea { background: transparent !important; }
-/* La portada también deja ver el tema detrás (apenas traslúcida) */
-body.creando .cover-banner { opacity: .93; }
+/* La portada apenas traslúcida pero LUMINOSA (compensa el velo con brillo) */
+body.creando .cover-banner { opacity: .96; filter: brightness(1.07) saturate(1.04); }
+/* Los botones/chips invitan: se levantan al pasar el mouse */
+body.creando .chip, .cover-edit, .crear-toolbar button { transition: transform .16s ease, background .16s ease, box-shadow .16s ease; }
+body.creando .chip:hover { transform: translateY(-2px); background: rgba(18,22,36,.78); box-shadow: 0 8px 22px rgba(0,0,0,.35); }
+.cover-edit:hover { transform: scale(1.1); background: rgba(0,0,0,.65); }
 /* La barra flotante (Tema/Efecto/Ajustes) NO es contenido editable: se queda
    oscura para que siempre se distinga */
 body.creando .crear-toolbar { background: rgba(8,10,18,.58) !important; }
