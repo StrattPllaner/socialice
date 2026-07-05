@@ -3025,7 +3025,7 @@ body.creando .crear-desc,
 body.creando .zona-card,
 body.creando .post-compose,
 body.creando .news-list .post-card {
-  background: rgba(8, 10, 18, .32) !important;
+  background: rgba(8, 10, 18, .45) !important;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -3035,8 +3035,8 @@ body.creando .fecha-row input,
 body.creando .crear-row,
 body.creando .zona-card input,
 body.creando .post-compose textarea { background: transparent !important; }
-/* La portada también deja ver el tema detrás */
-body.creando .cover-banner { opacity: .85; }
+/* La portada también deja ver el tema detrás (apenas traslúcida) */
+body.creando .cover-banner { opacity: .93; }
 /* La barra flotante (Tema/Efecto/Ajustes) NO es contenido editable: se queda
    oscura para que siempre se distinga */
 body.creando .crear-toolbar { background: rgba(8,10,18,.58) !important; }
