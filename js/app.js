@@ -521,12 +521,13 @@ function temaSlug(nombre) {
 
 // Temas cuyo fondo es un VIDEO real en loop (aportados por el usuario).
 // rate = velocidad de reproducción (la playa va lenta para que ondule con calma)
+// hue = el video cambia de color en vivo (filtro que gira el tono, clase .vfx-hue)
 const TEMA_VIDEOS = {
   playa:    { src: 'icons/playa.mp4',    rate: 0.55 },
   tropical: { src: 'icons/tropical.mp4', rate: 1 },
   cielo:    { src: 'icons/cielo.mp4',    rate: 1 },
   fuego:    { src: 'icons/fuego.mp4',    rate: 0.6 },
-  disco:    { src: 'icons/disco.mp4',    rate: 1 },
+  disco:    { src: 'icons/disco.mp4',    rate: 1, hue: true },
   nevado:   { src: 'icons/nevado.mp4',   rate: 1 }
 };
 
@@ -539,7 +540,7 @@ function temaVideoEl(slug) {
   let v = _videoPool[slug];
   if (!v) {
     v = document.createElement('video');
-    v.className = 'tema-video';
+    v.className = 'tema-video' + (tv.hue ? ' vfx-hue' : '');
     v.src = tv.src;
     v.preload = 'auto';
     v.muted = true; v.loop = true; v.autoplay = true; v.playsInline = true;
@@ -551,18 +552,22 @@ function temaVideoEl(slug) {
   return v;
 }
 
-// Precarga los videos en segundo plano (al entrar a crear, así al elegir el
-// tema ya están bajados; el SW los deja en la caché normal del navegador)
+// Precarga los videos en segundo plano. UNO POR UNO del más ligero al más
+// pesado (en paralelo se pelean el ancho de banda y ninguno termina pronto);
+// el SW los guarda en caché PERSISTENTE: se bajan una sola vez y en visitas
+// siguientes arrancan al instante desde disco.
 let _videosCalentados = false;
 function calentarVideos() {
   if (_videosCalentados) return;
   _videosCalentados = true;
-  setTimeout(() => {
-    Object.keys(TEMA_VIDEOS).forEach((slug) => {
+  const orden = ['nevado', 'cielo', 'fuego', 'disco', 'playa', 'tropical'];
+  setTimeout(async () => {
+    for (const slug of orden) {
+      if (!TEMA_VIDEOS[slug]) continue;
+      try { await (await fetch(TEMA_VIDEOS[slug].src)).blob(); } catch (e) {}
       temaVideoEl(slug);
-      fetch(TEMA_VIDEOS[slug].src).catch(() => {});
-    });
-  }, 1200);
+    }
+  }, 400);
 }
 
 // Tema personalizado: con 1-2 colores arma un fondo SEDOSO estilo Y2K
@@ -1223,7 +1228,7 @@ function abrirTemas() {
         const slug = temaSlug(t.nombre);
         // Temas con video: la vista previa también es el VIDEO real
         const tv = TEMA_VIDEOS[slug];
-        const video = tv ? `<video src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>` : '';
+        const video = tv ? `<video${tv.hue ? ' class="vfx-hue"' : ''} src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>` : '';
         return `
         <button class="tema-swatch ${i === draft.tema ? 'on' : ''}" onclick="setTema(${i})">
           <span class="tema-prev tema-${slug}${anim}" style="background:${tt.bg}">${video}</span>

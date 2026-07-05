@@ -3160,6 +3160,14 @@ body.creando .chip {
 /* 🪩 Disco y ❄️ Nevado son VIDEOS reales (icons/disco.mp4 / icons/nevado.mp4);
    el respaldo es el gradiente del tema, sin capas dibujadas */
 
+/* El video de Disco cambia de color como luces de antro: un filtro gira el
+   tono completo (verde → azul → morado → magenta → rojo → dorado → verde) */
+.vfx-hue { animation: vHue 12s linear infinite; }
+@keyframes vHue {
+  from { filter: hue-rotate(0deg); }
+  to   { filter: hue-rotate(360deg); }
+}
+
 @keyframes glareSweep { from { transform: translateX(-8%); } to { transform: translateX(8%); } }
 
 /* 🌆 Vaporwave: sol retro con franjas sobre el horizonte */
