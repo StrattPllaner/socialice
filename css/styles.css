@@ -2450,6 +2450,42 @@ body::before {
 /* En teléfono los wrappers de la ficha del evento no afectan el flujo */
 .ev-main, .ev-side { display: contents; }
 
+/* ================================================================== */
+/* VISTA COMPLETA del evento: pantalla entera con SU tema (video o    */
+/* gradiente) de fondo y SUS efectos — nada de ventana emergente      */
+/* ================================================================== */
+/* z-index 70: sobre la barra de crear (60) y bajo los sheets (100) */
+.evfull { position: fixed; inset: 0; z-index: 70; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; background: var(--bg); overscroll-behavior: contain; }
+.evfull.is-open { display: block; animation: evIn .2s ease; }
+@keyframes evIn { from { opacity: 0; } to { opacity: 1; } }
+.evfull-tema { position: fixed; inset: 0; pointer-events: none; overflow: hidden; background-position: center top; background-repeat: no-repeat; box-shadow: inset 0 0 220px rgba(0,0,0,.4), inset 0 -70px 130px rgba(0,0,0,.3); }
+.evfull-tema .tema-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.evfull-tema.con-video::before, .evfull-tema.con-video::after { display: none; }
+.evfull-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 16px 8px; }
+.evfull-name { flex: 1; min-width: 0; margin: 0; font-size: 1.3rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 2px 12px rgba(0,0,0,.65); }
+.evfull-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 4px 16px calc(44px + env(safe-area-inset-bottom)); }
+/* Velo ligero en cada bloque para leer sobre cualquier tema */
+.evfull .ev-host, .evfull .ev-line, .evfull .ev-count, .evfull .rsvp,
+.evfull .rsvp-counts, .evfull .ava-stack, .evfull .lock-note, .evfull .host-bar,
+.evfull .zona-list, .evfull .ev-desc, .evfull .detail-chips, .evfull .album-grid,
+.evfull .invite-row, .evfull .news-list, .evfull .post-compose, .evfull .com-list,
+.evfull .warn-full {
+  background: rgba(8,10,18,.55);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.08); border-radius: 14px;
+  padding: 12px; margin-bottom: 10px;
+}
+.evfull .row-between h3 { text-shadow: 0 1px 6px rgba(0,0,0,.65); }
+.evfull .ev-cover { margin-bottom: 12px; }
+@media (min-width: 1100px) {
+  .evfull-inner {
+    max-width: 1060px;
+    display: grid; grid-template-columns: 1.08fr .92fr;
+    column-gap: 40px; align-items: start;
+  }
+  .evfull .album-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
 /* --- Computadora / pantallas grandes --- */
 @media (min-width: 1100px) {
   :root { --app-max: 980px; }

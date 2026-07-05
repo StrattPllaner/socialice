@@ -757,6 +757,7 @@ function editarFiesta(id) {
   if (e.temaColors && e.temaColors.length) draft.temaColors = e.temaColors.slice();
   draft.temaAnim = !!e.temaAnim;
   draft.discoHue = e.discoHue || 0;
+  draft.efecto = e.efecto || 'ninguno';
   draft.tituloFont = e.tituloFont || 'classic';
   draft.descripcion = e.descripcion || '';
   draft.dressCode = e.dressCode || '';
@@ -1016,17 +1017,21 @@ function pintarCrear() {
   if (mostrarMapa) { pintarFloors(); pintarTools(); pintarVenue(); pintarControls(); }
 }
 
-// Efectos con partículas REALES (se ven naturales, no degradados)
-function pintarEfecto() {
-  document.querySelectorAll('.efx-layer').forEach((n) => n.remove());
-  const e = draft.efecto;
+// Efectos con partículas REALES (se ven naturales, no degradados).
+// Sin argumentos pinta el efecto del borrador a nivel del body (pantalla de
+// crear); con (efecto, destino) pinta dentro de otro contenedor (la vista
+// completa del evento usa el suyo, sin pisar las capas del body).
+function pintarEfecto(efecto, destino) {
+  destino = destino || document.body;
+  destino.querySelectorAll(':scope > .efx-layer').forEach((n) => n.remove());
+  const e = efecto !== undefined ? efecto : draft.efecto;
   if (!e || e === 'ninguno' || e === 'neon') return; // neón vive en las tarjetas, no en una capa
-  // La capa vive a NIVEL DEL BODY (como la barra y #temaBg): si viviera dentro
-  // de la pantalla, cualquier transform de esta rompería su position:fixed y
-  // las partículas se quedarían pegadas arriba al hacer scroll.
+  // La capa vive a NIVEL DEL CONTENEDOR (como la barra y #temaBg): si viviera
+  // dentro de la pantalla, cualquier transform de esta rompería su
+  // position:fixed y las partículas se quedarían pegadas arriba al hacer scroll.
   const layer = document.createElement('div');
   layer.className = 'efx-layer efx-' + e;
-  document.body.appendChild(layer);
+  destino.appendChild(layer);
   if (e === 'grano') layer.insertAdjacentHTML('beforeend', '<div class="efx-vhs-band"></div>');
   const conParticulas = ['destellos', 'confeti', 'burbujas', 'nieve', 'corazones', 'rayos', 'lluvia', 'luciernagas', 'laser', 'bengalas'];
   if (!conParticulas.includes(e)) return; // humo/grano/aurora/estrobo son solo capas CSS
@@ -1896,6 +1901,7 @@ function draftAEvento() {
     temaColors: draft.temaColors.slice(),
     temaAnim: !!draft.temaAnim,
     discoHue: draft.discoHue,
+    efecto: draft.efecto,
     tituloFont: draft.tituloFont,
     descripcion: draft.descripcion.trim(),
     dressCode: draft.dressCode.trim(),
@@ -3116,7 +3122,25 @@ function abrirEvento(id) {
   const muestra = invitadosMuestra(e, 7);
   const listaOk = puedeVerLista(e);
 
-  abrirSheet(e.nombre, `
+  // El evento se ve en PANTALLA COMPLETA (no en ventana) con SU tema de
+  // fondo (video/gradiente) y SUS efectos, tal como lo armó el organizador
+  const tt = TEMAS[e.tema] ? (TEMAS[e.tema].custom ? customTema(e.temaColors, e.temaAnim) : TEMAS[e.tema]) : null;
+  const slug = tt ? temaSlug(TEMAS[e.tema].custom ? 'Tus colores' : tt.nombre) : '';
+  const tv = TEMA_VIDEOS[slug];
+  let videoTag = '';
+  if (tv) {
+    const hue = slug === 'disco' ? (e.discoHue || 0) : 0;
+    videoTag = `<video class="tema-video${hue === 'anim' ? ' vfx-hue' : ''}"${(typeof hue === 'number' && hue) ? ` style="filter:hue-rotate(${hue}deg)"` : ''} src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>`;
+  }
+  let ov = document.getElementById('eventoFull');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'eventoFull'; ov.className = 'evfull'; document.body.appendChild(ov); }
+  ov.innerHTML = `
+    <div class="evfull-tema ${slug ? 'tema-' + slug : ''}${TEMAS[e.tema] && TEMAS[e.tema].custom && e.temaAnim ? ' anim' : ''}${tv ? ' con-video' : ''}" style="background:${tt ? tt.bg.replace(/"/g, '&quot;') : 'var(--bg)'};background-repeat:no-repeat">${videoTag}</div>
+    <div class="evfull-bar">
+      <button class="round-btn" onclick="cerrarEvento()">✕</button>
+      <h2 class="evfull-name" ${nombreAttrs(e)}>${e.nombre}</h2>
+    </div>
+    <div class="evfull-inner">
     <!-- En laptop la ficha se parte en 2 columnas (.ev-main | .ev-side);
          en teléfono los wrappers son display:contents y no cambian nada -->
     <div class="ev-main">
@@ -3125,7 +3149,6 @@ function abrirEvento(id) {
       <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
       <span class="event-price">${e.precio}</span>
     </div>
-    ${((e.animColors && e.animColors.length >= 2) || (e.nombreColor && e.nombreColor !== '#ffffff')) ? `<div class="ev-title-wrap"><h2 ${nombreAttrs(e)}>${e.nombre}</h2></div>` : ''}
 
     ${cuenta ? `<div class="ev-count ${cuenta === '¡Es hoy!' ? 'today' : ''}">⏳ ${cuenta}</div>` : ''}
 
@@ -3256,9 +3279,22 @@ function abrirEvento(id) {
     </div>
     <div class="com-list" id="evComList">${comentariosHTML(e)}</div>
 
-    ${esMio ? `<div class="sheet-actions"><button class="btn full" onclick="cerrarSheet(); editarFiesta('${e.id}')">✎ Editar evento</button></div>` : ''}
+    ${esMio ? `<div class="sheet-actions"><button class="btn full" onclick="cerrarEvento(); editarFiesta('${e.id}')">✎ Editar evento</button></div>` : ''}
     </div>
-  `);
+    </div>
+  `;
+  ov.scrollTop = 0;
+  ov.classList.add('is-open');
+  const vid = ov.querySelector('.tema-video');
+  if (vid) { vid.playbackRate = +vid.dataset.rate || 1; vid.play().catch(() => {}); }
+  // Los efectos del evento viven DENTRO de la vista (no pisan los del body)
+  pintarEfecto(e.efecto || 'ninguno', ov);
+}
+
+// Cierra la vista completa del evento
+function cerrarEvento() {
+  const ov = document.getElementById('eventoFull');
+  if (ov) { ov.classList.remove('is-open'); ov.innerHTML = ''; }
 }
 
 // Comentarios → HTML
