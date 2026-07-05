@@ -3014,19 +3014,33 @@ body[data-screen="create"] .efx-layer { display: block; }
 }
 @media (prefers-reduced-motion: reduce) { .efx-snow-pile { height: 60px; animation: none; } }
 
-/* Con un tema activo, las tarjetas llevan un velo oscuro para que el texto
-   se lea sobre cualquier fondo vivo (Y2K, Holográfico, Lunares, etc.) */
+/* Al crear, TODO lo editable va con fondo TRANSPARENTE: el tema (video o
+   gradiente) se ve completo detrás; solo quedan los bordes como guía y una
+   sombra en el texto para que se lea sobre cualquier fondo */
 body.creando .titulo-card,
 body.creando .fecha-block,
+body.creando .fecha-row,
+body.creando .fecha-row input,
 body.creando .host-block,
 body.creando .crear-rows,
+body.creando .crear-row,
 body.creando .crear-desc,
 body.creando .zona-card,
-body.creando .crear-toolbar,
+body.creando .zona-card input,
 body.creando .post-compose,
-body.creando .news-list .post-card { background: rgba(8,10,18,.58) !important; }
-body.creando .crear-row { background: transparent !important; }
+body.creando .post-compose textarea,
+body.creando .news-list .post-card { background: transparent !important; }
+body.creando .titulo-card { backdrop-filter: none; }
+/* La barra flotante (Tema/Efecto/Ajustes) NO es contenido editable: se queda
+   oscura para que siempre se distinga */
+body.creando .crear-toolbar { background: rgba(8,10,18,.58) !important; }
 body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+/* Texto legible sobre video/fondos claros */
+body.creando .titulo-card, body.creando .fecha-block, body.creando .host-block,
+body.creando .crear-rows, body.creando .zona-card,
+body.creando .fecha-row input, body.creando .crear-row input,
+body.creando .zona-card input, body.creando .post-compose textarea,
+body.creando .crear-desc { text-shadow: 0 1px 6px rgba(0,0,0,.55); }
 /* Los chips (+Link, +Playlist, Foto de fondo…) van del MISMO gris traslúcido
    que las tarjetas, no azul marino sólido que desentona en temas claros */
 body.creando .chip {
