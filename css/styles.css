@@ -1188,6 +1188,8 @@ body.no-scroll { overflow: hidden; }
 /* Lienzo del plano */
 .venue {
   position: relative; width: 100%; aspect-ratio: 1 / 1.15;
+  /* Que el mapa nunca se haga gigante: tope de alto en cualquier pantalla */
+  max-height: 340px;
   border-radius: var(--r-lg); overflow: hidden;
   background: radial-gradient(120% 120% at 50% 0%, #161a26, #0a0c12);
   border: 1px solid var(--line-strong);
@@ -2567,7 +2569,7 @@ body[data-screen="create"] .bottom-nav { display: none; }
   background-size: cover; background-position: center;
   box-shadow: 0 22px 60px rgba(0,0,0,.45), 0 4px 16px rgba(0,0,0,.3);
   /* En teléfono la portada NO ocupa todo el ancho (la página se hacía larguísima) */
-  width: min(78%, 340px); justify-self: center; margin-left: auto; margin-right: auto;
+  width: min(72%, 310px); justify-self: center; margin-left: auto; margin-right: auto;
 }
 @media (min-width: 900px) { .cover-banner { width: 100%; max-width: none; } }
 .cover-banner-emoji { font-size: 3.4rem; filter: drop-shadow(0 4px 12px rgba(0,0,0,.35)); }
