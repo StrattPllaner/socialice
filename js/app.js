@@ -32,6 +32,9 @@ const ICON_PATHS = {
   pin:    '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
   bell:   '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
   cal:    '<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+  star:   '<path d="m12 3.5 2.6 5.3 5.9.9-4.3 4.2 1 5.8L12 17l-5.2 2.7 1-5.8-4.3-4.2 5.9-.9Z"/>',
+  fire:   '<path d="M12 20.5c-3.6 0-6-2.3-6-5.6 0-2.4 1.3-4.1 2.7-5.7.4 1.1 1.1 1.9 2.1 2.3C10.4 8.6 11 5.9 13.3 3.5c.2 2.7 1.5 4.3 2.8 5.8 1.2 1.4 1.9 2.8 1.9 4.6 0 3.3-2.4 6.6-6 6.6Z"/>',
+  globe:  '<circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.3 2.3 3.5 5.2 3.5 8.5s-1.2 6.2-3.5 8.5c-2.3-2.3-3.5-5.2-3.5-8.5s1.2-6.2 3.5-8.5Z"/>',
   crown:  '<path d="M4 17.5 3 7.5l5 3.5 4-6 4 6 5-3.5-1 10Z"/><path d="M5 20.5h14"/>',
   dollar: '<path d="M12 3.5v17"/><path d="M16.3 6.8c-.9-1.1-2.4-1.7-4.2-1.7-2.3 0-4 1.2-4 3.1 0 4.2 8.6 2.2 8.6 6.5 0 2-1.9 3.2-4.6 3.2-2 0-3.6-.7-4.6-1.9"/>',
   dress:  '<path d="M8 3.5a4 4 0 0 0 8 0"/><path d="m8 3.5-4.2 3 1.8 3.2L8 8.5V20h8V8.5l2.4 1.2 1.8-3.2-4.2-3"/>',
@@ -297,7 +300,7 @@ function tarjetaEvento(e) {
         ${ch ? `<span class="ev2-date"><b>${ch.dia}</b><i>${ch.mes}</i></span>` : `<span class="ev2-date soon"><b>✦</b><i>PRONTO</i></span>`}
         <span class="ev2-price">${e.precio}</span>
         <div class="ev2-overlay">
-          ${casiLleno(e) ? `<span class="ev2-warn-inline">🔥 ¡Últimos lugares!</span>` : ''}
+          ${casiLleno(e) ? `<span class="ev2-warn-inline">${icon('fire')} ¡Últimos lugares!</span>` : ''}
           <h3 ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
           <p class="ev2-when">${esc(e.fecha)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
         </div>
@@ -342,8 +345,8 @@ function tarjetaProximamente(e) {
         </div>
       </div>
       <div class="ev2-foot">
-        <span class="ev2-place" id="int-${e.id}">👀 ${totalInteresados(e)} interesados</span>
-        <button class="ev2-bell ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)">${e._interesado ? '⭐ Interesado ✓' : '⭐ Interesado'}</button>
+        <span class="ev2-place" id="int-${e.id}">${icon('eye')} ${totalInteresados(e)} interesados</span>
+        <button class="ev2-bell ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)">${icon('star')} ${e._interesado ? 'Interesado ✓' : 'Interesado'}</button>
       </div>
     </article>`;
 }
@@ -353,10 +356,10 @@ function interesado(id, btn) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   e._interesado = !e._interesado;
   btn.classList.toggle('on', e._interesado);
-  btn.textContent = e._interesado ? '⭐ Interesado ✓' : '⭐ Interesado';
+  btn.innerHTML = icon('star') + (e._interesado ? ' Interesado ✓' : ' Interesado');
   // Actualiza el contador de interesados si está visible
   const c = document.getElementById('int-' + id);
-  if (c) c.textContent = `👀 ${totalInteresados(e)} interesados`;
+  if (c) c.innerHTML = `${icon('eye')} ${totalInteresados(e)} interesados`;
   toast(e._interesado ? `¡Listo! Te avisaremos de ${e.nombre} 🔔` : 'Ya no recibirás avisos');
 }
 
@@ -1004,7 +1007,7 @@ function pintarCrear() {
         <button class="chip" onclick="agregarPregunta()">＋ Pregunta</button>
         <button class="chip" onclick="toggleMapa()">${mostrarMapa ? '－' : '＋'} Mapa del lugar</button>
       </div>
-      ${draft.preguntas.length ? `<div class="preg-list">${draft.preguntas.map((p, i) => `<div class="preg-chip">❓ ${esc(p)}<span onclick="delPregunta(${i})">✕</span></div>`).join('')}</div>` : ''}
+      ${draft.preguntas.length ? `<div class="preg-list">${draft.preguntas.map((p, i) => `<div class="preg-chip">${icon('quest', 'mute')} ${esc(p)}<span onclick="delPregunta(${i})">✕</span></div>`).join('')}</div>` : ''}
       ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${esc(urlSegura(l.url))}" target="_blank" rel="noopener">${icon(l.tipo === 'playlist' ? 'music' : 'link', 'mute')} ${esc(l.url)} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
 
       <!-- Mapa del lugar (colapsable, con foto de fondo) -->
@@ -1372,7 +1375,7 @@ function abrirTemaCustom() {
         </label>
         <button class="chip" onclick="quitarColorCustom()">✕ Solo un color</button>`
       : `<button class="chip" onclick="agregarColorCustom()">＋ Segundo color</button>`}
-      <button class="chip ${draft.temaAnim ? 'is-active' : ''}" onclick="toggleTemaAnim()">✨ Animado</button>
+      <button class="chip ${draft.temaAnim ? 'is-active' : ''}" onclick="toggleTemaAnim()">${icon('spark')} Animado</button>
     </div>
     <div class="cc-prev ${draft.temaAnim ? 'anim' : ''}" id="ccPrev" style="background:${t.bg}"></div>
     <button class="btn full" onclick="aplicarTemaCustom()">Usar estos colores</button>
@@ -2418,7 +2421,7 @@ function tarjetaAmigo(a) {
         <div class="friend-main">
           <strong>${a.nombre}</strong>
           <small>${a.usuario}</small>
-          <p class="friend-locked">🔒 Privado · solo sus mejores amigos ven su actividad</p>
+          <p class="friend-locked">${icon('lock', 'mute')} Privado · solo sus mejores amigos ven su actividad</p>
         </div>
       </article>`;
   }
@@ -2458,7 +2461,7 @@ function abrirAmigo(usuario) {
         <div class="amigo-ava" style="background:${a.color}">${a.avatar}</div>
         <strong>${a.nombre}</strong><small>${a.usuario}</small>
       </div>
-      <div class="locked-box">🔒 Este perfil es privado.<br>Solo sus mejores amigos ven su actividad.</div>
+      <div class="locked-box">${icon('lock', 'mute')} Este perfil es privado.<br>Solo sus mejores amigos ven su actividad.</div>
       <div class="sheet-actions">${btnBest}</div>
     `);
     return;
@@ -2727,7 +2730,7 @@ function perfilOrganizador(u) {
         <div class="profile-stats">
           <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
           <span class="stat-sep"></span>
-          <div class="stat"><strong>${kilo(u.stats.asistentes)} 🔥</strong><small>asistentes</small></div>
+          <div class="stat"><strong>${kilo(u.stats.asistentes)} ${icon('fire')}</strong><small>asistentes</small></div>
           <span class="stat-sep"></span>
           <button class="stat as-btn" onclick="verSeguidores()"><strong class="name-anim" style="background-image:${animGrad(['#2f7bff','#38bdf8','#7dd3fc','#22d3ee'])}">${u.stats.seguidores}</strong><small>seguidores</small></button>
         </div>
@@ -2903,7 +2906,7 @@ function perfilAsistente(u) {
     <!-- Privacidad: público o privado -->
     <div class="privacy-card">
       <div class="privacy-text">
-        <strong>${u.privado ? '🔒 Perfil privado' : '🌍 Perfil público'}</strong>
+        <strong>${u.privado ? icon('lock', 'mute') + ' Perfil privado' : icon('globe', 'mute') + ' Perfil público'}</strong>
         <small>${u.privado
           ? 'Solo tus amigos ven a qué fiestas vas.'
           : 'Cualquiera puede ver a qué fiestas vas.'}</small>
@@ -3237,7 +3240,7 @@ function abrirEvento(id) {
       <button class="ev-line-act" onclick="toast('Mapa · próximamente 🗺️')">Ver mapa</button>
     </div>
 
-    ${casiLleno(e) ? `<div class="warn-full">🔥 ¡Casi se agotan los lugares! Quedan pocos.</div>` : ''}
+    ${casiLleno(e) ? `<div class="warn-full">${icon('fire')} ¡Casi se agotan los lugares! Quedan pocos.</div>` : ''}
 
     ${esMio ? '' : `
       <!-- RSVP: ¿vas a ir? -->
