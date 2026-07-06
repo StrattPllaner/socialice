@@ -31,7 +31,20 @@ const ICON_PATHS = {
   eyeOff: '<path d="m3 3 18 18"/><path d="M10.5 6.1A9.6 9.6 0 0 1 12 6c6 0 9.5 6 9.5 6a16.8 16.8 0 0 1-3 3.6"/><path d="M6.4 7.8A16.5 16.5 0 0 0 2.5 12S6 18 12 18a9.4 9.4 0 0 0 3-.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
   pin:    '<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11Z"/><circle cx="12" cy="10" r="2.6"/>',
   bell:   '<path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
-  cal:    '<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>'
+  cal:    '<rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+  crown:  '<path d="M4 17.5 3 7.5l5 3.5 4-6 4 6 5-3.5-1 10Z"/><path d="M5 20.5h14"/>',
+  dollar: '<path d="M12 3.5v17"/><path d="M16.3 6.8c-.9-1.1-2.4-1.7-4.2-1.7-2.3 0-4 1.2-4 3.1 0 4.2 8.6 2.2 8.6 6.5 0 2-1.9 3.2-4.6 3.2-2 0-3.6-.7-4.6-1.9"/>',
+  dress:  '<path d="M8 3.5a4 4 0 0 0 8 0"/><path d="m8 3.5-4.2 3 1.8 3.2L8 8.5V20h8V8.5l2.4 1.2 1.8-3.2-4.2-3"/>',
+  dots:   '<circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/>',
+  check:  '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  quest:  '<path d="M9.3 9a2.8 2.8 0 1 1 4 2.6c-1 .5-1.3 1.1-1.3 2.1"/><circle cx="12" cy="17.4" r="1.2" fill="currentColor" stroke="none"/>',
+  xmark:  '<path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/>',
+  clock:  '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3.2 2"/>',
+  doc:    '<rect x="5" y="3.5" width="14" height="17" rx="2.5"/><path d="M9 8.5h6M9 12h6M9 15.5h4"/>',
+  mega:   '<path d="M3.5 10.5v3a1.5 1.5 0 0 0 1.5 1.5h2l7 4.5v-15L7 9H5a1.5 1.5 0 0 0-1.5 1.5Z"/><path d="M17.5 9.5a4 4 0 0 1 0 5"/>',
+  music:  '<path d="M9 18V6l10-2.2V15"/><circle cx="6.7" cy="18" r="2.5"/><circle cx="16.7" cy="15" r="2.5"/>',
+  link:   '<path d="m9.8 14.2 4.4-4.4"/><path d="M8.4 11.6 6 14a3.6 3.6 0 0 0 5.1 5.1l2.4-2.4"/><path d="M15.6 12.4 18 10a3.6 3.6 0 0 0-5.1-5.1L10.5 7.3"/>',
+  img:    '<rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.8" cy="10" r="1.6"/><path d="m5 18.5 5-5 3 3 3.5-3.5 3.5 3.5"/>'
 };
 
 // Devuelve el SVG de un icono. cls = clases CSS extra (opcional).
@@ -871,12 +884,16 @@ function pintarCrear() {
         <div class="titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
              data-ph="Evento sin título" style="font-family:${font}; ${anim ? `background-image:${animGrad(draft.cover.anim)}` : `color:${draft.cover.titleColor}`}"
              oninput="draft.nombre=this.textContent">${draft.nombre}</div>
+        <!-- Estilo del título dentro de un menú ⋯ (no ocupa espacio) -->
         <div class="titulo-tools">
-          <button class="tt-btn" onclick="abrirTipografias()" style="font-family:${font}">Aa <small>Tipografía</small></button>
-          <label class="tt-color" style="background:${anim ? 'conic-gradient(from 0deg,#2f7bff,#38bdf8,#a855f7,#22d3ee,#2f7bff)' : draft.cover.titleColor}" title="Color del título">
-            <input type="color" value="${anim ? '#2f7bff' : draft.cover.titleColor}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
-          </label>
-          <button class="tt-anim ${anim ? 'on' : ''}" onclick="abrirColorAnim()" title="Color animado">✨</button>
+          <button class="tt-more" onclick="this.closest('.titulo-tools').classList.toggle('open')" aria-label="Estilo del título">${icon('dots')}</button>
+          <div class="tt-menu">
+            <button class="tt-btn" onclick="abrirTipografias()" style="font-family:${font}">Aa <small>Tipografía</small></button>
+            <label class="tt-color" style="background:${anim ? 'conic-gradient(from 0deg,#2f7bff,#38bdf8,#a855f7,#22d3ee,#2f7bff)' : draft.cover.titleColor}" title="Color del título">
+              <input type="color" value="${anim ? '#2f7bff' : draft.cover.titleColor}" oninput="setNombreColorLive(this.value)" onchange="setNombreColor(this.value)">
+            </label>
+            <button class="tt-anim ${anim ? 'on' : ''}" onclick="abrirColorAnim()" title="Color animado">${icon('spark')}</button>
+          </div>
         </div>
       </div>
 
@@ -892,13 +909,15 @@ function pintarCrear() {
           <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
         </div>
         <div class="cr-fechas">
-          <label class="cr-dato cr-fecha-big"><span>📅</span>
+          <label class="cr-dato cr-fecha-big"><span>${icon('cal', 'mute')}</span>
             <input type="date" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; if(!draft.fechaFin)draft.fechaFin=this.value; syncFecha()">
           </label>
           <div class="cr-horas">
             <label class="cr-hora"><small>Inicio</small><input type="text" inputmode="numeric" value="${draft.horaInicio}" placeholder="9:30 pm" oninput="draft.horaInicio=this.value; syncFecha()"></label>
             <label class="cr-hora"><small>Final</small><input type="text" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value"></label>
           </div>
+          <!-- El espacio que sobra bajo las horas lo llena el CUPO TOTAL -->
+          <div class="cr-dato"><span>${icon('user', 'mute')}</span><b id="capTotalMini">0</b><small>cupo total</small></div>
         </div>
       </div>
 
@@ -909,7 +928,7 @@ function pintarCrear() {
       <div class="cr-info">
         <div class="crear-block host-block">
           <div class="host-head">
-            <span class="host-title">👑 Organizadores</span>
+            <span class="host-title">${icon('crown', 'mute')} Organizadores</span>
             <div class="host-add-row">
               <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitrión</button>
               <button class="chip" onclick="agregarGrupoOrg()">＋ Grupo</button>
@@ -922,16 +941,10 @@ function pintarCrear() {
           <div id="orgList"></div>
         </div>
         <div class="cr-datos">
-          <label class="cr-dato"><span>📍</span><input id="cvLugar" value="${draft.lugar}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
-          <label class="cr-dato"><span>💲</span><input id="cvCosto" value="${draft.costo}" placeholder="Costo" oninput="draft.costo=this.value"></label>
-          <div class="cr-dato"><span>👤</span><b id="capTotalMini">0</b><small>cupo total</small></div>
+          <label class="cr-dato"><span>${icon('pin', 'mute')}</span><input id="cvLugar" value="${draft.lugar}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
+          <label class="cr-dato"><span>${icon('dollar', 'mute')}</span><input id="cvCosto" value="${draft.costo}" placeholder="Costo" oninput="draft.costo=this.value"></label>
+          <label class="cr-dato"><span>${icon('dress', 'mute')}</span><input id="cvDress" value="${draft.dressCode}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
         </div>
-      </div>
-
-      <!-- Más detalles (aparecen al hacer scroll) -->
-      <div class="crear-rows">
-        <label class="crear-row"><span>🏙️</span><input id="cvCiudad" value="${draft.ciudad}" placeholder="Ciudad" oninput="draft.ciudad=this.value"></label>
-        <label class="crear-row"><span>👗</span><input id="cvDress" value="${draft.dressCode}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
       </div>
 
       <!-- Chips rápidos -->
@@ -942,14 +955,14 @@ function pintarCrear() {
         <button class="chip" onclick="toggleMapa()">${mostrarMapa ? '－' : '＋'} Mapa del lugar</button>
       </div>
       ${draft.preguntas.length ? `<div class="preg-list">${draft.preguntas.map((p, i) => `<div class="preg-chip">❓ ${p}<span onclick="delPregunta(${i})">✕</span></div>`).join('')}</div>` : ''}
-      ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${l.url}" target="_blank" rel="noopener">${l.tipo === 'playlist' ? '🎵' : '🔗'} ${l.url} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
+      ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${l.url}" target="_blank" rel="noopener">${icon(l.tipo === 'playlist' ? 'music' : 'link', 'mute')} ${l.url} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
 
       <!-- Mapa del lugar (colapsable, con foto de fondo) -->
       <div id="mapaWrap" style="${mostrarMapa ? '' : 'display:none'}">
         <div class="row-between"><h3>Mapa del lugar</h3><span class="see-all" onclick="limpiarVenue()">Vaciar</span></div>
         <input type="file" accept="image/*" id="planoBgFile" hidden onchange="subirPlanoBg(event)">
         <div class="cover-actions">
-          <button class="chip" onclick="document.getElementById('planoBgFile').click()">🖼️ Foto de fondo</button>
+          <button class="chip" onclick="document.getElementById('planoBgFile').click()">${icon('img', 'mute')} Foto de fondo</button>
           ${pisoActual().bg ? `<button class="chip" onclick="quitarPlanoBg()">Quitar foto</button>` : ''}
         </div>
         <div class="floor-tabs" id="floorTabs"></div>
@@ -973,9 +986,9 @@ function pintarCrear() {
       <!-- Acciones de anfitrión -->
       <div class="row-between" style="margin-top:24px"><h3>Acciones de anfitrión</h3></div>
       <div class="host-actions">
-        <button class="ha ${draft.questionnaire ? 'on' : ''}" onclick="draft.questionnaire=!draft.questionnaire; this.classList.toggle('on')">📋 Cuestionario</button>
-        <button class="ha ${draft.reminders ? 'on' : ''}" onclick="draft.reminders=!draft.reminders; this.classList.toggle('on')">⏰ Recordatorios</button>
-        <button class="ha ${draft.requireApproval ? 'on' : ''}" onclick="draft.requireApproval=!draft.requireApproval; this.classList.toggle('on')">✅ Requiere aprobación</button>
+        <button class="ha ${draft.questionnaire ? 'on' : ''}" onclick="draft.questionnaire=!draft.questionnaire; this.classList.toggle('on')">${icon('doc', 'mute')} Cuestionario</button>
+        <button class="ha ${draft.reminders ? 'on' : ''}" onclick="draft.reminders=!draft.reminders; this.classList.toggle('on')">${icon('clock', 'mute')} Recordatorios</button>
+        <button class="ha ${draft.requireApproval ? 'on' : ''}" onclick="draft.requireApproval=!draft.requireApproval; this.classList.toggle('on')">${icon('check', 'mute')} Requiere aprobación</button>
         <button class="ha" onclick="abrirAjustesEvento()">⋯ Más</button>
       </div>
 
@@ -1004,9 +1017,9 @@ function pintarCrear() {
   if (!tb) { tb = document.createElement('div'); tb.id = 'crearToolbar'; tb.className = 'crear-toolbar'; document.body.appendChild(tb); }
   tb.innerHTML = `
     <button onclick="abrirTemas()"><span class="ct-ico" style="background:${t.grad}"></span>Tema</button>
-    <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()"><span class="ct-fx">${(EFECTOS.find((e) => e.id === draft.efecto) || EFECTOS[0]).emoji}</span>Efecto</button>
-    <button onclick="abrirAjustesEvento()"><span class="ct-fx">⚙️</span>Ajustes</button>
-    <button onclick="vistaPreviaEvento()"><span class="ct-fx">👁️</span>Vista</button>
+    <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()"><span class="ct-fx">${icon('spark')}</span>Efecto</button>
+    <button onclick="abrirAjustesEvento()"><span class="ct-fx">${icon('gear')}</span>Ajustes</button>
+    <button onclick="vistaPreviaEvento()"><span class="ct-fx">${icon('eye')}</span>Vista</button>
   `;
 
   pintarBoletos();
@@ -1773,7 +1786,7 @@ function pintarBoletos() {
         <div class="zona-f"><label>Cantidad</label>
           <input type="number" value="${b.cantidad}" oninput="draft.boletos[${i}].cantidad=+this.value||0; actualizarCapTotal()"></div>
       </div>
-      <button class="boleto-fx ${b.animado ? 'on' : ''}" onclick="abrirBoletoAnim(${i})">✨ ${b.animado ? `Animación: ${animName}` : 'Boleto especial (elige animación)'}</button>
+      <button class="boleto-fx ${b.animado ? 'on' : ''}" onclick="abrirBoletoAnim(${i})">${icon('spark', 'mute')} ${b.animado ? `Animación: ${animName}` : 'Boleto especial (elige animación)'}</button>
     </div>`;
   }).join('');
   actualizarCapTotal();
@@ -3152,7 +3165,7 @@ function abrirEvento(id) {
       <span class="event-price">${e.precio}</span>
     </div>
 
-    ${cuenta ? `<div class="ev-count ${cuenta === '¡Es hoy!' ? 'today' : ''}">⏳ ${cuenta}</div>` : ''}
+    ${cuenta ? `<div class="ev-count ${cuenta === '¡Es hoy!' ? 'today' : ''}">${icon('clock', 'mute')} ${cuenta}</div>` : ''}
 
     <!-- Anfitrión -->
     <div class="ev-host">
@@ -3177,11 +3190,11 @@ function abrirEvento(id) {
       <div class="rsvp">
         <p class="rsvp-q">${e.proximamente ? '¿Te interesa?' : '¿Vas a ir?'}</p>
         ${e.proximamente
-          ? `<button class="rsvp-btn solo ${e._interesado ? 'on' : ''}" onclick="interesadoPage('${e.id}')">${e._interesado ? '⭐ Interesado ✓' : '⭐ Me interesa'}</button>`
+          ? `<button class="rsvp-btn solo ${e._interesado ? 'on' : ''}" onclick="interesadoPage('${e.id}')">${icon('spark')} ${e._interesado ? 'Interesado ✓' : 'Me interesa'}</button>`
           : `<div class="rsvp-row">
-              <button class="rsvp-btn voy ${e._rsvp === 'voy' ? 'on' : ''}" onclick="setRsvp('${e.id}','voy')">✅<span>Voy</span></button>
-              <button class="rsvp-btn tal ${e._rsvp === 'tal' ? 'on' : ''}" onclick="setRsvp('${e.id}','tal')">🤔<span>Tal vez</span></button>
-              <button class="rsvp-btn no ${e._rsvp === 'no' ? 'on' : ''}" onclick="setRsvp('${e.id}','no')">🙅<span>No puedo</span></button>
+              <button class="rsvp-btn voy ${e._rsvp === 'voy' ? 'on' : ''}" onclick="setRsvp('${e.id}','voy')">${icon('check')}<span>Voy</span></button>
+              <button class="rsvp-btn tal ${e._rsvp === 'tal' ? 'on' : ''}" onclick="setRsvp('${e.id}','tal')">${icon('quest')}<span>Tal vez</span></button>
+              <button class="rsvp-btn no ${e._rsvp === 'no' ? 'on' : ''}" onclick="setRsvp('${e.id}','no')">${icon('xmark')}<span>No puedo</span></button>
             </div>`}
         ${e._rsvp === 'voy' ? `
           <div class="rsvp-extra">
@@ -3199,7 +3212,7 @@ function abrirEvento(id) {
                 <input class="field-input" placeholder="Tu respuesta" value="${(e._respuestas || [])[i] || ''}" onchange="guardarRespuesta('${e.id}',${i},this.value)"></div>`).join('') : ''}
           </div>` : ''}
         <div class="mini-toggle-row">
-          <span>🔔 Recordármelo</span>
+          <span>${icon('bell', 'mute')} Recordármelo</span>
           <button class="toggle ${e._recordar ? 'is-on' : ''}" onclick="toggleRecordar('${e.id}', this)"><span class="toggle-knob"></span></button>
         </div>
       </div>`}
@@ -3207,9 +3220,9 @@ function abrirEvento(id) {
     <!-- Quién va (la lista con nombres solo se abre si puedeVerLista) -->
     <div class="row-between"><h3>Quién va</h3>${listaOk ? `<span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span>` : ''}</div>
     <div class="rsvp-counts">
-      <span class="rc voy" id="rcVoy">✅ ${c.van}</span>
-      <span class="rc tal">🤔 ${c.tal}</span>
-      <span class="rc no">🙅 ${c.no}</span>
+      <span class="rc voy" id="rcVoy">${icon('check')} ${c.van}</span>
+      <span class="rc tal">${icon('quest')} ${c.tal}</span>
+      <span class="rc no">${icon('xmark')} ${c.no}</span>
     </div>
     <div class="ava-stack ${listaOk ? '' : 'anon'}" onclick="verListaInvitados('${e.id}')">
       ${muestra.map((g) => `<span class="ava-mini" style="background:${g.color}">${g.avatar}</span>`).join('')}
@@ -3219,8 +3232,8 @@ function abrirEvento(id) {
       ? 'El anfitrión mantiene la lista de invitados privada.'
       : 'Lista protegida: confirma tu asistencia para ver quién va.'}</span></div>`}
     ${esMio ? `<div class="host-bar">
-      <button class="ha" onclick="avisarTodos('${e.id}')">📣 Avisar a todos</button>
-      <button class="ha" onclick="verListaInvitados('${e.id}')">👥 Gestionar invitados</button>
+      <button class="ha" onclick="avisarTodos('${e.id}')">${icon('mega', 'mute')} Avisar a todos</button>
+      <button class="ha" onclick="verListaInvitados('${e.id}')">${icon('users', 'mute')} Gestionar invitados</button>
     </div>` : ''}
 
     ${(e.boletos && e.boletos.length) ? `
@@ -3239,9 +3252,9 @@ function abrirEvento(id) {
     <div class="row-between"><h3>Detalles</h3></div>
     <p class="ev-desc">${e.descripcion || `Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía.`}</p>
     <div class="detail-chips">
-      <span class="dchip"><span>👗 Código</span><b>${e.dressCode || 'Libre'}</b></span>
-      <span class="dchip"><span>🔞 Edad</span><b>${edadTxt}</b></span>
-      <span class="dchip"><span>🎟️ Entrada</span><b>${e.precio}</b></span>
+      <span class="dchip"><span>${icon('dress', 'mute')} Código</span><b>${e.dressCode || 'Libre'}</b></span>
+      <span class="dchip"><span>${icon('user', 'mute')} Edad</span><b>${edadTxt}</b></span>
+      <span class="dchip"><span>${icon('ticket', 'mute')} Entrada</span><b>${e.precio}</b></span>
     </div>
 
     <!-- Álbum -->
@@ -3252,7 +3265,7 @@ function abrirEvento(id) {
 
     <!-- Invitar -->
     <div class="invite-row">
-      <button class="btn full" onclick="copiarInvitacion('${e.id}')">🔗 Copiar invitación</button>
+      <button class="btn full" onclick="copiarInvitacion('${e.id}')">${icon('link')} Copiar invitación</button>
       <button class="icon-btn" onclick="compartir('${e.nombre}')" aria-label="Compartir">${icon('share')}</button>
     </div>
 
@@ -3333,7 +3346,7 @@ function acomp(id, d) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   e._rsvpExtra = Math.max(0, (e._rsvpExtra || 0) + d);
   const n = document.getElementById('acompN'); if (n) n.textContent = '+' + e._rsvpExtra;
-  const rc = document.getElementById('rcVoy'); if (rc) rc.textContent = '✅ ' + rsvpCounts(e).van;
+  const rc = document.getElementById('rcVoy'); if (rc) rc.innerHTML = icon('check') + ' ' + rsvpCounts(e).van;
 }
 // Recordatorio del evento
 function toggleRecordar(id, btn) {
