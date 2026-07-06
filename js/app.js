@@ -880,6 +880,9 @@ function pintarCrear() {
         </div>
       </div>
 
+      <!-- En PC: dos columnas (izq: hero/descripción/organizadores/mapa ·
+           der: boletos/acciones/publicaciones). En teléfono: una columna -->
+      <div class="cr-col-izq">
       <!-- HERO (como el boceto): portada chica a la IZQUIERDA y a la
            DERECHA la fecha con horas de inicio/final -->
       <div class="cr-hero">
@@ -959,6 +962,9 @@ function pintarCrear() {
         <div class="venue-controls" id="venueControls"></div>
       </div>
 
+      </div>
+      <div class="cr-col-der">
+
       <!-- Boletos y zonas (con animación para boletos especiales) -->
       <div class="row-between"><h3>Boletos y zonas</h3><span class="see-all" id="capTotal"></span></div>
       <div id="boletosList"></div>
@@ -988,6 +994,7 @@ function pintarCrear() {
       <div class="news-list" id="newsList"></div>
 
       <button class="btn full" style="margin:24px 0" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Publicar evento'}</button>
+      </div>
     </div>
   `;
 

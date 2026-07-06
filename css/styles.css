@@ -2704,13 +2704,28 @@ body[data-screen="create"] .bottom-nav { display: none; }
 .cr-info .host-block { margin-bottom: 0; }
 .cr-datos { display: flex; flex-direction: column; gap: 8px; }
 
-/* En iPad/PC el MISMO layout, solo centrado y un poco más ancho */
+/* En teléfono las dos columnas de PC se disuelven (flujo normal) */
+.cr-col-izq, .cr-col-der { display: contents; }
+
+/* En iPad/PC el boceto se ADAPTA al ancho: título a lo ancho y DOS columnas
+   (izq: hero + descripción + organizadores + mapa · der: boletos +
+   acciones + publicaciones), con el riel de herramientas a la derecha */
 @media (min-width: 900px) {
-  .crear-page { max-width: 720px; padding-left: 40px; padding-right: 110px; }
-  .crear-bar { position: sticky; top: 10px; z-index: 30; pointer-events: none; display: flex; justify-content: space-between; }
+  .crear-page {
+    max-width: 1200px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr);
+    column-gap: 44px; align-items: start;
+    padding-left: 44px; padding-right: 120px;
+  }
+  .crear-bar { grid-column: 1 / -1; grid-row: 1; position: sticky; top: 10px; z-index: 30; pointer-events: none; display: flex; justify-content: space-between; }
   .crear-bar > * { pointer-events: auto; }
-  .crear-page .titulo-input { font-size: clamp(1.9rem, 2.4vw, 2.2rem); }
-  .crear-desc { min-height: 96px; }
+  .titulo-card { grid-column: 1 / -1; grid-row: 2; }
+  .cr-col-izq { display: block; min-width: 0; grid-column: 1; grid-row: 3; }
+  .cr-col-der { display: block; min-width: 0; grid-column: 2; grid-row: 3; }
+  .cr-col-der > .row-between:first-child { margin-top: 2px; margin-bottom: 12px; }
+  .crear-page .titulo-input { font-size: clamp(1.9rem, 2.4vw, 2.3rem); }
+  .crear-desc { min-height: 110px; }
   /* Riel vertical de herramientas pegado al borde derecho */
   .crear-toolbar {
     left: auto; right: 20px; bottom: auto; top: 50%; transform: translateY(-50%);
