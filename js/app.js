@@ -53,6 +53,56 @@ function icon(nombre, cls = '') {
     stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[nombre] || ''}</svg>`;
 }
 
+// Escapa texto del usuario antes de meterlo en HTML (nombres, descripciones,
+// comentarios…). Sin esto cualquier invitado podría inyectar HTML/JS (XSS).
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+// Normaliza un link del usuario: solo http/https (nada de javascript: y cía)
+function urlSegura(u) {
+  u = String(u || '').trim();
+  if (!u) return '';
+  if (!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/+/, '');
+  try {
+    const p = new URL(u);
+    return (p.protocol === 'http:' || p.protocol === 'https:') ? p.href : '';
+  } catch { return ''; }
+}
+
+// Diálogo PROPIO estilo cristal líquido — reemplaza al prompt() nativo del
+// navegador (blanco, se sale de pantalla y desentona con la app)
+function pedirTexto(titulo, opts = {}) {
+  return new Promise((resolve) => {
+    document.getElementById('glassDlg')?.remove();
+    const ov = document.createElement('div');
+    ov.id = 'glassDlg'; ov.className = 'gdlg-overlay';
+    ov.innerHTML = `
+      <div class="gdlg">
+        <p class="gdlg-title"></p>
+        <input class="gdlg-input" type="text" autocomplete="off">
+        <div class="gdlg-btns">
+          <button class="gdlg-btn" type="button">Cancelar</button>
+          <button class="gdlg-btn primary" type="button">${opts.ok || 'Listo'}</button>
+        </div>
+      </div>`;
+    ov.querySelector('.gdlg-title').textContent = titulo;
+    const inp = ov.querySelector('.gdlg-input');
+    inp.value = opts.valor || '';
+    inp.placeholder = opts.placeholder || '';
+    const fin = (v) => { ov.remove(); resolve(v); };
+    ov.querySelector('.gdlg-btn').onclick = () => fin(null);
+    ov.querySelector('.gdlg-btn.primary').onclick = () => fin(inp.value);
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') fin(inp.value);
+      if (e.key === 'Escape') fin(null);
+    });
+    ov.addEventListener('pointerdown', (e) => { if (e.target === ov) fin(null); });
+    document.body.appendChild(ov);
+    setTimeout(() => inp.focus(), 60);
+  });
+}
+
 /* ===================================================================
    1. NAVEGACIÓN
    =================================================================== */
@@ -248,8 +298,8 @@ function tarjetaEvento(e) {
         <span class="ev2-price">${e.precio}</span>
         <div class="ev2-overlay">
           ${casiLleno(e) ? `<span class="ev2-warn-inline">🔥 ¡Últimos lugares!</span>` : ''}
-          <h3 ${nombreAttrs(e)}>${e.nombre}</h3>
-          <p class="ev2-when">${e.fecha} · ${e.ciudad}</p>
+          <h3 ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
+          <p class="ev2-when">${esc(e.fecha)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
         </div>
       </div>
       <div class="ev2-foot">
@@ -269,7 +319,7 @@ function tarjetaVoy(e) {
       <span class="voy-shade"></span>
       <span class="voy-tag">Confirmado</span>
       <span class="voy-info">
-        <strong ${nombreAttrs(e)}>${e.nombre}</strong>
+        <strong ${nombreAttrs(e)}>${esc(e.nombre)}</strong>
         <small>${e.fecha}</small>
       </span>
     </button>`;
@@ -287,8 +337,8 @@ function tarjetaProximamente(e) {
       <div class="ev2-cover" style="${coverStyle(e)}">
         <span class="ev2-soon-badge">✦ Próximamente</span>
         <div class="ev2-overlay">
-          <h3 ${nombreAttrs(e)}>${e.nombre}</h3>
-          <p class="ev2-when">${e.lugar} · ${e.ciudad}</p>
+          <h3 ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
+          <p class="ev2-when">${esc(e.lugar)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
         </div>
       </div>
       <div class="ev2-foot">
@@ -425,8 +475,8 @@ function pintarResultados() {
   const ciudad = filtros.ciudad.trim().toLowerCase();
 
   const res = DATA.eventos.filter((e) => {
-    const okTexto  = !t || [e.nombre, e.lugar, e.ciudad, e.organizador].some((c) => c.toLowerCase().includes(t));
-    const okCiudad = !ciudad || e.ciudad.toLowerCase().includes(ciudad);
+    const okTexto  = !t || [e.nombre, e.lugar, e.ciudad, e.organizador].some((c) => (c || '').toLowerCase().includes(t));
+    const okCiudad = !ciudad || (e.ciudad || '').toLowerCase().includes(ciudad);
     const okCuando = filtros.cuando === 'todos' || e.cuando === filtros.cuando;
     const okEdad   = filtros.edad === 'Todas'  || e.edad === filtros.edad;
     return okTexto && okCiudad && okCuando && okEdad;
@@ -883,7 +933,7 @@ function pintarCrear() {
       <div class="titulo-card">
         <div class="titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
              data-ph="Evento sin título" style="font-family:${font}; ${anim ? `background-image:${animGrad(draft.cover.anim)}` : `color:${draft.cover.titleColor}`}"
-             oninput="draft.nombre=this.textContent">${draft.nombre}</div>
+             oninput="draft.nombre=this.textContent">${esc(draft.nombre)}</div>
         <!-- Estilo del título dentro de un menú ⋯ (no ocupa espacio) -->
         <div class="titulo-tools">
           <button class="tt-more" onclick="this.closest('.titulo-tools').classList.toggle('open')" aria-label="Estilo del título">${icon('dots')}</button>
@@ -922,7 +972,7 @@ function pintarCrear() {
       </div>
 
       <!-- Descripción -->
-      <textarea class="crear-desc" placeholder="Descripción de tu evento…" oninput="draft.descripcion=this.value">${draft.descripcion}</textarea>
+      <textarea class="crear-desc" placeholder="Descripción de tu evento…" oninput="draft.descripcion=this.value">${esc(draft.descripcion)}</textarea>
 
       <!-- Organizadores | datos rápidos (ubicación, costo, cupo) -->
       <div class="cr-info">
@@ -941,9 +991,9 @@ function pintarCrear() {
           <div id="orgList"></div>
         </div>
         <div class="cr-datos">
-          <label class="cr-dato"><span>${icon('pin', 'mute')}</span><input id="cvLugar" value="${draft.lugar}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
-          <label class="cr-dato"><span>${icon('dollar', 'mute')}</span><input id="cvCosto" value="${draft.costo}" placeholder="Costo" oninput="draft.costo=this.value"></label>
-          <label class="cr-dato"><span>${icon('dress', 'mute')}</span><input id="cvDress" value="${draft.dressCode}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
+          <label class="cr-dato"><span>${icon('pin', 'mute')}</span><input id="cvLugar" value="${esc(draft.lugar)}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
+          <label class="cr-dato"><span>${icon('dollar', 'mute')}</span><input id="cvCosto" value="${esc(draft.costo)}" placeholder="Costo" oninput="draft.costo=this.value"></label>
+          <label class="cr-dato"><span>${icon('dress', 'mute')}</span><input id="cvDress" value="${esc(draft.dressCode)}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
         </div>
       </div>
 
@@ -954,8 +1004,8 @@ function pintarCrear() {
         <button class="chip" onclick="agregarPregunta()">＋ Pregunta</button>
         <button class="chip" onclick="toggleMapa()">${mostrarMapa ? '－' : '＋'} Mapa del lugar</button>
       </div>
-      ${draft.preguntas.length ? `<div class="preg-list">${draft.preguntas.map((p, i) => `<div class="preg-chip">❓ ${p}<span onclick="delPregunta(${i})">✕</span></div>`).join('')}</div>` : ''}
-      ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${l.url}" target="_blank" rel="noopener">${icon(l.tipo === 'playlist' ? 'music' : 'link', 'mute')} ${l.url} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
+      ${draft.preguntas.length ? `<div class="preg-list">${draft.preguntas.map((p, i) => `<div class="preg-chip">❓ ${esc(p)}<span onclick="delPregunta(${i})">✕</span></div>`).join('')}</div>` : ''}
+      ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${esc(urlSegura(l.url))}" target="_blank" rel="noopener">${icon(l.tipo === 'playlist' ? 'music' : 'link', 'mute')} ${esc(l.url)} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
 
       <!-- Mapa del lugar (colapsable, con foto de fondo) -->
       <div id="mapaWrap" style="${mostrarMapa ? '' : 'display:none'}">
@@ -1240,16 +1290,18 @@ function agregarCoanfitrion() {
     </div>
   `);
 }
-function agregarLinkEvento(tipo) {
-  const url = prompt(tipo === 'playlist' ? 'Pega el link de la playlist (Spotify, etc.):' : 'Pega un link:');
+async function agregarLinkEvento(tipo) {
+  const url = await pedirTexto(tipo === 'playlist' ? 'Pega el link de la playlist' : 'Pega un link', { placeholder: 'https://…', ok: 'Agregar' });
   if (!url) return;
-  draft.links.push({ tipo: tipo || 'link', url });
+  const limpio = urlSegura(url);
+  if (!limpio) { toast('Ese link no es válido'); return; }
+  draft.links.push({ tipo: tipo || 'link', url: limpio });
   pintarCrear();
 }
 function delLink(i) { draft.links.splice(i, 1); pintarCrear(); }
 // Preguntas para los invitados (estilo Partiful)
-function agregarPregunta() {
-  const q = prompt('Pregunta para tus invitados (ej: ¿Qué traes a la fiesta?):');
+async function agregarPregunta() {
+  const q = await pedirTexto('Pregunta para tus invitados', { placeholder: '¿Qué traes a la fiesta?', ok: 'Agregar' });
   if (!q || !q.trim()) return;
   draft.preguntas.push(q.trim());
   pintarCrear();
@@ -1462,7 +1514,7 @@ function pasoPortada() {
       ${draft.cover.textos.map((t, i) => `
         <div class="cover-text ${t.emoji ? 'is-emoji' : ''} ${draft.coverSel === i ? 'sel' : ''}"
              style="left:${t.x}%; top:${t.y}%; font-size:${t.size}px; ${t.emoji ? '' : `color:${t.color}`}"
-             onpointerdown="coverGrab(event,${i})" onclick="selCoverText(event,${i})">${t.texto}</div>`).join('')}
+             onpointerdown="coverGrab(event,${i})" onclick="selCoverText(event,${i})">${esc(t.texto)}</div>`).join('')}
     </div>
     <p class="hint">Arrastra el título, textos y emojis. Tócalos para cambiar color/tamaño.</p>
 
@@ -1492,7 +1544,7 @@ function pasoPortada() {
 
     <div class="field" style="margin-top:14px"><div class="field-main">
       <label class="field-label">Nombre de la fiesta</label>
-      <input class="field-input" value="${draft.nombre}" placeholder="Ej: Summer Rooftop"
+      <input class="field-input" value="${esc(draft.nombre)}" placeholder="Ej: Summer Rooftop"
              oninput="draft.nombre=this.value; const t=document.getElementById('coverTitle'); if(t)t.textContent=this.value||'Tu fiesta'">
     </div></div>
 
@@ -1546,7 +1598,7 @@ function pasoDetalles() {
     </div></div>
     <div class="field"><div class="field-main">
       <label class="field-label">Lugar / dirección</label>
-      <input class="field-input" value="${draft.lugar}" placeholder="Ej: Terraza Skyline" oninput="draft.lugar=this.value">
+      <input class="field-input" value="${esc(draft.lugar)}" placeholder="Ej: Terraza Skyline" oninput="draft.lugar=this.value">
     </div></div>
     <div class="field"><div class="field-main">
       <label class="field-label">Ciudad</label>
@@ -1686,8 +1738,8 @@ function coverMove(ev) {
 }
 function coverDrop() { _coverDrag = null; }
 
-function addCoverText() {
-  const texto = prompt('Texto a mostrar en la portada:');
+async function addCoverText() {
+  const texto = await pedirTexto('Texto a mostrar en la portada', { ok: 'Agregar' });
   if (!texto) return;
   draft.cover.textos.push({ texto, x: 50, y: 72, color: '#ffffff', size: 16 });
   draft.coverSel = draft.cover.textos.length - 1;
@@ -1703,9 +1755,10 @@ function addCoverEmoji(e) {
   pintarCrear();
 }
 function selCoverText(ev, i) { ev.stopPropagation(); draft.coverSel = i; pintarCrear(); }
-function editCoverText() {
+async function editCoverText() {
   const t = draft.cover.textos[draft.coverSel];
-  const nuevo = prompt('Editar texto:', t.texto);
+  if (!t) return;
+  const nuevo = await pedirTexto('Editar texto', { valor: t.texto, ok: 'Guardar' });
   if (nuevo !== null) { t.texto = nuevo; pintarCrear(); }
 }
 function delCoverText() {
@@ -1777,7 +1830,7 @@ function pintarBoletos() {
     return `
     <div class="zona-card ${b.animado ? 'especial bx-' + (b.anim || 'oro') : ''}">
       <div class="zona-top">
-        <input class="zona-name" value="${b.nombre}" placeholder="Nombre (ej: VIP)" oninput="draft.boletos[${i}].nombre=this.value">
+        <input class="zona-name" value="${esc(b.nombre)}" placeholder="Nombre (ej: VIP)" oninput="draft.boletos[${i}].nombre=this.value">
         ${draft.boletos.length > 1 ? `<button class="guest-del" onclick="delBoleto(${i})">✕</button>` : ''}
       </div>
       <div class="zona-fields">
@@ -1872,7 +1925,7 @@ function pintarNoticias() {
             <div><strong>${DATA.usuario.nombre}</strong><small>${n.fecha}</small></div>
             <button class="guest-del" onclick="delNoticia(${i})">✕</button>
           </div>
-          ${n.texto ? `<p class="post-text">${n.texto}</p>` : ''}
+          ${n.texto ? `<p class="post-text">${esc(n.texto)}</p>` : ''}
           ${mediaHTML(n)}
         </div>`).join('')
     : `<p class="empty">Aún no hay publicaciones. Comparte la primera 📣</p>`;
@@ -1901,7 +1954,7 @@ function draftAEvento() {
   return {
     nombre: draft.nombre.trim(),
     lugar: draft.lugar.trim() || 'Lugar por confirmar',
-    ciudad: draft.ciudad.trim() || 'Ciudad',
+    ciudad: draft.ciudad.trim(),
     organizador: DATA.usuario.nombre,
     organizadores: draft.organizadores.map((o) => ({ ...o })),
     emoji: '',
@@ -1967,10 +2020,11 @@ function vistaPreviaEvento() {
   const campos = draftAEvento();
   if (!campos.nombre) campos.nombre = 'Evento sin título';
   DATA.eventos = DATA.eventos.filter((e) => e.id !== '__preview');
+  // El evento temporal vive SOLO mientras la vista está abierta (así los
+  // botones de la ficha funcionan); cerrarEvento() lo borra y nunca toca
+  // el feed porque la vista lo cubre todo
   DATA.eventos.push({ id: '__preview', asistentes: 0, cat: [], ...campos });
   abrirEvento('__preview');
-  // La ficha ya quedó pintada: el evento temporal se borra de inmediato
-  DATA.eventos = DATA.eventos.filter((e) => e.id !== '__preview');
   toast('Así se verá tu evento 👀');
 }
 
@@ -2512,9 +2566,9 @@ function abrirPases() {
         <div class="pase-ticket">
           <div class="pt-strip" style="background:${e.grad}"></div>
           <div class="pt-info">
-            <strong>${e.nombre}</strong>
-            <small>${e.fecha}</small>
-            <small>${e.lugar} · ${e.ciudad || ''}</small>
+            <strong>${esc(e.nombre)}</strong>
+            <small>${esc(e.fecha)}</small>
+            <small>${esc(e.lugar)}${e.ciudad ? ' · ' + esc(e.ciudad) : ''}</small>
             <span class="pt-user"><span class="host-ava sm" style="${avatarFondo(u)}">${avatarContenido(u)}</span>${u.usuario}</span>
           </div>
           <div class="pt-qr">${qrSVG(u.usuario + '·' + e.id)}</div>
@@ -2533,7 +2587,7 @@ function abrirPaseDe(id) {
     <div class="pase-big">
       <div class="pase-big-head">
         <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
-        <div class="pase-big-id"><strong>${e.nombre}</strong><small>${e.fecha} · ${u.usuario}</small></div>
+        <div class="pase-big-id"><strong>${esc(e.nombre)}</strong><small>${esc(e.fecha)} · ${esc(u.usuario)}</small></div>
         <span class="pase-big-logo">S</span>
       </div>
       <div class="pase-big-qrbox">${qrSVG(u.usuario + '·' + e.id, 'pase-big-qr')}</div>
@@ -3153,7 +3207,7 @@ function abrirEvento(id) {
     <div class="evfull-tema ${slug ? 'tema-' + slug : ''}${TEMAS[e.tema] && TEMAS[e.tema].custom && e.temaAnim ? ' anim' : ''}${tv ? ' con-video' : ''}" style="background:${tt ? tt.bg.replace(/"/g, '&quot;') : 'var(--bg)'};background-repeat:no-repeat">${videoTag}</div>
     <div class="evfull-bar">
       <button class="round-btn" onclick="cerrarEvento()">✕</button>
-      <h2 class="evfull-name" ${nombreAttrs(e)}>${e.nombre}</h2>
+      <h2 class="evfull-name" ${nombreAttrs(e)}>${esc(e.nombre)}</h2>
     </div>
     <div class="evfull-inner">
     <!-- En laptop la ficha se parte en 2 columnas (.ev-main | .ev-side);
@@ -3179,7 +3233,7 @@ function abrirEvento(id) {
       ${e.fechaISO ? `<button class="ev-line-act" onclick="addCalendario('${e.id}')">＋ Calendario</button>` : ''}
     </div>
     <div class="ev-line">
-      <div class="ev-line-main">${icon('pin','mute')}<div><strong>${e.lugar}</strong><small>${e.ciudad}</small></div></div>
+      <div class="ev-line-main">${icon('pin','mute')}<div><strong>${esc(e.lugar)}</strong><small>${esc(e.ciudad || '')}</small></div></div>
       <button class="ev-line-act" onclick="toast('Mapa · próximamente 🗺️')">Ver mapa</button>
     </div>
 
@@ -3206,10 +3260,10 @@ function abrirEvento(id) {
                 <button onclick="acomp('${e.id}',1)">+</button>
               </div>
             </div>
-            <input class="field-input nota" placeholder="Deja una nota (opcional)" value="${e._rsvpNota || ''}" onchange="DATA.eventos.find(x=>x.id==='${e.id}')._rsvpNota=this.value">
+            <input class="field-input nota" placeholder="Deja una nota (opcional)" value="${esc(e._rsvpNota || '')}" onchange="DATA.eventos.find(x=>x.id==='${e.id}')._rsvpNota=this.value">
             ${(e.preguntas && e.preguntas.length) ? e.preguntas.map((q, i) => `
-              <div class="rsvp-preg"><label>${q}</label>
-                <input class="field-input" placeholder="Tu respuesta" value="${(e._respuestas || [])[i] || ''}" onchange="guardarRespuesta('${e.id}',${i},this.value)"></div>`).join('') : ''}
+              <div class="rsvp-preg"><label>${esc(q)}</label>
+                <input class="field-input" placeholder="Tu respuesta" value="${esc((e._respuestas || [])[i] || '')}" onchange="guardarRespuesta('${e.id}',${i},this.value)"></div>`).join('') : ''}
           </div>` : ''}
         <div class="mini-toggle-row">
           <span>${icon('bell', 'mute')} Recordármelo</span>
@@ -3250,7 +3304,7 @@ function abrirEvento(id) {
 
     <!-- Detalles -->
     <div class="row-between"><h3>Detalles</h3></div>
-    <p class="ev-desc">${e.descripcion || `Una noche para recordar en ${e.lugar}. Música, luces y la mejor energía.`}</p>
+    <p class="ev-desc">${esc(e.descripcion) || `Una noche para recordar en ${esc(e.lugar)}. Música, luces y la mejor energía.`}</p>
     <div class="detail-chips">
       <span class="dchip"><span>${icon('dress', 'mute')} Código</span><b>${e.dressCode || 'Libre'}</b></span>
       <span class="dchip"><span>${icon('user', 'mute')} Edad</span><b>${edadTxt}</b></span>
@@ -3278,7 +3332,7 @@ function abrirEvento(id) {
               <div class="post-ava" style="background:${DATA.usuario.color}">${DATA.usuario.avatar}</div>
               <div><strong>${e.organizador}</strong><small>${n.fecha || ''}</small></div>
             </div>
-            ${n.texto ? `<p class="post-text">${n.texto}</p>` : ''}
+            ${n.texto ? `<p class="post-text">${esc(n.texto)}</p>` : ''}
             ${mediaHTML(n)}
           </div>`).join('')}
       </div>` : ''}
@@ -3306,10 +3360,11 @@ function abrirEvento(id) {
   pintarEfecto(e.efecto || 'ninguno', ov);
 }
 
-// Cierra la vista completa del evento
+// Cierra la vista completa del evento (y limpia el evento de vista previa)
 function cerrarEvento() {
   const ov = document.getElementById('eventoFull');
   if (ov) { ov.classList.remove('is-open'); ov.innerHTML = ''; }
+  DATA.eventos = DATA.eventos.filter((e) => e.id !== '__preview');
 }
 
 // Comentarios → HTML
@@ -3318,11 +3373,12 @@ function comentariosHTML(e) {
   return e._comentarios.map((c) => `
     <div class="com-item">
       <span class="com-ava" style="background:${c.color}">${c.avatar}</span>
-      <div class="com-body"><strong>${c.nombre} <small>${c.fecha || ''}</small></strong><p>${c.texto}</p></div>
+      <div class="com-body"><strong>${esc(c.nombre)} <small>${esc(c.fecha || '')}</small></strong><p>${esc(c.texto)}</p></div>
     </div>`).join('');
 }
 function addComentario(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   const inp = document.getElementById('evComInput');
   const texto = inp.value.trim();
   if (!texto) return;
@@ -3335,6 +3391,7 @@ function addComentario(id) {
 // RSVP (Voy / Tal vez / No puedo)
 function setRsvp(id, estado) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   e._rsvp = (e._rsvp === estado) ? null : estado;
   e._voy = e._rsvp === 'voy';
   const msg = { voy: `¡Confirmado! Vas a ${e.nombre} 🎉`, tal: 'Quedaste como "tal vez" 🤔', no: 'Marcaste que no puedes 🙅' };
@@ -3344,6 +3401,7 @@ function setRsvp(id, estado) {
 // + / − invitados que traes (actualiza el conteo en vivo)
 function acomp(id, d) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   e._rsvpExtra = Math.max(0, (e._rsvpExtra || 0) + d);
   const n = document.getElementById('acompN'); if (n) n.textContent = '+' + e._rsvpExtra;
   const rc = document.getElementById('rcVoy'); if (rc) rc.innerHTML = icon('check') + ' ' + rsvpCounts(e).van;
@@ -3351,6 +3409,7 @@ function acomp(id, d) {
 // Recordatorio del evento
 function toggleRecordar(id, btn) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   e._recordar = !e._recordar;
   btn.classList.toggle('is-on', e._recordar);
   toast(e._recordar ? '🔔 Te recordaremos antes del evento' : 'Recordatorio quitado');
@@ -3359,6 +3418,7 @@ function toggleRecordar(id, btn) {
 // Interés desde la página
 function interesadoPage(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   e._interesado = !e._interesado;
   toast(e._interesado ? `¡Listo! Te avisaremos de ${e.nombre} 🔔` : 'Ya no recibirás avisos');
   abrirEvento(id);
@@ -3368,6 +3428,7 @@ function interesadoPage(id) {
 let _guestTab = 'van';
 function verListaInvitados(id, tab) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   if (!puedeVerLista(e)) {
     toast((e.listaVisible || 'confirmados') === 'nadie'
       ? 'El anfitrión mantiene la lista privada 🔒'
@@ -3410,14 +3471,16 @@ function filtrarInvitados(q) {
 // Guarda la respuesta del invitado a una pregunta
 function guardarRespuesta(id, i, val) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   e._respuestas = e._respuestas || [];
   e._respuestas[i] = val;
 }
 
 // Anfitrión: enviar un aviso a todos los invitados (blast)
-function avisarTodos(id) {
+async function avisarTodos(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
-  const msg = prompt('Mensaje para todos los invitados:');
+  if (!e) return;
+  const msg = await pedirTexto('Mensaje para todos los invitados', { ok: 'Enviar' });
   if (!msg || !msg.trim()) return;
   e._comentarios = e._comentarios || [];
   const u = DATA.usuario;
@@ -3436,6 +3499,7 @@ function copiarInvitacion(id) {
 // Agregar al calendario (descarga un .ics real)
 function addCalendario(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
   if (!e.fechaISO) { toast('Aún sin fecha'); return; }
   const pad = (n) => String(n).padStart(2, '0');
   const fmt = (x) => `${x.getFullYear()}${pad(x.getMonth() + 1)}${pad(x.getDate())}T${pad(x.getHours())}${pad(x.getMinutes())}00`;

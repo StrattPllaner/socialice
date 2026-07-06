@@ -1033,6 +1033,37 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 /* Bloquea el scroll del fondo cuando hay un panel abierto */
 body.no-scroll { overflow: hidden; }
 
+/* --- Diálogo de cristal líquido (reemplaza al prompt() nativo) --- */
+.gdlg-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: grid; place-items: center; padding: 24px;
+  background: rgba(3,4,8,.5);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  animation: evIn .16s ease;
+}
+.gdlg {
+  width: min(100%, 420px); border-radius: 22px; padding: 18px;
+  background: rgba(16,19,30,.72);
+  border: 1px solid rgba(255,255,255,.14);
+  box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter: blur(22px) saturate(1.3); -webkit-backdrop-filter: blur(22px) saturate(1.3);
+}
+.gdlg-title { margin: 0 0 12px; font-weight: 700; font-size: 1.02rem; }
+.gdlg-input {
+  width: 100%; background: rgba(255,255,255,.07); border: 1px solid var(--line-strong);
+  border-radius: 12px; padding: 11px 12px; color: var(--ink);
+  font-family: inherit; font-size: 1rem; outline: none;
+}
+.gdlg-input:focus { border-color: rgba(120,160,255,.7); box-shadow: 0 0 0 3px rgba(80,120,255,.18); }
+.gdlg-input::placeholder { color: rgba(255,255,255,.4); }
+.gdlg-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.gdlg-btn {
+  font-family: inherit; font-weight: 700; font-size: .92rem;
+  padding: 9px 18px; border-radius: var(--r-pill); cursor: pointer;
+  background: rgba(255,255,255,.08); border: 1px solid var(--line-strong); color: var(--ink);
+}
+.gdlg-btn.primary { background: linear-gradient(135deg, #2f7bff, #38bdf8); border: none; color: #fff; box-shadow: 0 8px 24px rgba(47,123,255,.35); }
+
 /* --- Overlay + panel --- */
 .sheet-overlay {
   position: fixed; inset: 0; z-index: 100;
@@ -1871,8 +1902,6 @@ body.no-scroll { overflow: hidden; }
 /* ================================================================== */
 /* Paleta simple del nombre + insignias centradas/animadas + ajustes  */
 /* ================================================================== */
-.ev-title-wrap { text-align: center; margin: 14px 0 4px; }
-.ev-title-wrap h2 { display: inline-block; }
 
 /* Paleta de puntos de color (simple) */
 .name-colors { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -2616,24 +2645,14 @@ body[data-screen="create"] .bottom-nav { display: none; }
 .cover-edit { position: absolute; bottom: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.3); color: #fff; cursor: pointer; backdrop-filter: blur(6px); }
 
 /* Campo grande (fecha) */
-.crear-field.big { background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: var(--r-md); padding: 16px; margin-bottom: 14px; }
-.crear-field.big input { width: 100%; border: none; background: none; outline: none; color: var(--ink); font-size: 1.4rem; font-weight: 700; font-family: var(--font-display); }
-.crear-field.big input::placeholder { color: rgba(255,255,255,.45); }
 
 /* Anfitrión */
 .host-block { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px; margin-bottom: 10px; }
-.host-top { color: var(--ink-soft); font-weight: 600; margin-bottom: 10px; }
 .host-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .host-ava { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; }
 .host-row strong { flex: 1; min-width: 0; }
-.add-co { white-space: nowrap; }
 
 /* Filas de datos */
-.crear-rows { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; margin-bottom: 10px; }
-.crear-row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; background: rgba(255,255,255,.05); }
-.crear-row span { font-size: 1.1rem; width: 22px; text-align: center; opacity: .8; }
-.crear-row input { flex: 1; border: none; background: none; outline: none; color: var(--ink); font-family: inherit; font-size: 1rem; }
-.crear-row input::placeholder { color: rgba(255,255,255,.45); }
 
 /* Chips rápidos */
 .quick-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -2646,9 +2665,6 @@ body[data-screen="create"] .bottom-nav { display: none; }
 .crear-desc::placeholder { color: rgba(255,255,255,.45); }
 
 /* Vista previa RSVP */
-.rsvp-prev { display: flex; gap: 12px; }
-.rsvp-prev-opt { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-md); padding: 18px 8px; font-size: 2rem; }
-.rsvp-prev-opt span { font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
 
 /* Acciones de anfitrión */
 .host-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -2771,12 +2787,6 @@ html, body { overscroll-behavior: none; }
 .tcolor-anim.on { border-color: #fff; }
 
 /* Fecha y hora compactas con selector */
-.fecha-block { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; margin-bottom: 10px; }
-.fecha-row { display: flex; align-items: center; gap: 10px; padding: 9px 12px; background: rgba(255,255,255,.05); flex-wrap: wrap; }
-.fecha-ico { font-size: 1.05rem; }
-.fecha-lbl { font-weight: 700; color: var(--ink-soft); min-width: 52px; }
-.fecha-row input { background: rgba(255,255,255,.08); border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font-family: inherit; padding: 7px 10px; color-scheme: dark; }
-.fecha-row input[type="date"] { flex: 1; min-width: 120px; }
 
 /* Co-anfitriones + grupo */
 .host-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
@@ -2833,13 +2843,6 @@ html, body { overscroll-behavior: none; }
 .font-item.on { border-color: var(--violet); background: rgba(47,123,255,.12); }
 
 /* Fecha más limpia (menos "IA"): sin emojis, etiquetas finas */
-.fecha-block { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-md); overflow: hidden; gap: 0; }
-.fecha-row { gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); background: transparent; }
-.fecha-row:last-child { border-bottom: none; }
-.fecha-lbl { min-width: 48px; font-weight: 700; color: var(--ink); }
-.fecha-date, .fecha-time { background: rgba(255,255,255,.07); border: 1px solid var(--line); border-radius: 10px; color: var(--ink); font-family: inherit; padding: 8px 12px; color-scheme: dark; }
-.fecha-date { flex: 1; min-width: 110px; }
-.fecha-time { width: 96px; text-align: center; }
 
 /* Organiza: cabecera con botones a la derecha */
 .host-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
@@ -2920,8 +2923,8 @@ html, body { overscroll-behavior: none; }
 @keyframes grainShift { 25% { transform: translate(-5px,3px); } 50% { transform: translate(4px,-4px); } 75% { transform: translate(-3px,-5px); } }
 
 /* Neón: el efecto ilumina TODO (no solo el fondo) */
-.efx-neon .titulo-card, .efx-neon .cover-banner, .efx-neon .fecha-block,
-.efx-neon .host-block, .efx-neon .crear-rows, .efx-neon .crear-desc,
+.efx-neon .titulo-card, .efx-neon .cover-banner,
+.efx-neon .host-block, .efx-neon .crear-desc,
 .efx-neon .zona-card, .efx-neon .crear-toolbar, .efx-neon .chip, .efx-neon .ha {
   border-color: rgba(34,211,238,.7) !important;
   box-shadow: 0 0 14px rgba(34,211,238,.45), inset 0 0 10px rgba(34,211,238,.12);
@@ -3088,11 +3091,9 @@ body[data-screen="create"] .efx-layer { display: block; }
    (mucho más suave que antes) deja ver el tema (video o gradiente) detrás,
    con un blur tipo vidrio esmerilado para que el texto se lea */
 body.creando .titulo-card,
-body.creando .fecha-block,
 body.creando .cr-hora,
 body.creando .cr-dato,
 body.creando .host-block,
-body.creando .crear-rows,
 body.creando .crear-desc,
 body.creando .zona-card,
 body.creando .post-compose,
@@ -3102,9 +3103,6 @@ body.creando .news-list .post-card {
   -webkit-backdrop-filter: blur(6px);
 }
 /* Lo de adentro va transparente para no encimar capas oscuras */
-body.creando .fecha-row,
-body.creando .fecha-row input,
-body.creando .crear-row,
 body.creando .zona-card input,
 body.creando .post-compose textarea { background: transparent !important; }
 /* La portada apenas traslúcida pero LUMINOSA (compensa el velo con brillo) */
@@ -3122,9 +3120,7 @@ body.creando .chip:hover { transform: translateY(-2px); background: rgba(18,22,3
 body.creando .crear-toolbar { background: rgba(8,10,18,.58) !important; }
 body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 /* Texto legible sobre video/fondos claros */
-body.creando .titulo-card, body.creando .fecha-block, body.creando .host-block,
-body.creando .crear-rows, body.creando .zona-card,
-body.creando .fecha-row input, body.creando .crear-row input,
+body.creando .titulo-card, body.creando .host-block, body.creando .zona-card,
 body.creando .zona-card input, body.creando .post-compose textarea,
 body.creando .crear-desc { text-shadow: 0 1px 6px rgba(0,0,0,.55); }
 /* Los chips (+Link, +Playlist, Foto de fondo…) van del MISMO gris traslúcido
