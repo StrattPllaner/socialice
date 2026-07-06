@@ -56,8 +56,6 @@ const DATA = {
     { id:'e5', fechaISO:'', nombre:'Aurora Fest',    fecha:'Próximamente',         dia:null,lugar:'Por anunciar',    ciudad:'CDMX',       edad:'18+', cuando:'mes',    organizador:'Andrea Ríos', emoji:'🌌', grad:'linear-gradient(135deg,#6366f1,#22d3ee)', precio:'Pronto', asistentes:0, interesados:312, cat:['populares'], proximamente:true }
   ],
 
-  destacadoId: 'e1',
-
   // Filtros del buscador
   categorias: [
     { id:'todos',     texto:'Todos' },

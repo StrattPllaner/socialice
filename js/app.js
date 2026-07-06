@@ -824,6 +824,12 @@ function editarFiesta(id) {
   draft.temaAnim = !!e.temaAnim;
   draft.discoHue = e.discoHue || 0;
   draft.efecto = e.efecto || 'ninguno';
+  draft.fechaInicio = e.fechaInicio || '';
+  draft.fechaFin = e.fechaFin || '';
+  draft.horaInicio = e.horaInicio || '';
+  draft.horaFin = e.horaFin || '';
+  draft.questionnaire = !!e.questionnaire;
+  draft.reminders = !!e.reminders;
   draft.tituloFont = e.tituloFont || 'classic';
   draft.descripcion = e.descripcion || '';
   draft.dressCode = e.dressCode || '';
@@ -1281,9 +1287,7 @@ function usarGrupoOrg(id) {
   pintarCrear();
   toast(`Grupo "${g.nombre}" agregado`);
 }
-function togglePublico2() { draft.publico = !draft.publico; pintarCrear(); }
 function setTituloFont(id) { draft.tituloFont = id; pintarCrear(); }
-function toggleEfecto() { draft.efecto = !draft.efecto; pintarCrear(); }
 function toggleMapa() { mostrarMapa = !mostrarMapa; pintarCrear(); }
 function agregarCoanfitrion() {
   abrirSheet('Agregar co‑anfitriones', `
@@ -1984,6 +1988,11 @@ function draftAEvento() {
     publico: draft.publico !== false,
     listaVisible: draft.listaVisible || 'confirmados',
     fecha: draft.proximamente ? 'Próximamente' : (draft.fecha.trim() || 'Fecha por confirmar'),
+    // Campos crudos de fecha/hora y toggles: sin esto, al EDITAR el evento
+    // los selectores regresaban vacíos
+    fechaInicio: draft.fechaInicio, fechaFin: draft.fechaFin,
+    horaInicio: draft.horaInicio, horaFin: draft.horaFin,
+    questionnaire: !!draft.questionnaire, reminders: !!draft.reminders,
     capacidad,
     boletos: draft.boletos.map((b) => ({ ...b })),
     edadRango: draft.edad.activo ? { min: 18, max: draft.edad.max || null } : null,
@@ -2581,23 +2590,6 @@ function abrirPases() {
   `);
 }
 
-// Abre directo el pase de UNA fiesta (por si se llama desde el evento)
-function abrirPaseDe(id) {
-  const u = DATA.usuario;
-  const e = DATA.eventos.find((x) => x.id === id);
-  if (!e) return;
-  abrirSheet('Tu pase', `
-    <div class="pase-big">
-      <div class="pase-big-head">
-        <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
-        <div class="pase-big-id"><strong>${esc(e.nombre)}</strong><small>${esc(e.fecha)} · ${esc(u.usuario)}</small></div>
-        <span class="pase-big-logo">S</span>
-      </div>
-      <div class="pase-big-qrbox">${qrSVG(u.usuario + '·' + e.id, 'pase-big-qr')}</div>
-      <p class="hint" style="text-align:center; margin-top:12px">Este pase es solo para esta fiesta.</p>
-    </div>
-  `);
-}
 
 function pintarPerfil() {
   const cont = document.getElementById('screen-profile');
@@ -2705,84 +2697,6 @@ function pintarPerfil() {
   `;
 }
 
-// (sin uso — se conserva por compatibilidad)
-function perfilOrganizador(u) {
-  const mios = DATA.eventos.filter((e) => e.organizador === u.nombre);
-  const popular = u.stats.seguidores >= 1000;
-  const insignia =
-    `${u.verificado ? `<span class="verif" title="Verificado">❄</span>` : ''}` +
-    `${popular ? `<span class="popular" title="Popular · +1000 seguidores">★</span>` : ''}`;
-  return `
-    <header class="page-head row-between">
-      <h1>Perfil</h1>
-      <button class="icon-btn sm" onclick="abrirAjustes()">${icon('gear')}</button>
-    </header>
-
-    <section class="profile-hero ${popular ? 'is-popular' : ''}">
-      ${popular ? '<div class="hero-spark"><i>✦</i><i>✶</i><i>✦</i><i>✶</i><i>✦</i></div>' : ''}
-      <div class="hero-cover" style="${u.logo ? `background-image:url(${u.logo});background-size:cover;background-position:center` : `background:${u.color}`}"></div>
-      <div class="hero-body">
-        <div class="profile-avatar ${popular ? 'ring' : ''}" style="${avatarFondo(u)}">${avatarContenido(u)}</div>
-        <h2 class="hero-name">${u.nombre} ${insignia}</h2>
-        <p class="profile-user">${u.usuario} <span class="role-chip host">🎪 Organizador</span></p>
-        <p class="profile-bio">${u.bio}</p>
-
-        <div class="profile-stats">
-          <div class="stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
-          <span class="stat-sep"></span>
-          <div class="stat"><strong>${kilo(u.stats.asistentes)} ${icon('fire')}</strong><small>asistentes</small></div>
-          <span class="stat-sep"></span>
-          <button class="stat as-btn" onclick="verSeguidores()"><strong class="name-anim" style="background-image:${animGrad(['#2f7bff','#38bdf8','#7dd3fc','#22d3ee'])}">${u.stats.seguidores}</strong><small>seguidores</small></button>
-        </div>
-
-        ${redesHTML(u)}
-
-        <div class="profile-actions">
-          <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
-          <button class="icon-btn" onclick="compartir('mi perfil')">${icon('share')}</button>
-        </div>
-      </div>
-    </section>
-
-    ${(u.colaboradores && u.colaboradores.length) ? `
-      <div class="row-between"><h3>Organizadores</h3></div>
-      <div class="colab-row">
-        ${u.colaboradores.map((c) => `
-          <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
-            <span class="colab-ava" style="background:${c.color}">${c.avatar}</span>
-            <span class="colab-name">${c.nombre.split(' ')[0]}</span>
-            <span class="colab-user">${c.usuario}</span>
-          </button>`).join('')}
-      </div>` : ''}
-
-    <div class="row-between"><h3>Mis eventos</h3><button class="cal-link" onclick="verCalendario()">Calendario</button></div>
-    <div class="event-list">
-      ${mios.length ? mios.map((e) => `
-        <div class="mio-wrap">
-          ${tarjetaEvento(e)}
-          <button class="mio-edit" onclick="event.stopPropagation(); editarFiesta('${e.id}')">✎ Editar</button>
-        </div>`).join('') : `<p class="empty">Aún no creas eventos 🎉</p>`}
-    </div>
-
-    ${(u.eventosPasados && u.eventosPasados.length) ? `
-      <div class="row-between"><h3>Eventos anteriores</h3></div>
-      <p class="hint">Revive lo que pasó en fiestas pasadas.</p>
-      <div class="past-list">
-        ${u.eventosPasados.map((p) => `
-          <article class="past2">
-            <div class="past2-cover" style="background:${p.grad}">
-              <div class="past2-overlay">
-                <strong>${p.nombre}</strong>
-                <small>${p.fecha} · ${p.asistentes} asistentes</small>
-              </div>
-            </div>
-            <div class="past2-photos">
-              ${p.fotos.map((f) => `<button class="past2-photo" onclick="toast('Foto de ${p.nombre} 📸')"><span>${f}</span></button>`).join('')}
-            </div>
-          </article>`).join('')}
-      </div>` : ''}
-  `;
-}
 
 // Fila de redes sociales / contacto
 // Redes del perfil: iconos limpios y compactos (sin sitio web)
@@ -2870,68 +2784,6 @@ function verPerfilDe(nombre, usuario, avatar) {
   `);
 }
 
-// --- Perfil de ASISTENTE ---
-function perfilAsistente(u) {
-  // Sus próximas fiestas y su historial (mock a partir de los eventos)
-  const proximas = DATA.eventos.slice(0, 2);
-  const historial = DATA.eventos.slice(2);
-
-  return `
-    <header class="page-head row-between">
-      <h1>Mi perfil</h1>
-      <button class="icon-btn sm" onclick="abrirAjustes()">${icon('gear')}</button>
-    </header>
-
-    <section class="profile-hero">
-      <div class="hero-cover" style="background:${u.color}"></div>
-      <div class="hero-body">
-        <div class="profile-avatar" style="background:${u.color}">${u.avatar}</div>
-        <h2 class="hero-name">${u.nombre}</h2>
-        <p class="profile-user">${u.usuario} <span class="role-chip guest">🎟️ Asistente</span></p>
-        <p class="profile-bio">${u.bio}</p>
-        <div class="profile-stats">
-          <div class="stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
-          <span class="stat-sep"></span>
-          <div class="stat"><strong>${u.stats.amigos}</strong><small>amigos</small></div>
-          <span class="stat-sep"></span>
-          <div class="stat"><strong>${u.stats.seguidores}</strong><small>seguidores</small></div>
-        </div>
-        <div class="profile-actions">
-          <button class="btn full" onclick="editarPerfil()">Editar perfil</button>
-          <button class="icon-btn" onclick="irA('friends')">${icon('users')}</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Privacidad: público o privado -->
-    <div class="privacy-card">
-      <div class="privacy-text">
-        <strong>${u.privado ? icon('lock', 'mute') + ' Perfil privado' : icon('globe', 'mute') + ' Perfil público'}</strong>
-        <small>${u.privado
-          ? 'Solo tus amigos ven a qué fiestas vas.'
-          : 'Cualquiera puede ver a qué fiestas vas.'}</small>
-      </div>
-      <button class="toggle ${u.privado ? '' : 'is-on'}" onclick="alternarPrivacidad()">
-        <span class="toggle-knob"></span>
-      </button>
-    </div>
-
-    <div class="row-between"><h3>Voy a ir</h3><span class="see-all">${proximas.length}</span></div>
-    <div class="mini-list">
-      ${proximas.map((e) => filaFiesta(e, 'voy')).join('')}
-    </div>
-
-    <div class="row-between"><h3>Historial</h3><span class="see-all" onclick="irA('search')">Ver todo</span></div>
-    <div class="mini-list">
-      ${historial.map((e) => filaFiesta(e, 'fui')).join('')}
-    </div>
-
-    <div class="row-between"><h3>Mis fotos</h3><span class="see-all" onclick="toast('Subir foto · próximamente')">Subir</span></div>
-    <div class="photo-grid">
-      ${['🌃','🪩','🥂','💃','✨','🎉'].map((f) => `<button class="photo-cell" onclick="toast('Foto de fiesta 📸')">${f}</button>`).join('')}
-    </div>
-  `;
-}
 
 // Fila compacta de una fiesta (en el perfil del asistente). Clicable.
 function filaFiesta(e, modo) {
