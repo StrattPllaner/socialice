@@ -862,13 +862,10 @@ function pintarCrear() {
 
       <!-- Barra superior (sin público/privado: eso va en Ajustes) -->
       <div class="crear-bar">
-        <button class="round-btn" onclick="salirCrear()" aria-label="Cerrar">✕</button>
+        <button class="round-btn" onclick="salirCrear()" aria-label="Volver">←</button>
         <button class="save-btn" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Guardar'}</button>
       </div>
 
-      <!-- En laptop/tablet: 2 columnas (cr-left fija: título+portada+fecha /
-           cr-right: todo el formulario). En teléfono, display:contents. -->
-      <div class="cr-left">
       <!-- Título + acceso a tipografías y color -->
       <div class="titulo-card">
         <div class="titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
@@ -883,42 +880,54 @@ function pintarCrear() {
         </div>
       </div>
 
-      <!-- Fecha y hora: fecha con selector, hora manual (sin forzar el 0) -->
-      <div class="fecha-block">
-        <div class="fecha-row">
-          <span class="fecha-lbl">Inicio</span>
-          <input class="fecha-date" type="date" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; syncFecha()">
-          <input class="fecha-time" type="text" inputmode="numeric" value="${draft.horaInicio}" placeholder="9:30 pm" oninput="draft.horaInicio=this.value; syncFecha()">
+      <!-- HERO (como el boceto): portada chica a la IZQUIERDA y a la
+           DERECHA la fecha con horas de inicio/final -->
+      <div class="cr-hero">
+        <div class="cover-banner ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
+          ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Portada</button>'}
+          <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+          <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
         </div>
-        <div class="fecha-row">
-          <span class="fecha-lbl">Cierre</span>
-          <input class="fecha-date" type="date" value="${draft.fechaFin}" oninput="draft.fechaFin=this.value">
-          <input class="fecha-time" type="text" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value">
-        </div>
-      </div>
-      <div class="cr-mid">
-
-      <!-- Anfitrión: botones arriba junto al título, sin estado vacío -->
-      <div class="crear-block host-block">
-        <div class="host-head">
-          <span class="host-title">👑 Organiza</span>
-          <div class="host-add-row">
-            <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitriones</button>
-            <button class="chip" onclick="agregarGrupoOrg()">＋ Grupo</button>
+        <div class="cr-fechas">
+          <label class="cr-dato cr-fecha-big"><span>📅</span>
+            <input type="date" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; if(!draft.fechaFin)draft.fechaFin=this.value; syncFecha()">
+          </label>
+          <div class="cr-horas">
+            <label class="cr-hora"><small>Inicio</small><input type="text" inputmode="numeric" value="${draft.horaInicio}" placeholder="9:30 pm" oninput="draft.horaInicio=this.value; syncFecha()"></label>
+            <label class="cr-hora"><small>Final</small><input type="text" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value"></label>
           </div>
         </div>
-        <div class="host-row">
-          <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
-          <strong>${u.nombre}</strong>
-        </div>
-        <div id="orgList"></div>
       </div>
 
-      <!-- Filas de datos -->
+      <!-- Descripción -->
+      <textarea class="crear-desc" placeholder="Descripción de tu evento…" oninput="draft.descripcion=this.value">${draft.descripcion}</textarea>
+
+      <!-- Organizadores | datos rápidos (ubicación, costo, cupo) -->
+      <div class="cr-info">
+        <div class="crear-block host-block">
+          <div class="host-head">
+            <span class="host-title">👑 Organizadores</span>
+            <div class="host-add-row">
+              <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitrión</button>
+              <button class="chip" onclick="agregarGrupoOrg()">＋ Grupo</button>
+            </div>
+          </div>
+          <div class="host-row">
+            <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
+            <strong>${u.nombre}</strong>
+          </div>
+          <div id="orgList"></div>
+        </div>
+        <div class="cr-datos">
+          <label class="cr-dato"><span>📍</span><input id="cvLugar" value="${draft.lugar}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
+          <label class="cr-dato"><span>💲</span><input id="cvCosto" value="${draft.costo}" placeholder="Costo" oninput="draft.costo=this.value"></label>
+          <div class="cr-dato"><span>👤</span><b id="capTotalMini">0</b><small>cupo total</small></div>
+        </div>
+      </div>
+
+      <!-- Más detalles (aparecen al hacer scroll) -->
       <div class="crear-rows">
-        <label class="crear-row"><span>📍</span><input id="cvLugar" value="${draft.lugar}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
         <label class="crear-row"><span>🏙️</span><input id="cvCiudad" value="${draft.ciudad}" placeholder="Ciudad" oninput="draft.ciudad=this.value"></label>
-        <label class="crear-row"><span>💲</span><input id="cvCosto" value="${draft.costo}" placeholder="Costo por persona (opcional)" oninput="draft.costo=this.value"></label>
         <label class="crear-row"><span>👗</span><input id="cvDress" value="${draft.dressCode}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
       </div>
 
@@ -931,9 +940,6 @@ function pintarCrear() {
       </div>
       ${draft.preguntas.length ? `<div class="preg-list">${draft.preguntas.map((p, i) => `<div class="preg-chip">❓ ${p}<span onclick="delPregunta(${i})">✕</span></div>`).join('')}</div>` : ''}
       ${draft.links.length ? `<div class="link-list">${draft.links.map((l, i) => `<a class="link-chip" href="${l.url}" target="_blank" rel="noopener">${l.tipo === 'playlist' ? '🎵' : '🔗'} ${l.url} <span onclick="event.preventDefault(); delLink(${i})">✕</span></a>`).join('')}</div>` : ''}
-
-      <!-- Descripción -->
-      <textarea class="crear-desc" placeholder="Agrega una descripción de tu evento…" oninput="draft.descripcion=this.value">${draft.descripcion}</textarea>
 
       <!-- Mapa del lugar (colapsable, con foto de fondo) -->
       <div id="mapaWrap" style="${mostrarMapa ? '' : 'display:none'}">
@@ -951,18 +957,6 @@ function pintarCrear() {
           <div class="venue-zoom"><button onclick="zoomVenue(-1)">−</button><span id="zoomLabel">100%</span><button onclick="zoomVenue(1)">+</button></div>
         </div>
         <div class="venue-controls" id="venueControls"></div>
-      </div>
-
-      </div>
-      </div>
-      <div class="cr-right">
-
-      <!-- Portada (en laptop vive a la DERECHA, estilo Partiful; en teléfono
-           sube entre el título y la fecha vía order) -->
-      <div class="cover-banner ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
-        ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Agrega una portada</button>'}
-        <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
-        <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
       </div>
 
       <!-- Boletos y zonas (con animación para boletos especiales) -->
@@ -994,7 +988,6 @@ function pintarCrear() {
       <div class="news-list" id="newsList"></div>
 
       <button class="btn full" style="margin:24px 0" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Publicar evento'}</button>
-      </div>
     </div>
   `;
 
@@ -1782,6 +1775,8 @@ function actualizarCapTotal() {
   const total = draft.boletos.reduce((s, b) => s + (+b.cantidad || 0), 0);
   const el = document.getElementById('capTotal');
   if (el) el.textContent = `Cap. total: ${total}`;
+  const mini = document.getElementById('capTotalMini');
+  if (mini) mini.textContent = total;
 }
 function addBoleto() {
   draft.boletos.push({ nombre: '', precio: 0, cantidad: 50 });

@@ -2606,10 +2606,7 @@ body[data-screen="create"] .bottom-nav { display: none; }
   display: grid; place-items: center; overflow: hidden; margin-bottom: 12px;
   background-size: cover; background-position: center;
   box-shadow: 0 22px 60px rgba(0,0,0,.45), 0 4px 16px rgba(0,0,0,.3);
-  /* En teléfono la portada NO ocupa todo el ancho (la página se hacía larguísima) */
-  width: min(72%, 310px); justify-self: center; margin-left: auto; margin-right: auto;
 }
-@media (min-width: 900px) { .cover-banner { width: 100%; max-width: none; } }
 .cover-banner-emoji { font-size: 3.4rem; filter: drop-shadow(0 4px 12px rgba(0,0,0,.35)); }
 .cover-edit { position: absolute; bottom: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.3); color: #fff; cursor: pointer; backdrop-filter: blur(6px); }
 
@@ -2686,37 +2683,33 @@ body[data-screen="create"] .bottom-nav { display: none; }
 
 @media (min-width: 1000px) { .crear-page { padding-bottom: 120px; } }
 
-/* En teléfono los wrappers se disuelven y una columna flex permite ORDENAR:
-   la portada (que en el markup vive a la derecha, estilo Partiful) sube
-   entre el título y la fecha */
-.crear-page { display: flex; flex-direction: column; }
-.cr-left, .cr-mid, .cr-right { display: contents; }
-.crear-bar { order: -10; }
-.titulo-card { order: -3; }
-.cover-banner { order: -2; }
-.fecha-block { order: -1; }
+/* ===== CREAR según el boceto: mismo layout compacto en cel, iPad y PC =====
+   Título arriba · HERO (portada chica | fecha+horas) · descripción ·
+   organizadores | datos rápidos · y el resto aparece al hacer scroll */
+.cr-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: 10px; margin-bottom: 10px; align-items: start; }
+.cr-hero .cover-banner { margin: 0; width: 100%; }
+.cr-fechas { display: flex; flex-direction: column; gap: 8px; }
+.cr-horas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cr-hora { display: flex; flex-direction: column; gap: 2px; padding: 9px 11px; border-radius: 14px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
+.cr-hora small { color: var(--ink-soft); font-weight: 700; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; }
+.cr-hora input { width: 100%; background: none; border: none; outline: none; color: var(--ink); font-family: inherit; font-size: 1.02rem; font-weight: 700; }
+.cr-dato { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
+.cr-dato span { width: 20px; text-align: center; opacity: .85; flex-shrink: 0; }
+.cr-dato input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--ink); font-family: inherit; font-size: .96rem; }
+.cr-dato input::placeholder, .cr-hora input::placeholder { color: rgba(255,255,255,.45); }
+.cr-dato b { font-size: 1rem; }
+.cr-dato small { color: var(--ink-soft); }
+.cr-fecha-big input { color-scheme: dark; font-weight: 700; }
+.cr-info { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 10px; margin-bottom: 10px; }
+.cr-info .host-block { margin-bottom: 0; }
+.cr-datos { display: flex; flex-direction: column; gap: 8px; }
 
-/* CREAR en tablet/laptop, estilo PARTIFUL: el formulario a la IZQUIERDA
-   (título gigante, fecha, datos, descripción) y a la DERECHA la portada
-   grande con boletos y publicaciones debajo. Las herramientas (Tema/Efecto/
-   Ajustes) viven en un RIEL vertical al borde derecho, como panel de diseño */
+/* En iPad/PC el MISMO layout, solo centrado y un poco más ancho */
 @media (min-width: 900px) {
-  .crear-page {
-    max-width: 1080px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(290px, 34%, 380px);
-    column-gap: 36px; align-items: start;
-    padding-left: 36px; padding-right: 118px;
-  }
-  /* La barra de arriba se queda pegada al hacer scroll (Guardar siempre a la vista) */
-  .crear-bar { grid-column: 1 / -1; grid-row: 1; position: sticky; top: 10px; z-index: 30; pointer-events: none; }
+  .crear-page { max-width: 720px; padding-left: 40px; padding-right: 110px; }
+  .crear-bar { position: sticky; top: 10px; z-index: 30; pointer-events: none; display: flex; justify-content: space-between; }
   .crear-bar > * { pointer-events: auto; }
-  /* Cada columna es UNA celda (nada se estira por la columna de al lado) */
-  .cr-left { display: block; min-width: 0; grid-column: 1; grid-row: 2; }
-  .cr-mid { display: block; min-width: 0; }
-  .cr-right { display: block; min-width: 0; grid-column: 2; grid-row: 2; }
-  /* Título de cartel pero contenido (el usuario pidió apartados compactos) */
-  .crear-page .titulo-input { font-size: clamp(1.8rem, 2.3vw, 2.2rem); }
+  .crear-page .titulo-input { font-size: clamp(1.9rem, 2.4vw, 2.2rem); }
   .crear-desc { min-height: 96px; }
   /* Riel vertical de herramientas pegado al borde derecho */
   .crear-toolbar {
@@ -3062,6 +3055,8 @@ body[data-screen="create"] .efx-layer { display: block; }
    con un blur tipo vidrio esmerilado para que el texto se lea */
 body.creando .titulo-card,
 body.creando .fecha-block,
+body.creando .cr-hora,
+body.creando .cr-dato,
 body.creando .host-block,
 body.creando .crear-rows,
 body.creando .crear-desc,
