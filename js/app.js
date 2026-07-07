@@ -3141,51 +3141,46 @@ function abrirEvento(id) {
   ov.innerHTML = `
     <div class="evfull-tema ${slug ? 'tema-' + slug : ''}${TEMAS[e.tema] && TEMAS[e.tema].custom && e.temaAnim ? ' anim' : ''}${tv ? ' con-video' : ''}" style="background:${tt ? tt.bg.replace(/"/g, '&quot;') : 'var(--bg)'};background-repeat:no-repeat">${videoTag}</div>
     <div class="evfull-bar">
-      <button class="round-btn" onclick="cerrarEvento()">✕</button>
-      <h2 class="evfull-name" ${nombreAttrs(e)}>${esc(e.nombre)}</h2>
+      <button class="round-btn" onclick="cerrarEvento()" aria-label="Cerrar">✕</button>
+      <span class="evfull-sp"></span>
+      <button class="round-btn" data-n="${esc(e.nombre)}" onclick="compartir(this.dataset.n)" aria-label="Compartir">${icon('share')}</button>
     </div>
     <div class="evfull-inner">
     <!-- En laptop la ficha se parte en 2 columnas (.ev-main | .ev-side);
          en teléfono los wrappers son display:contents y no cambian nada -->
     <div class="ev-main">
-    <!-- Portada (no se toca) -->
-    <div class="ev-cover" style="${coverStyle(e)}">
-      <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
-      <span class="event-price">${e.precio}</span>
+    <!-- HERO: portada + nombre grande con su tipografía/color + cuenta -->
+    <div class="ev-hero">
+      <div class="ev-cover" style="${coverStyle(e)}">
+        <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
+        <span class="event-price">${e.precio}</span>
+      </div>
+      <h1 class="ev-nombre" ${nombreAttrs(e)}>${esc(e.nombre)}</h1>
+      ${cuenta ? `<div class="ev-count ${cuenta === '¡Es hoy!' ? 'today' : ''}">${icon('clock', 'mute')} ${cuenta}</div>` : ''}
     </div>
 
-    ${cuenta ? `<div class="ev-count ${cuenta === '¡Es hoy!' ? 'today' : ''}">${icon('clock', 'mute')} ${cuenta}</div>` : ''}
-
-    <!-- Anfitrión -->
-    <div class="ev-host">
-      <div class="ev-host-avas">${orgs.slice(0, 3).map((o) => `<span class="ev-host-ava" style="background:${o.color || 'var(--grad-cool)'}">${o.avatar || '🎤'}</span>`).join('')}</div>
-      <div><small>Organiza</small><strong>${orgs.map((o) => o.nombre.split(' ')[0]).join(', ')}</strong></div>
-    </div>
-
-    <!-- Fecha y lugar con acciones -->
-    <div class="ev-line">
-      <div class="ev-line-main">${icon('ticket','mute')}<div><strong>${e.fecha}</strong><small>Edad: ${edadTxt}</small></div></div>
-      ${e.fechaISO ? `<button class="ev-line-act" onclick="addCalendario('${e.id}')">＋ Calendario</button>` : ''}
-    </div>
-    <div class="ev-line">
-      <div class="ev-line-main">${icon('pin','mute')}<div><strong>${esc(e.lugar)}</strong><small>${esc(e.ciudad || '')}</small></div></div>
-      <button class="ev-line-act" onclick="toast('Mapa · próximamente 🗺️')">Ver mapa</button>
+    <!-- Info del evento: UNA tarjeta con fecha, lugar y organizadores -->
+    <div class="ev-info">
+      <div class="ev-irow">
+        ${icon('cal','mute')}<div><strong>${esc(e.fecha)}</strong><small>Edad: ${edadTxt}</small></div>
+        ${e.fechaISO ? `<button class="ev-line-act" onclick="addCalendario('${e.id}')">＋ Calendario</button>` : ''}
+      </div>
+      <div class="ev-irow">
+        ${icon('pin','mute')}<div><strong>${esc(e.lugar)}</strong><small>${esc(e.ciudad || '')}</small></div>
+        <button class="ev-line-act" onclick="toast('Mapa · próximamente 🗺️')">Ver mapa</button>
+      </div>
+      <div class="ev-irow">
+        <div class="ev-host-avas">${orgs.slice(0, 3).map((o) => `<span class="ev-host-ava" style="background:${o.color || 'var(--grad-cool)'}">${o.avatar || '🎤'}</span>`).join('')}</div>
+        <div><small>Organiza</small><strong>${esc(orgs.map((o) => o.nombre.split(' ')[0]).join(', '))}</strong></div>
+      </div>
     </div>
 
     ${casiLleno(e) ? `<div class="warn-full">${icon('fire')} ¡Casi se agotan los lugares! Quedan pocos.</div>` : ''}
 
     ${esMio ? '' : `
-      <!-- RSVP: ¿vas a ir? -->
+      ${e._rsvp === 'voy' ? `
       <div class="rsvp">
-        <p class="rsvp-q">${e.proximamente ? '¿Te interesa?' : '¿Vas a ir?'}</p>
-        ${e.proximamente
-          ? `<button class="rsvp-btn solo ${e._interesado ? 'on' : ''}" onclick="interesadoPage('${e.id}')">${icon('spark')} ${e._interesado ? 'Interesado ✓' : 'Me interesa'}</button>`
-          : `<div class="rsvp-row">
-              <button class="rsvp-btn voy ${e._rsvp === 'voy' ? 'on' : ''}" onclick="setRsvp('${e.id}','voy')">${icon('check')}<span>Voy</span></button>
-              <button class="rsvp-btn tal ${e._rsvp === 'tal' ? 'on' : ''}" onclick="setRsvp('${e.id}','tal')">${icon('quest')}<span>Tal vez</span></button>
-              <button class="rsvp-btn no ${e._rsvp === 'no' ? 'on' : ''}" onclick="setRsvp('${e.id}','no')">${icon('xmark')}<span>No puedo</span></button>
-            </div>`}
-        ${e._rsvp === 'voy' ? `
+        <p class="rsvp-q">${icon('check')} Vas a esta fiesta</p>
           <div class="rsvp-extra">
             <div class="rsvp-extra-row">
               <span>¿Traes invitados?</span>
@@ -3199,15 +3194,16 @@ function abrirEvento(id) {
             ${(e.preguntas && e.preguntas.length) ? e.preguntas.map((q, i) => `
               <div class="rsvp-preg"><label>${esc(q)}</label>
                 <input class="field-input" placeholder="Tu respuesta" value="${esc((e._respuestas || [])[i] || '')}" onchange="guardarRespuesta('${e.id}',${i},this.value)"></div>`).join('') : ''}
-          </div>` : ''}
+          </div>
         <div class="mini-toggle-row">
           <span>${icon('bell', 'mute')} Recordármelo</span>
           <button class="toggle ${e._recordar ? 'is-on' : ''}" onclick="toggleRecordar('${e.id}', this)"><span class="toggle-knob"></span></button>
         </div>
-      </div>`}
+      </div>` : ''}`}
 
     <!-- Quién va (la lista con nombres solo se abre si puedeVerLista) -->
     <div class="row-between"><h3>Quién va</h3>${listaOk ? `<span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span>` : ''}</div>
+    <div class="ev-quien">
     <div class="rsvp-counts">
       <span class="rc voy" id="rcVoy">${icon('check')} ${c.van}</span>
       <span class="rc tal">${icon('quest')} ${c.tal}</span>
@@ -3217,13 +3213,10 @@ function abrirEvento(id) {
       ${muestra.map((g) => `<span class="ava-mini" style="background:${g.color}">${g.avatar}</span>`).join('')}
       ${c.van > muestra.length ? `<span class="ava-more">+${c.van - muestra.length}</span>` : ''}
     </div>
-    ${listaOk ? '' : `<div class="lock-note">${icon('lock','mute')}<span>${(e.listaVisible || 'confirmados') === 'nadie'
+    ${listaOk ? '' : `<div class="lock-note-in">${icon('lock','mute')}<span>${(e.listaVisible || 'confirmados') === 'nadie'
       ? 'El anfitrión mantiene la lista de invitados privada.'
       : 'Lista protegida: confirma tu asistencia para ver quién va.'}</span></div>`}
-    ${esMio ? `<div class="host-bar">
-      <button class="ha" onclick="avisarTodos('${e.id}')">${icon('mega', 'mute')} Avisar a todos</button>
-      <button class="ha" onclick="verListaInvitados('${e.id}')">${icon('users', 'mute')} Gestionar invitados</button>
-    </div>` : ''}
+    </div>
 
     ${(e.boletos && e.boletos.length) ? `
       <div class="row-between"><h3>Boletos</h3></div>
@@ -3283,7 +3276,20 @@ function abrirEvento(id) {
     </div>
     <div class="com-list" id="evComList">${comentariosHTML(e)}</div>
 
-    ${esMio ? `<div class="sheet-actions"><button class="btn full" onclick="cerrarEvento(); editarFiesta('${e.id}')">✎ Editar evento</button></div>` : ''}
+    </div>
+
+    <!-- Barra FIJA de acciones (RSVP para invitados / Editar+Avisar para el anfitrión) -->
+    <div class="ev-actions">
+      ${esMio ? `
+        <button class="eva-btn" onclick="cerrarEvento(); editarFiesta('${e.id}')">✎ Editar</button>
+        <button class="eva-btn" onclick="verListaInvitados('${e.id}')">${icon('users')} Invitados</button>
+        <button class="eva-btn primary" onclick="avisarTodos('${e.id}')">${icon('mega')} Avisar</button>`
+      : e.proximamente ? `
+        <button class="eva-btn primary ${e._interesado ? 'on' : ''}" onclick="interesadoPage('${e.id}')">${icon('star')} ${e._interesado ? 'Interesado ✓' : 'Me interesa'}</button>`
+      : `
+        <button class="eva-btn voy ${e._rsvp === 'voy' ? 'on' : ''}" onclick="setRsvp('${e.id}','voy')">${icon('check')} Voy</button>
+        <button class="eva-btn tal ${e._rsvp === 'tal' ? 'on' : ''}" onclick="setRsvp('${e.id}','tal')">${icon('quest')} Tal vez</button>
+        <button class="eva-btn no ${e._rsvp === 'no' ? 'on' : ''}" onclick="setRsvp('${e.id}','no')">${icon('xmark')} No</button>`}
     </div>
     </div>
   `;
