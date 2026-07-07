@@ -3275,3 +3275,36 @@ button, a, .chip, .nav-btn { touch-action: manipulation; }
 .field-icon .ic { width: 20px; height: 20px; }
 .field-eye .ic { width: 20px; height: 20px; }
 .splash-form { display: block; }
+
+/* ===== Grupos a fondo: comunidad + canal de difusión (estilo canal de IG) ===== */
+.grupo-avas-row { display: flex; gap: 4px; justify-content: center; margin-top: 8px; }
+.btn-unirse {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-family: inherit; font-weight: 800; font-size: .95rem; padding: 13px;
+  border-radius: 999px; margin: 12px 0; cursor: pointer;
+  background: linear-gradient(135deg, #2f7bff, #38bdf8); border: none; color: #fff;
+  box-shadow: 0 8px 26px rgba(47,123,255,.35);
+}
+.btn-unirse.on { background: rgba(52,211,153,.14); border: 1px solid #34d399; color: #34d399; box-shadow: none; }
+.btn-unirse .ic { width: 18px; height: 18px; }
+.grupo-acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; justify-content: center; }
+.dif-list { display: flex; flex-direction: column; gap: 10px; }
+.dif-post { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+.dif-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+.dif-ava { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font-size: 1rem; flex-shrink: 0; }
+.dif-head strong { display: block; font-size: .92rem; line-height: 1.15; }
+.dif-head small { color: var(--ink-faint); font-size: .75rem; }
+.dif-tag { margin-left: auto; font-size: .66rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase; color: #38bdf8; background: rgba(56,189,248,.12); border: 1px solid rgba(56,189,248,.3); padding: 3px 9px; border-radius: 999px; }
+.dif-txt { margin: 0 0 10px; font-size: .95rem; line-height: 1.45; }
+.dif-reacts { display: flex; gap: 6px; flex-wrap: wrap; }
+.reac-btn { font-family: inherit; font-size: .92rem; padding: 5px 11px; border-radius: 999px; background: rgba(255,255,255,.06); border: 1px solid var(--line); color: var(--ink); cursor: pointer; transition: transform .12s ease, border-color .15s ease; }
+.reac-btn:active { transform: scale(1.18); }
+.reac-btn b { font-size: .78rem; font-weight: 800; }
+.reac-btn.on { border-color: #38bdf8; background: rgba(56,189,248,.16); }
+.dif-poll { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.poll-opt { position: relative; overflow: hidden; display: flex; justify-content: space-between; align-items: center; gap: 8px; font-family: inherit; font-weight: 700; font-size: .9rem; color: var(--ink); padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line); cursor: pointer; text-align: left; }
+.poll-opt::before { content: ''; position: absolute; inset: 0; width: var(--pct, 0%); background: rgba(56,189,248,.16); transition: width .3s ease; }
+.poll-opt.on { border-color: #38bdf8; }
+.poll-opt .poll-txt, .poll-opt .poll-pct { position: relative; }
+.poll-pct { color: var(--ink-soft); font-size: .8rem; flex-shrink: 0; }
+.poll-total { color: var(--ink-faint); font-size: .75rem; }

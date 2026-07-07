@@ -82,6 +82,26 @@ const DATA = {
     { nombre:'Valeria Ortiz',usuario:'@valee',  avatar:'🦋', color:'linear-gradient(135deg,#f59e0b,#ec4899)', privado:false, mejorAmigo:true,  ahora:'Neon Nights', fue:['Bass Drop'],                   fotos:['🪩','🎉','🥂','✨'] }
   ],
 
+  // Grupos: equipo de organizadores + COMUNIDAD que recibe su canal de
+  // difusión (avisos/encuestas; la gente solo reacciona, no comenta)
+  grupos: [
+    {
+      id: 'g1', nombre: 'La Crew', emoji: '🎪',
+      color: 'linear-gradient(135deg,#8b5cf6,#ec4899)',
+      miembros: [
+        { nombre: 'Andrea Ríos',  avatar: '🦄', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)' },
+        { nombre: 'Mateo Lara',   avatar: '🐺', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)' },
+        { nombre: 'Valeria Ortiz',avatar: '🦋', color: 'linear-gradient(135deg,#f59e0b,#ec4899)' }
+      ],
+      comunidad: 218, _unido: false,
+      difusion: [
+        { id: 'd1', tipo: 'aviso', texto: 'Ya casi anunciamos la próxima fiesta… 👀 atentos este viernes', fecha: 'hace 2 h', reacciones: { '🔥': 43, '👀': 18, '❤️': 9 }, mia: null },
+        { id: 'd2', tipo: 'encuesta', texto: '¿Qué vibe quieren para la próxima?', fecha: 'ayer', reacciones: { '🎉': 12 }, mia: null, miVoto: null,
+          opciones: [{ t: 'Neón total', votos: 84 }, { t: 'Rooftop chill', votos: 56 }, { t: 'Under / techno', votos: 71 }] }
+      ]
+    }
+  ],
+
   sugerencias: [
     { nombre:'Camila Reyes', usuario:'@cami', avatar:'🐱', color:'linear-gradient(135deg,#22d3ee,#818cf8)', enComun:3 },
     { nombre:'Tomás Vega',   usuario:'@tomv', avatar:'🛹', color:'linear-gradient(135deg,#fb7185,#f59e0b)', enComun:1 },

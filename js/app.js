@@ -2407,7 +2407,7 @@ function tarjetaGrupo(g) {
       <span class="grupo-emoji" style="background:${g.color}">${g.emoji}</span>
       <span class="grupo-main">
         <strong>${g.nombre}</strong>
-        <small>${g.miembros.length} organizadores</small>
+        <small>${g.miembros.length} en el equipo${(g.comunidad || 0) ? ` · ${g.comunidad} en la comunidad` : ''}</small>
       </span>
       <span class="grupo-avas">${g.miembros.slice(0, 3).map((m) => `<span class="grupo-ava" style="background:${m.color}">${m.avatar}</span>`).join('')}</span>
     </button>`;
@@ -2445,26 +2445,163 @@ function guardarGrupo() {
   const miembros = [{ nombre: DATA.usuario.nombre, avatar: DATA.usuario.avatar, color: DATA.usuario.color }]
     .concat(_grupoSel.map((i) => ({ nombre: DATA.amigos[i].nombre, avatar: DATA.amigos[i].avatar, color: DATA.amigos[i].color })));
   DATA.grupos = DATA.grupos || [];
-  DATA.grupos.push({ id: 'g' + Date.now(), nombre, emoji: '🎪', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', miembros });
+  DATA.grupos.push({ id: 'g' + Date.now(), nombre, emoji: '🎪', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', miembros, comunidad: 0, _unido: false, difusion: [] });
   cerrarSheet();
   pintarAmigos();
   toast(`Grupo "${nombre}" creado 🎉`);
 }
+// --- GRUPO a fondo: equipo + COMUNIDAD + canal de difusión estilo canal
+// de IG (solo el equipo publica avisos/encuestas; la comunidad REACCIONA
+// con emojis, no puede comentar) ---
+const REACCIONES = ['🔥', '❤️', '🎉', '😍', '👀'];
+
+function _grupo(id) { return (DATA.grupos || []).find((x) => x.id === id); }
+
+function reactsHTML(gid, p) {
+  return `<div class="dif-reacts" id="reacts-${p.id}">
+    ${REACCIONES.map((em) => {
+      const n = (p.reacciones || {})[em] || 0;
+      return `<button class="reac-btn ${p.mia === em ? 'on' : ''}" onclick="reaccionar('${gid}','${p.id}','${em}')">${em}${n ? ` <b>${n}</b>` : ''}</button>`;
+    }).join('')}
+  </div>`;
+}
+
+function pollHTML(gid, p) {
+  const total = p.opciones.reduce((s2, o) => s2 + o.votos, 0);
+  return `<div class="dif-poll" id="poll-${p.id}">
+    ${p.opciones.map((o, i) => {
+      const pct = total ? Math.round(o.votos * 100 / total) : 0;
+      return `<button class="poll-opt ${p.miVoto === i ? 'on' : ''}" style="--pct:${pct}%" onclick="votar('${gid}','${p.id}',${i})">
+        <span class="poll-txt">${esc(o.t)}</span><span class="poll-pct">${pct}%</span>
+      </button>`;
+    }).join('')}
+    <small class="poll-total">${total} voto${total === 1 ? '' : 's'}</small>
+  </div>`;
+}
+
+function difusionHTML(g) {
+  if (!(g.difusion || []).length) {
+    return `<p class="empty">Aún no hay avisos. Manda el primero a tu comunidad 📣</p>`;
+  }
+  return g.difusion.map((p) => `
+    <div class="dif-post">
+      <div class="dif-head">
+        <span class="dif-ava" style="background:${g.color}">${g.emoji}</span>
+        <div><strong>${esc(g.nombre)}</strong><small>${esc(p.fecha || 'ahora')}</small></div>
+        ${p.tipo === 'encuesta' ? '<span class="dif-tag">Encuesta</span>' : ''}
+      </div>
+      ${p.texto ? `<p class="dif-txt">${esc(p.texto)}</p>` : ''}
+      ${p.tipo === 'encuesta' ? pollHTML(g.id, p) : ''}
+      ${reactsHTML(g.id, p)}
+    </div>`).join('');
+}
+
 function abrirGrupo(id) {
-  const g = (DATA.grupos || []).find((x) => x.id === id);
+  const g = _grupo(id);
   if (!g) return;
+  g.difusion = g.difusion || [];
   abrirSheet(g.nombre, `
     <div class="amigo-top">
       <div class="amigo-ava" style="background:${g.color}">${g.emoji}</div>
-      <strong>${g.nombre}</strong><small>${g.miembros.length} organizadores</small>
+      <strong>${esc(g.nombre)}</strong>
+      <small>${g.miembros.length} en el equipo · ${(g.comunidad || 0) + (g._unido ? 1 : 0)} en la comunidad</small>
+      <div class="grupo-avas-row">${g.miembros.slice(0, 6).map((m) => `<span class="grupo-ava" style="background:${m.color}" title="${esc(m.nombre)}">${m.avatar}</span>`).join('')}</div>
     </div>
-    <p class="hint" style="text-align:center">Todos los del grupo pueden crear y <b>editar</b> las fiestas del equipo.</p>
-    <div class="row-between"><h3>Organizadores</h3></div>
-    <div class="friend-list">
-      ${g.miembros.map((m) => `<article class="friend-card"><div class="friend-ava" style="background:${m.color}">${m.avatar}</div><div class="friend-main"><strong>${m.nombre}</strong></div></article>`).join('')}
+
+    <button class="btn-unirse ${g._unido ? 'on' : ''}" onclick="unirseGrupo('${g.id}')">
+      ${g._unido ? icon('check') + ' En la comunidad · recibirás avisos' : icon('bell') + ' Unirme a la comunidad'}
+    </button>
+
+    <div class="grupo-acciones">
+      <button class="chip" onclick="cerrarSheet(); crearFiestaGrupo('${g.id}')">＋ Fiesta del grupo</button>
+      <button class="chip" onclick="nuevoAviso('${g.id}')">${icon('mega', 'mute')} Aviso</button>
+      <button class="chip" onclick="nuevaEncuesta('${g.id}')">${icon('doc', 'mute')} Encuesta</button>
     </div>
-    <div class="sheet-actions"><button class="btn full" onclick="cerrarSheet(); nuevaFiestaTipo(true)">＋ Crear fiesta del grupo</button></div>
+
+    <div class="row-between"><h3>Canal de difusión</h3></div>
+    <p class="hint">Solo el equipo publica. La comunidad reacciona con emojis (no hay comentarios), como un canal de difusión.</p>
+    <div class="dif-list" id="difList">${difusionHTML(g)}</div>
   `);
+}
+
+// Unirse / salir de la comunidad del grupo (recibe los avisos)
+function unirseGrupo(id) {
+  const g = _grupo(id);
+  if (!g) return;
+  g._unido = !g._unido;
+  toast(g._unido ? `Te uniste a la comunidad de ${g.nombre} 🔔` : 'Saliste de la comunidad');
+  abrirGrupo(id);
+}
+
+// Crear fiesta del grupo: el equipo entra como co-anfitriones automáticamente
+function crearFiestaGrupo(id) {
+  const g = _grupo(id);
+  if (!g) return;
+  draft = nuevoDraft();
+  draft.organizadores = g.miembros
+    .filter((m) => m.nombre !== DATA.usuario.nombre)
+    .map((m) => ({ ...m }));
+  irA('create');
+  toast(`Fiesta de "${g.nombre}": el equipo ya está como co-anfitrión 🎪`);
+}
+
+// Aviso a la comunidad (difusión): texto simple, la gente solo reacciona
+async function nuevoAviso(id) {
+  const g = _grupo(id);
+  if (!g) return;
+  const texto = await pedirTexto('Aviso para la comunidad', { placeholder: 'Ej: ¡Boletos a la venta este viernes!', ok: 'Enviar' });
+  if (!texto || !texto.trim()) return;
+  g.difusion.unshift({ id: 'd' + Date.now(), tipo: 'aviso', texto: texto.trim(), fecha: 'ahora', reacciones: {}, mia: null });
+  toast(`Aviso enviado a ${(g.comunidad || 0) + (g._unido ? 1 : 0)} personas 📣`);
+  abrirGrupo(id);
+}
+
+// Encuesta: pregunta + opciones separadas por coma; la comunidad vota
+async function nuevaEncuesta(id) {
+  const g = _grupo(id);
+  if (!g) return;
+  const pregunta = await pedirTexto('Pregunta de la encuesta', { placeholder: 'Ej: ¿Qué día prefieren?', ok: 'Siguiente' });
+  if (!pregunta || !pregunta.trim()) return;
+  const ops = await pedirTexto('Opciones separadas por coma', { placeholder: 'Viernes, Sábado, Domingo', ok: 'Publicar' });
+  if (!ops) return;
+  const opciones = ops.split(',').map((o) => o.trim()).filter(Boolean).slice(0, 6).map((t) => ({ t, votos: 0 }));
+  if (opciones.length < 2) { toast('Pon al menos 2 opciones separadas por coma'); return; }
+  g.difusion.unshift({ id: 'd' + Date.now(), tipo: 'encuesta', texto: pregunta.trim(), fecha: 'ahora', reacciones: {}, mia: null, opciones, miVoto: null });
+  toast('Encuesta publicada 📊');
+  abrirGrupo(id);
+}
+
+// Reaccionar con emoji (una reacción por persona; tocar de nuevo la quita)
+function reaccionar(gid, pid, em) {
+  const g = _grupo(gid);
+  const p = g && g.difusion.find((x) => x.id === pid);
+  if (!p) return;
+  p.reacciones = p.reacciones || {};
+  if (p.mia === em) {
+    p.reacciones[em] = Math.max(0, (p.reacciones[em] || 1) - 1);
+    p.mia = null;
+  } else {
+    if (p.mia) p.reacciones[p.mia] = Math.max(0, (p.reacciones[p.mia] || 1) - 1);
+    p.reacciones[em] = (p.reacciones[em] || 0) + 1;
+    p.mia = em;
+  }
+  const row = document.getElementById('reacts-' + pid);
+  if (row) row.outerHTML = reactsHTML(gid, p);
+}
+
+// Votar en una encuesta (puedes cambiar tu voto)
+function votar(gid, pid, i) {
+  const g = _grupo(gid);
+  const p = g && g.difusion.find((x) => x.id === pid);
+  if (!p) return;
+  if (p.miVoto === i) { p.opciones[i].votos--; p.miVoto = null; }
+  else {
+    if (p.miVoto !== null && p.miVoto !== undefined) p.opciones[p.miVoto].votos--;
+    p.opciones[i].votos++;
+    p.miVoto = i;
+  }
+  const bloque = document.getElementById('poll-' + pid);
+  if (bloque) bloque.outerHTML = pollHTML(gid, p);
 }
 
 // ¿Puedo ver la actividad de este amigo?
@@ -3654,6 +3791,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (p.get('sheet') === 'discoColor') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); abrirDiscoColor(); }
   if (p.get('sheet') === 'preview') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('create'); vistaPreviaEvento(); }
   if (p.get('sheet') === 'pases') { document.getElementById('screen-splash').classList.remove('is-active'); entrarApp(); irA('profile'); abrirPases(); }
+  if (p.get('sheet') === 'grupo') { irA('friends'); abrirGrupo(((DATA.grupos || [])[0] || {}).id); }
   if (p.get('openf')) abrirFiltrosInline();
   if (p.get('paso')) { draft.paso = +p.get('paso'); pintarCrear(); }
   if (p.get('cal')) verCalendario();
