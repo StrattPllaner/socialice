@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- Mobile-first: la app se ve y se siente como app de celular -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#04070f">
   <meta name="description" content="Socialice · Crea, organiza y promociona tus fiestas">
 
@@ -17,10 +17,10 @@
 
   <!-- PWA: manifest e iconos -->
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-192-v2.png?v=61">
-  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192-v2.png?v=61">
-  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512-v2.png?v=61">
-  <link rel="shortcut icon" href="icons/icon-192-v2.png?v=61">
+  <link rel="apple-touch-icon" href="icons/icon-192-v2.png?v=62">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192-v2.png?v=62">
+  <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512-v2.png?v=62">
+  <link rel="shortcut icon" href="icons/icon-192-v2.png?v=62">
 
   <!-- Fuente redondeada y amigable (la misma de tu otra app) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,7 +28,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Nuestro ADN visual (con versión para evitar caché vieja) -->
-  <link rel="stylesheet" href="css/styles.css?v=61">
+  <link rel="stylesheet" href="css/styles.css?v=62">
 </head>
 
 <!-- data-screen lo usamos para saber qué pantalla está activa
@@ -63,7 +63,7 @@
         </div>
 
         <div class="splash-bottom">
-          <button class="btn" onclick="splashIr('reg1')">Crear cuenta</button>
+          <button class="btn" onclick="splashIr('rol')">Crear cuenta</button>
           <button class="btn btn-ghost" onclick="splashIr('login')">Ya tengo cuenta</button>
           <p class="legal">Al continuar aceptas nuestros Términos y Privacidad.</p>
         </div>
@@ -72,7 +72,7 @@
       <!-- a.2) Elegir tipo de cuenta -->
       <div class="splash-page" data-page="rol">
         <div class="splash-head">
-          <button class="icon-btn" onclick="splashIr('welcome')">‹</button>
+          <button class="icon-btn" onclick="splashIr('welcome')" aria-label="Volver">‹</button>
         </div>
         <div class="splash-body">
           <p class="eyebrow">Tu perfil</p>
@@ -80,25 +80,21 @@
           <p class="splash-sub">Elige uno. Lo puedes cambiar cuando quieras.</p>
 
           <button class="role-tile host" onclick="elegirRol('organizador')">
-            <span class="role-ic">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/></svg>
-            </span>
+            <span class="role-ic" data-icon="mic"></span>
             <span class="role-body">
               <strong>Organizador</strong>
               <small>Crea, promociona y llena tus fiestas.</small>
             </span>
-            <svg class="role-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+            <span class="role-go" data-icon="chev"></span>
           </button>
 
           <button class="role-tile guest" onclick="elegirRol('asistente')">
-            <span class="role-ic">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v2a1.5 1.5 0 0 0 0 5v2A1.5 1.5 0 0 1 18.5 18h-13A1.5 1.5 0 0 1 4 16.5v-2a1.5 1.5 0 0 0 0-5Z"/><path d="M14 6.5v11" stroke-dasharray="1.4 2.6"/></svg>
-            </span>
+            <span class="role-ic" data-icon="ticket"></span>
             <span class="role-body">
               <strong>Voy a fiestas</strong>
               <small>Descubre eventos, junta a tu gente y revive la noche.</small>
             </span>
-            <svg class="role-go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+            <span class="role-go" data-icon="chev"></span>
           </button>
         </div>
       </div>
@@ -106,33 +102,35 @@
       <!-- b) Iniciar sesión (detallado) -->
       <div class="splash-page" data-page="login">
         <div class="splash-head">
-          <button class="icon-btn" onclick="splashIr('welcome')">‹</button>
+          <button class="icon-btn" onclick="splashIr('welcome')" aria-label="Volver">‹</button>
         </div>
         <div class="splash-body">
           <img class="brand-logo-img sm" src="icons/logo-figure.png" alt="Socialice">
           <h2 class="splash-h">Bienvenido de nuevo</h2>
           <p class="splash-sub">Inicia sesión para continuar la fiesta.</p>
 
+          <form id="fLogin" class="splash-form" onsubmit="return loginSubmit(event)" novalidate>
           <div class="field">
-            <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 8 8 5.5L20 8"/></svg></span>
+            <span class="field-icon" data-icon="mail"></span>
             <div class="field-main">
-              <label class="field-label">Correo</label>
-              <input type="email" class="field-input" placeholder="tu@correo.com" autocomplete="email">
+              <label class="field-label" for="loginEmail">Correo</label>
+              <input type="email" class="field-input" id="loginEmail" placeholder="tu@correo.com" autocomplete="email" required>
             </div>
           </div>
 
           <div class="field">
-            <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></svg></span>
+            <span class="field-icon" data-icon="lock"></span>
             <div class="field-main">
-              <label class="field-label">Contraseña</label>
-              <input type="password" class="field-input" id="loginPass" placeholder="Tu contraseña" autocomplete="current-password">
+              <label class="field-label" for="loginPass">Contraseña</label>
+              <input type="password" class="field-input" id="loginPass" placeholder="Tu contraseña" autocomplete="current-password" required minlength="6">
             </div>
-            <button class="field-eye" type="button" onclick="verPass('loginPass', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <button class="field-eye" type="button" onclick="verPass('loginPass', this)" aria-label="Mostrar contraseña" data-icon="eye"></button>
           </div>
 
-          <button class="link-right" onclick="toast('Te enviaremos un correo para restablecerla 📧')">¿Olvidaste tu contraseña?</button>
+          <button class="link-right" type="button" onclick="toast('Te enviaremos un correo para restablecerla 📧')">¿Olvidaste tu contraseña?</button>
 
-          <button class="btn full" onclick="irA('home')">Entrar</button>
+          <button class="btn full" type="submit">Entrar</button>
+          </form>
 
           <div class="divider"><span>o continúa con</span></div>
           <div class="social-row">
@@ -146,14 +144,14 @@
         </div>
         <div class="splash-foot">
           ¿No tienes cuenta?
-          <button class="link" onclick="splashIr('reg1')">Crear cuenta</button>
+          <button class="link" onclick="splashIr('rol')">Crear cuenta</button>
         </div>
       </div>
 
       <!-- c) Registro · paso 1 de 3 (cuenta) -->
       <div class="splash-page" data-page="reg1">
         <div class="splash-head">
-          <button class="icon-btn" onclick="splashIr('welcome')">‹</button>
+          <button class="icon-btn" onclick="splashIr('welcome')" aria-label="Volver">‹</button>
           <div class="step-dots"><i class="is-on"></i><i></i><i></i></div>
         </div>
         <div class="splash-body">
@@ -161,31 +159,41 @@
           <h2 class="splash-h">Crea tu cuenta</h2>
           <p class="splash-sub">Empecemos por tus datos de acceso.</p>
 
+          <form id="fReg1" class="splash-form" onsubmit="return reg1Submit(event)" novalidate>
           <div class="field">
-            <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><path d="m4 8 8 5.5L20 8"/></svg></span>
+            <span class="field-icon" data-icon="mail"></span>
             <div class="field-main">
-              <label class="field-label">Correo</label>
-              <input type="email" class="field-input" placeholder="tu@correo.com" autocomplete="email">
+              <label class="field-label" for="regEmail">Correo</label>
+              <input type="email" class="field-input" id="regEmail" placeholder="tu@correo.com" autocomplete="email" required>
             </div>
           </div>
           <div class="field">
-            <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></svg></span>
+            <span class="field-icon" data-icon="lock"></span>
             <div class="field-main">
-              <label class="field-label">Contraseña</label>
-              <input type="password" class="field-input" id="regPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+              <label class="field-label" for="regPass">Contraseña</label>
+              <input type="password" class="field-input" id="regPass" placeholder="Mínimo 6 caracteres" autocomplete="new-password" required minlength="6">
             </div>
-            <button class="field-eye" type="button" onclick="verPass('regPass', this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 12S6 5.8 12 5.8 21.5 12 21.5 12 18 18.2 12 18.2 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+            <button class="field-eye" type="button" onclick="verPass('regPass', this)" aria-label="Mostrar contraseña" data-icon="eye"></button>
           </div>
+          <div class="field">
+            <span class="field-icon" data-icon="lock"></span>
+            <div class="field-main">
+              <label class="field-label" for="regPass2">Confirma tu contraseña</label>
+              <input type="password" class="field-input" id="regPass2" placeholder="Repite la contraseña" autocomplete="new-password" required minlength="6">
+            </div>
+            <button class="field-eye" type="button" onclick="verPass('regPass2', this)" aria-label="Mostrar contraseña" data-icon="eye"></button>
+          </div>
+          </form>
         </div>
         <div class="splash-bottom">
-          <button class="btn full" onclick="splashIr('reg2')">Continuar</button>
+          <button class="btn full" type="submit" form="fReg1">Continuar</button>
         </div>
       </div>
 
       <!-- d) Registro · paso 2 de 3 (perfil) -->
       <div class="splash-page" data-page="reg2">
         <div class="splash-head">
-          <button class="icon-btn" onclick="splashIr('reg1')">‹</button>
+          <button class="icon-btn" onclick="splashIr('reg1')" aria-label="Volver">‹</button>
           <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i></i></div>
         </div>
         <div class="splash-body">
@@ -193,30 +201,32 @@
           <h2 class="splash-h" id="reg2Title">¿Quién eres?</h2>
           <p class="splash-sub">Así te verán los demás en Socialice.</p>
 
+          <form id="fReg2" class="splash-form" onsubmit="return reg2Submit(event)" novalidate>
           <div class="field">
-            <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.5-5.3 7-5.3s6.2 1.7 7 5.3"/></svg></span>
+            <span class="field-icon" data-icon="user"></span>
             <div class="field-main">
-              <label class="field-label" id="reg2NameLabel">Nombre</label>
-              <input type="text" class="field-input" id="reg2Name" placeholder="Ej: Andrea Ríos">
+              <label class="field-label" id="reg2NameLabel" for="reg2Name">Nombre</label>
+              <input type="text" class="field-input" id="reg2Name" placeholder="Ej: Andrea Ríos" autocomplete="name" required minlength="2" maxlength="40">
             </div>
           </div>
           <div class="field">
-            <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11.7 11.7 3.5H20a.5.5 0 0 1 .5.5v8.3l-8.2 8.2a1.4 1.4 0 0 1-2 0L3.5 13.7a1.4 1.4 0 0 1 0-2Z"/><circle cx="16.3" cy="7.7" r="1.3"/></svg></span>
+            <span class="field-icon" data-icon="tag"></span>
             <div class="field-main">
-              <label class="field-label">Usuario</label>
-              <input type="text" class="field-input" placeholder="tuusuario">
+              <label class="field-label" for="reg2User">Usuario</label>
+              <input type="text" class="field-input" id="reg2User" placeholder="tuusuario" autocomplete="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9._]+" title="Solo letras, números, punto y guion bajo">
             </div>
           </div>
+          </form>
         </div>
         <div class="splash-bottom">
-          <button class="btn full" onclick="splashIr('reg3')">Continuar</button>
+          <button class="btn full" type="submit" form="fReg2">Continuar</button>
         </div>
       </div>
 
       <!-- e) Registro · paso 3 de 3 (listo) -->
       <div class="splash-page" data-page="reg3">
         <div class="splash-head">
-          <button class="icon-btn" onclick="splashIr('reg2')">‹</button>
+          <button class="icon-btn" onclick="splashIr('reg2')" aria-label="Volver">‹</button>
           <div class="step-dots"><i class="is-on"></i><i class="is-on"></i><i class="is-on"></i></div>
         </div>
         <div class="splash-body">
@@ -224,13 +234,15 @@
           <h2 class="splash-h">Una bio corta</h2>
           <p class="splash-sub">Lo último y entramos a la fiesta.</p>
 
+          <form id="fReg3" class="splash-form" onsubmit="return reg3Submit(event)" novalidate>
           <div class="field">
-            <span class="field-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.8 9 19 10.8 13.8 12.6 12 18l-1.8-5.4L5 10.8 10.2 9Z"/></svg></span>
+            <span class="field-icon" data-icon="spark"></span>
             <div class="field-main">
-              <label class="field-label">Bio</label>
-              <input type="text" class="field-input" id="reg3Bio" placeholder="Cuéntale a la gente quién eres">
+              <label class="field-label" for="reg3Bio">Bio</label>
+              <input type="text" class="field-input" id="reg3Bio" placeholder="Cuéntale a la gente quién eres" maxlength="90">
             </div>
           </div>
+          </form>
 
           <div class="splash-ready">
             <div class="splash-ready-emoji anim-float">🎉</div>
@@ -238,7 +250,7 @@
           </div>
         </div>
         <div class="splash-bottom">
-          <button class="btn full" onclick="irA('home')">Entrar a Socialice</button>
+          <button class="btn full" type="submit" form="fReg3">Entrar a Socialice</button>
         </div>
       </div>
 
@@ -273,7 +285,7 @@
        Viven fuera de .app-shell para cubrir toda la pantalla.
        ========================================================= -->
   <div id="sheetOverlay" class="sheet-overlay" onclick="cerrarSheet(event)">
-    <div class="sheet" id="sheet" role="dialog" aria-modal="true">
+    <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
       <!-- Manija: arrástrala hacia abajo para cerrar -->
       <div class="sheet-handle" onpointerdown="sheetDragStart(event)">
         <div class="sheet-grip"></div>
@@ -289,27 +301,23 @@
   <div id="toast" class="toast"></div>
 
   <!-- Primero los datos de ejemplo, luego la lógica que los usa -->
-  <script src="js/data.js?v=61"></script>
-  <script src="js/app.js?v=61"></script>
+  <script src="js/data.js?v=62"></script>
+  <script src="js/app.js?v=62"></script>
 
-  <!-- Service Worker: registra el nuevo (que ya NO cachea) y recarga al actualizar -->
+  <!-- Service Worker. Al actualizarse recarga UNA sola vez y SOLO si ya había
+       un SW controlando la página (primera visita no recarga: cero loops) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then((reg) => {
-          reg.update();
-          reg.addEventListener('updatefound', () => {
-            const nuevo = reg.installing;
-            nuevo && nuevo.addEventListener('statechange', () => {
-              if (nuevo.state === 'activated') location.reload();
-            });
-          });
-        }).catch(() => {});
+        navigator.serviceWorker.register('sw.js').then((reg) => reg.update()).catch(() => {});
       });
-      // Si cambia el SW que controla la página, recarga una vez para tomar lo nuevo
-      let _recargado = false;
+      let habiaSW = !!navigator.serviceWorker.controller;
+      let recargado = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (_recargado) return; _recargado = true; location.reload();
+        if (!habiaSW) { habiaSW = true; return; }
+        if (recargado) return;
+        recargado = true;
+        location.reload();
       });
     }
   </script>

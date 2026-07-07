@@ -3266,3 +3266,13 @@ html, body { overflow-x: hidden; }
 .friend-locked .ic, .locked-box .ic, .set-row .ic { width: 15px; height: 15px; vertical-align: -2.5px; }
 .stat .ic { width: 15px; height: 15px; vertical-align: -1.5px; color: #fb7185; }
 .chip .ic { width: 15px; height: 15px; vertical-align: -2.5px; }
+
+/* Accesibilidad: sin doble-tap-zoom en controles (se quitó user-scalable=no
+   del viewport; el pellizco para hacer zoom SÍ funciona) */
+button, a, .chip, .nav-btn { touch-action: manipulation; }
+/* Iconos centralizados del splash (data-icon) */
+.field-icon .ic { width: 20px; height: 20px; }
+.field-eye .ic { width: 20px; height: 20px; }
+.role-ic .ic { width: 24px; height: 24px; }
+.role-go .ic { width: 20px; height: 20px; }
+.splash-form { display: block; }

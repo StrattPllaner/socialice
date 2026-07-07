@@ -1,17 +1,24 @@
 /* =====================================================================
    SOCIALICE · Service Worker
    ---------------------------------------------------------------------
-   CÓDIGO (html/css/js): siempre fresco, directo a la red sin caché HTTP
-   (así nunca te quedas viendo una versión anterior).
-   MEDIOS (videos/fotos): caché PERSISTENTE en Cache Storage — se bajan
-   UNA vez y después arrancan al instante, incluso los pedidos de rango
-   de los <video> se responden desde la caché (206 rebanado a mano,
-   Safari lo exige). OJO: si un video cambia bajo el MISMO nombre de
+   CÓDIGO (html/css/js): red-PRIMERO sin caché HTTP (siempre fresco) y,
+   si la red responde bien, se guarda copia en Cache Storage — así la
+   app ABRE OFFLINE con la última versión vista.
+   MEDIOS (videos/fotos): caché PERSISTENTE — se bajan UNA vez; los
+   pedidos de rango de <video> se responden 206 rebanados a mano
+   (Safari lo exige). OJO: si un video cambia bajo el MISMO nombre de
    archivo, hay que bumpear VERSION para que se vuelva a bajar.
+   FUENTES (fonts.googleapis / fonts.gstatic): cache-first para que
+   también funcionen offline sin re-descargarse.
    ===================================================================== */
 
 const VERSION = 'socialice-v44-media-cache';
+const CODIGO = 'socialice-codigo-v1';
+const FUENTES = 'socialice-fuentes-v1';
+const CACHES_VIVAS = [VERSION, CODIGO, FUENTES];
+
 const MEDIA = /\.(mp4|webm|jpe?g|png|svg|gif|ico)(\?|$)/i;
+const ES_FUENTE = /fonts\.(googleapis|gstatic)\.com/;
 
 // Al instalar: toma el control de inmediato
 self.addEventListener('install', () => { self.skipWaiting(); });
@@ -20,7 +27,7 @@ self.addEventListener('install', () => { self.skipWaiting(); });
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== VERSION).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => !CACHES_VIVAS.includes(k)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -75,14 +82,53 @@ async function mediaDesdeCache(req) {
   return fetch(req);
 }
 
+// Fuentes de Google: una vez bajadas, siempre desde caché (offline OK)
+async function fuenteDesdeCache(req) {
+  const cache = await caches.open(FUENTES);
+  const hit = await cache.match(req);
+  if (hit) return hit;
+  const r = await fetch(req);
+  if (r.status === 200) cache.put(req, r.clone());
+  return r;
+}
+
+// Código propio: red-primero (siempre fresco) con copia para offline
+async function codigoDesdeRed(req) {
+  try {
+    const r = await fetch(req, { cache: 'no-store' });
+    if (r.status === 200) {
+      const cache = await caches.open(CODIGO);
+      cache.put(req, r.clone());
+    }
+    return r;
+  } catch (err) {
+    const cache = await caches.open(CODIGO);
+    const hit = await cache.match(req, { ignoreSearch: req.mode === 'navigate' });
+    if (hit) return hit;
+    // Navegación offline sin coincidencia exacta: sirve el index guardado
+    if (req.mode === 'navigate') {
+      const idx = await cache.match('index.html', { ignoreSearch: true }) ||
+                  await cache.match(new URL('index.html', self.registration.scope).href, { ignoreSearch: true });
+      if (idx) return idx;
+    }
+    throw err;
+  }
+}
+
 self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET') return;
-  if (MEDIA.test(e.request.url)) {
+  const url = e.request.url;
+  if (ES_FUENTE.test(url)) {
+    e.respondWith(fuenteDesdeCache(e.request).catch(() => fetch(e.request)));
+    return;
+  }
+  if (MEDIA.test(url)) {
     e.respondWith(mediaDesdeCache(e.request).catch(() => fetch(e.request)));
     return;
   }
-  e.respondWith(
-    fetch(e.request, { cache: 'no-store' })
-      .catch(() => caches.match(e.request))
-  );
+  if (new URL(url).origin === self.location.origin || e.request.mode === 'navigate') {
+    e.respondWith(codigoDesdeRed(e.request));
+    return;
+  }
+  // Otros orígenes: comportamiento normal del navegador
 });

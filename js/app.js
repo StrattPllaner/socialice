@@ -176,6 +176,67 @@ function elegirRol(rol) {
   splashIr('reg1');
 }
 
+/* --- Formularios del splash: validación nativa + feedback claro ---
+   (Enter envía, los errores se muestran con reportValidity + toast) --- */
+function loginSubmit(ev) {
+  ev.preventDefault();
+  const f = ev.target;
+  if (!f.reportValidity()) { toast('Revisa tu correo y contraseña'); return false; }
+  entrarApp();
+  toast(`¡Qué gusto verte, ${DATA.usuario.nombre.split(' ')[0]}! 🎉`);
+  return false;
+}
+function reg1Submit(ev) {
+  ev.preventDefault();
+  const f = ev.target;
+  if (!f.reportValidity()) { toast('Completa tu correo y contraseña (mínimo 6 caracteres)'); return false; }
+  const p1 = document.getElementById('regPass');
+  const p2 = document.getElementById('regPass2');
+  if (p1.value !== p2.value) {
+    p2.setCustomValidity('Las contraseñas no coinciden');
+    p2.reportValidity();
+    p2.setCustomValidity('');
+    toast('Las contraseñas no coinciden');
+    return false;
+  }
+  splashIr('reg2');
+  return false;
+}
+function reg2Submit(ev) {
+  ev.preventDefault();
+  const f = ev.target;
+  if (!f.reportValidity()) { toast('Ponle nombre y usuario a tu cuenta'); return false; }
+  const user = document.getElementById('reg2User').value.trim().toLowerCase();
+  // Usuario duplicado (contra la gente que ya existe en la app)
+  const ocupados = [
+    ...DATA.amigos, ...DATA.sugerencias,
+    ...(DATA.usuario.seguidoresList || []), ...(DATA.usuario.colaboradores || [])
+  ].map((x) => (x.usuario || '').toLowerCase());
+  if (ocupados.includes('@' + user)) {
+    const inp = document.getElementById('reg2User');
+    inp.setCustomValidity('Ese usuario ya está ocupado');
+    inp.reportValidity();
+    inp.setCustomValidity('');
+    toast('Ese usuario ya está ocupado, prueba otro');
+    return false;
+  }
+  splashIr('reg3');
+  return false;
+}
+function reg3Submit(ev) {
+  ev.preventDefault();
+  // Aplica los datos del registro al perfil (mock, sin backend todavía)
+  const nombre = document.getElementById('reg2Name').value.trim();
+  const user = document.getElementById('reg2User').value.trim().toLowerCase();
+  const bio = document.getElementById('reg3Bio').value.trim();
+  if (nombre) DATA.usuario.nombre = nombre;
+  if (user) DATA.usuario.usuario = '@' + user.replace(/^@+/, '');
+  if (bio) DATA.usuario.bio = bio;
+  entrarApp();
+  toast('¡Bienvenido a Socialice! 🎉');
+  return false;
+}
+
 /* ===================================================================
    2. INICIO (feed de eventos)
    =================================================================== */
@@ -2933,11 +2994,33 @@ function toast(msg) {
 }
 
 // --- Panel deslizable (sheet) ---
+// Accesibilidad: el foco queda ATRAPADO dentro del panel mientras está
+// abierto (Tab cicla, Escape cierra) y regresa a quien lo abrió al cerrar.
+let _sheetOpener = null;
+function _sheetFocusables() {
+  return [...document.getElementById('sheet').querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  )].filter((el) => !el.disabled && el.offsetParent !== null);
+}
+function _sheetTrap(e) {
+  if (e.key === 'Escape') { cerrarSheet(); return; }
+  if (e.key !== 'Tab') return;
+  const f = _sheetFocusables();
+  if (!f.length) return;
+  const primero = f[0], ultimo = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === primero) { e.preventDefault(); ultimo.focus(); }
+  else if (!e.shiftKey && document.activeElement === ultimo) { e.preventDefault(); primero.focus(); }
+  else if (!document.getElementById('sheet').contains(document.activeElement)) { e.preventDefault(); primero.focus(); }
+}
 function abrirSheet(titulo, html) {
+  _sheetOpener = document.activeElement;
   document.getElementById('sheetTitle').textContent = titulo;
   document.getElementById('sheetBody').innerHTML = html;
   document.getElementById('sheetOverlay').classList.add('is-on');
   document.body.classList.add('no-scroll');
+  document.addEventListener('keydown', _sheetTrap);
+  const f = _sheetFocusables();
+  if (f.length) f[0].focus();
 }
 function cerrarSheet(ev) {
   // Si se hizo clic dentro del panel (no en el fondo), no cerrar
@@ -2947,6 +3030,10 @@ function cerrarSheet(ev) {
   s.style.transition = ''; s.style.transform = '';
   document.getElementById('sheetOverlay').classList.remove('is-on');
   document.body.classList.remove('no-scroll');
+  document.removeEventListener('keydown', _sheetTrap);
+  // El foco regresa al elemento que abrió el panel
+  if (_sheetOpener && document.contains(_sheetOpener)) { try { _sheetOpener.focus(); } catch (e) {} }
+  _sheetOpener = null;
 }
 
 // --- Arrastrar el panel hacia abajo para cerrarlo ---
@@ -3529,6 +3616,10 @@ function kilo(n) {
 
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Socialice listo ✨');
+
+  // Rellena los iconos declarados en el HTML estático (<span data-icon="mail">):
+  // un solo lugar (ICON_PATHS) en vez de SVGs repetidos por pantalla
+  document.querySelectorAll('[data-icon]').forEach((el) => { el.innerHTML = icon(el.dataset.icon); });
 
   // --- Atajo de desarrollo (solo para pruebas) ---
   // Permite abrir una pantalla directa, ej: ?screen=home&rol=asistente
