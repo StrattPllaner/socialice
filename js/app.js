@@ -2467,7 +2467,7 @@ function reactsHTML(gid, p) {
   return `<div class="dif-reacts" id="reacts-${p.id}">
     ${REACCIONES.map((em) => {
       const n = (p.reacciones || {})[em] || 0;
-      return `<button class="reac-btn ${p.mia === em ? 'on' : ''}" onclick="reaccionar('${gid}','${p.id}','${em}')">${em}${n ? ` <b>${n}</b>` : ''}</button>`;
+      return `<button class="reac-btn ${p.mia === em ? 'on' : ''}" onclick="reaccionar('${gid}','${p.id}','${em}', this)">${em}${n ? ` <b>${n}</b>` : ''}</button>`;
     }).join('')}
   </div>`;
 }
@@ -2602,13 +2602,16 @@ async function nuevaEncuesta(id) {
   abrirGrupo(id);
 }
 
-// Reaccionar con emoji (una reacción por persona; tocar de nuevo la quita)
-function reaccionar(gid, pid, em) {
+// Reaccionar con emoji (una reacción por persona; tocar de nuevo la quita).
+// Los emojis tienen FÍSICA: el tocado da un pop con rebote, los vecinos se
+// empujan como resortes y el emoji sale flotando hacia arriba.
+function reaccionar(gid, pid, em, btn) {
   const g = _grupo(gid);
   const p = g && g.difusion.find((x) => x.id === pid);
   if (!p) return;
   p.reacciones = p.reacciones || {};
-  if (p.mia === em) {
+  const quitando = p.mia === em;
+  if (quitando) {
     p.reacciones[em] = Math.max(0, (p.reacciones[em] || 1) - 1);
     p.mia = null;
   } else {
@@ -2616,8 +2619,53 @@ function reaccionar(gid, pid, em) {
     p.reacciones[em] = (p.reacciones[em] || 0) + 1;
     p.mia = em;
   }
+  // Actualiza los botones EN SITIO (así la animación no se corta)
   const row = document.getElementById('reacts-' + pid);
-  if (row) row.outerHTML = reactsHTML(gid, p);
+  if (!row) return;
+  const botones = [...row.querySelectorAll('.reac-btn')];
+  botones.forEach((b, i) => {
+    const emoji = REACCIONES[i];
+    const n = (p.reacciones || {})[emoji] || 0;
+    b.classList.toggle('on', p.mia === emoji);
+    b.innerHTML = `${emoji}${n ? ` <b>${n}</b>` : ''}`;
+  });
+  fisicaReaccion(botones, btn, em, quitando);
+}
+
+// La "física" de los emojis: pop elástico del tocado, empujón con resorte a
+// los vecinos (más fuerte mientras más cerca) y emojis flotando hacia arriba
+function fisicaReaccion(botones, btn, em, quitando) {
+  if (!btn) return;
+  const i0 = botones.indexOf(btn);
+  botones.forEach((b, i) => {
+    b.classList.remove('fx-pop', 'fx-push');
+    b.style.removeProperty('--fuerza');
+    void b.offsetWidth; // reinicia la animación si tocas rápido
+    if (i === i0) {
+      b.classList.add('fx-pop');
+    } else {
+      const d = i - i0;
+      const fuerza = Math.max(0, 4 - Math.abs(d)) * 6 * (d < 0 ? -1 : 1);
+      if (fuerza) {
+        b.style.setProperty('--fuerza', fuerza + 'px');
+        b.classList.add('fx-push');
+      }
+    }
+  });
+  if (quitando) return;
+  // Ráfaga del emoji flotando desde el botón
+  const r = btn.getBoundingClientRect();
+  for (let k = 0; k < 3; k++) {
+    const f = document.createElement('span');
+    f.className = 'reac-float';
+    f.textContent = em;
+    f.style.left = (r.left + r.width / 2) + 'px';
+    f.style.top = r.top + 'px';
+    f.style.setProperty('--dx', ((Math.random() - 0.5) * 60) + 'px');
+    f.style.animationDelay = (k * 90) + 'ms';
+    document.body.appendChild(f);
+    f.addEventListener('animationend', () => f.remove());
+  }
 }
 
 // Votar en una encuesta (puedes cambiar tu voto)
