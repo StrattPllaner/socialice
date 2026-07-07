@@ -920,6 +920,15 @@ function nombreAttrs(e) {
   return '';
 }
 
+// El FONDO DEL TEMA que se eligió al crear el evento (la escena real:
+// fuego, disco, playa…), no la portada — se usa en el pase/boleto
+function temaFondoEvento(e) {
+  const t = TEMAS[e.tema];
+  if (!t) return { bg: e.grad || 'linear-gradient(135deg,#2f7bff,#38bdf8)', grad: e.grad };
+  const tt = t.custom ? customTema(e.temaColors, e.temaAnim) : t;
+  return { bg: tt.bg, grad: tt.grad };
+}
+
 // Estilo de portada de un evento cualquiera (para tarjetas)
 function coverStyle(e) {
   return e.coverImg
@@ -2820,18 +2829,53 @@ let pfTab = 'fiestas';
 function setPfTab(t) { pfTab = t; pintarPerfil(); }
 
 // Pseudo-QR decorativo y determinista (mismo usuario = mismo dibujo)
-// Firma corta y determinista del pase (folio); la validación real en la
-// puerta llegará con el backend (Firebase) — ver nota en abrirPases
-function firmaPase(txt) {
+// Token ALEATORIO criptográfico: se genera UNA sola vez por pase y nunca
+// se repite (no se deriva de nada, así que no hay forma de reconstruirlo
+// ni de que dos pases coincidan). Queda guardado en el evento (e._paseId).
+function tokenUnico() {
+  const bytes = new Uint8Array(10);
+  (self.crypto || {}).getRandomValues ? crypto.getRandomValues(bytes) : bytes.forEach((_, i) => bytes[i] = Math.random() * 256 | 0);
+  return [...bytes].map((b) => b.toString(36).padStart(2, '0')).join('').toUpperCase().slice(0, 14);
+}
+
+// Folio corto y legible para mostrar en el pase (derivado del token, solo
+// para lectura humana — el QR real usa el token completo)
+function folioDe(token) {
   let h = 5381;
-  for (let i = 0; i < txt.length; i++) h = ((h << 5) + h + txt.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < token.length; i++) h = ((h << 5) + h + token.charCodeAt(i)) >>> 0;
   return h.toString(36).toUpperCase().padStart(7, '0');
 }
 
-// Contenido ÚNICO del QR: fiesta + invitado + firma
+// Asegura que el evento tenga un pase único para ESTE usuario (lo crea la
+// primera vez que hace falta y ya no cambia): así el QR nunca se repite
+// entre pases ni entre personas, y sigue siendo el mismo pase mientras
+// no se use.
+function asegurarPase(e) {
+  e._pases = e._pases || {};
+  const u = DATA.usuario.usuario;
+  if (!e._pases[u]) e._pases[u] = { token: tokenUnico(), usado: false };
+  return e._pases[u];
+}
+
+// Contenido ÚNICO y ALEATORIO del QR (fiesta + invitado + token real)
 function pasePayload(e, u) {
-  const base = `SOC1|${e.id}|${u.usuario}`;
-  return `${base}|${firmaPase(base)}`;
+  const pase = asegurarPase(e);
+  return `SOC1|${e.id}|${u.usuario}|${pase.token}`;
+}
+
+// Simula el escaneo del staff en la puerta: valida el pase UNA vez y lo
+// CANCELA (de un solo uso). Sin backend no hay forma de impedir que el
+// mismo dueño del teléfono "reescanee" su propio pase — la validación
+// real en la puerta necesita un servidor (Firebase) que sea la única
+// fuente de verdad de qué pases ya se usaron; esto es la simulación.
+function usarPase(id) {
+  const e = DATA.eventos.find((ev) => ev.id === id);
+  if (!e) return;
+  const pase = asegurarPase(e);
+  if (pase.usado) { toast('Este pase ya fue usado ⛔'); return; }
+  pase.usado = true;
+  toast('Pase validado ✓ — acceso concedido 🎉');
+  abrirPases();
 }
 
 // QR REAL y ESCANEABLE (librería MIT qrcode-generator hospedada en el repo).
@@ -2855,23 +2899,35 @@ function abrirPases() {
   const u = DATA.usuario;
   const voy = DATA.eventos.filter((e) => (e.voy || e._voy) && !e.proximamente);
   abrirSheet('Mis pases', voy.length ? `
-    <p class="hint">Un pase por fiesta. Enséñalo en la puerta: el staff lo escanea y listo.</p>
+    <p class="hint">Un pase por fiesta, con QR único e intransferible. El staff lo escanea en la puerta y se cancela — no se puede volver a usar.</p>
     <div class="pases-list">
-      ${voy.map((e) => `
-        <div class="tikt">
-          <div class="tikt-main" style="--tg:${e.grad}">
-            <div class="tikt-strip"></div>
-            <small class="tikt-brand">SOCIALICE · PASE DE ENTRADA</small>
+      ${voy.map((e) => {
+        const pase = asegurarPase(e);
+        const tf = temaFondoEvento(e);
+        return `
+        <div class="tikt ${pase.usado ? 'is-usado' : ''}">
+          <div class="tikt-main" style="background:${tf.bg}">
+            <div class="tikt-veil"></div>
+            <small class="tikt-brand">${icon('spark')} SOCIALICE · PASE DE ENTRADA</small>
             <strong class="tikt-name">${esc(e.nombre)}</strong>
-            <span class="tikt-meta">${esc(e.fecha)}</span>
-            <span class="tikt-meta">${esc(e.lugar)}${e.ciudad ? ' · ' + esc(e.ciudad) : ''}</span>
+            <span class="tikt-meta">${icon('cal','mute')} ${esc(e.fecha)}</span>
+            <span class="tikt-meta">${icon('pin','mute')} ${esc(e.lugar)}${e.ciudad ? ' · ' + esc(e.ciudad) : ''}</span>
             <span class="pt-user"><span class="host-ava sm" style="${avatarFondo(u)}">${avatarContenido(u)}</span>${esc(u.usuario)}</span>
           </div>
           <div class="tikt-stub">
-            ${qrSVG(pasePayload(e, u), 'qr-real')}
-            <small class="tikt-folio">Nº ${firmaPase('SOC1|' + e.id + '|' + u.usuario)}</small>
+            <span class="notch"></span><span class="notch"></span>
+            <div class="tikt-qr-wrap">
+              ${qrSVG(pasePayload(e, u), 'qr-real')}
+              ${pase.usado ? `<div class="tikt-usado-x">${icon('xmark')}</div>` : ''}
+            </div>
+            <small class="tikt-folio">Nº ${folioDe(pase.token)}</small>
+            ${pase.usado
+              ? `<small class="tikt-estado usado">${icon('check')} Ya usado</small>`
+              : `<button class="tikt-scan" onclick="usarPase('${e.id}')" title="Solo para probar cómo se ve al escanearlo">${icon('eye')} Simular escaneo</button>`}
           </div>
-        </div>`).join('')}
+          ${pase.usado ? `<div class="tikt-ribbon">${icon('check')} Acceso concedido</div>` : ''}
+        </div>`;
+      }).join('')}
     </div>` : `
     <p class="empty">Aún no tienes pases.<br>Confirma tu asistencia a una fiesta y aquí aparece su pase con QR 🎟️</p>
   `);
