@@ -3614,6 +3614,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // un solo lugar (ICON_PATHS) en vez de SVGs repetidos por pantalla
   document.querySelectorAll('[data-icon]').forEach((el) => { el.innerHTML = icon(el.dataset.icon); });
 
+  // ⚠️ TEMPORAL (modo pruebas): entra DIRECTO a la app sin pedir crear
+  // cuenta ni login. Para reactivar el splash, borra estas 2 líneas.
+  document.getElementById('screen-splash').classList.remove('is-active');
+  entrarApp();
+
   // --- Atajo de desarrollo (solo para pruebas) ---
   // Permite abrir una pantalla directa, ej: ?screen=home&rol=asistente
   const p = new URLSearchParams(location.search);
