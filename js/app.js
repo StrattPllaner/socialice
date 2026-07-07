@@ -166,15 +166,8 @@ function verPass(id, btn) {
   btn.innerHTML = icon(oculto ? 'eyeOff' : 'eye');
 }
 
-// Guarda el rol elegido y adapta los textos del registro.
-function elegirRol(rol) {
-  DATA.usuario.rol = rol;
-  const esOrg = rol === 'organizador';
-  document.getElementById('reg2Title').textContent = esOrg ? '¿Quién organiza?' : 'Cuéntanos de ti';
-  document.getElementById('reg2NameLabel').textContent = esOrg ? 'Nombre del organizador' : 'Tu nombre';
-  document.getElementById('reg2Name').placeholder = esOrg ? 'Ej: Andrea Eventos' : 'Ej: Andrea Ríos';
-  splashIr('reg1');
-}
+// NOTA: ya no hay roles separados — las cuentas están FUSIONADAS: todos
+// pueden organizar fiestas Y asistir a las de otros (decisión del usuario).
 
 /* --- Formularios del splash: validación nativa + feedback claro ---
    (Enter envía, los errores se muestran con reportValidity + toast) --- */

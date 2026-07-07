@@ -454,47 +454,6 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 }
 .step-dots i.is-on { background: var(--grad-party); width: 28px; box-shadow: 0 0 10px rgba(47,123,255,.5); }
 
-/* ============== TARJETAS DE ROL (diferenciadas) ============== */
-.eyebrow {
-  font-size: .76rem; font-weight: 700; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--ink-faint);
-  margin-bottom: 10px;
-}
-.role-tile {
-  display: flex; align-items: center; gap: 16px; width: 100%;
-  text-align: left; font-family: inherit; color: var(--ink);
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  padding: 18px 18px 18px 16px; margin-top: 14px; cursor: pointer;
-  position: relative; overflow: hidden;
-  transition: border-color .25s ease, transform .15s ease, background .25s ease;
-}
-.role-tile:active { transform: scale(.99); }
-
-/* Veta de color a la izquierda: distingue cada rol */
-.role-tile::before {
-  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-}
-.role-tile.host::before  { background: linear-gradient(180deg,#2f7bff,#38bdf8); }
-.role-tile.guest::before { background: linear-gradient(180deg,#00d4ff,#2f7bff); }
-.role-tile.host:hover  { border-color: rgba(56,189,248,.45);  background: linear-gradient(120deg, rgba(47,123,255,.10), rgba(56,189,248,.06)); transform: translateY(-2px); }
-.role-tile.guest:hover { border-color: rgba(0,212,255,.45);  background: linear-gradient(120deg, rgba(0,212,255,.10), rgba(47,123,255,.06)); transform: translateY(-2px); }
-
-/* Caja del icono: gradiente propio según el rol */
-.role-ic {
-  width: 52px; height: 52px; flex-shrink: 0;
-  display: grid; place-items: center; border-radius: 15px; color: #fff;
-}
-.role-ic svg { width: 26px; height: 26px; }
-.host  .role-ic { background: linear-gradient(135deg,#2f7bff,#38bdf8); box-shadow: 0 8px 22px rgba(56,189,248,.28); }
-.guest .role-ic { background: linear-gradient(135deg,#00d4ff,#2563eb); box-shadow: 0 8px 22px rgba(0,212,255,.24); }
-
-.role-body { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.role-body strong { font-size: 1.18rem; letter-spacing: -.01em; }
-.role-body small  { color: var(--ink-soft); line-height: 1.4; font-size: .9rem; }
-.role-go { width: 20px; height: 20px; color: var(--ink-faint); flex-shrink: 0; }
-
 /* ============== ICONOS SVG (genéricos) ============== */
 .ic { width: 22px; height: 22px; display: inline-block; vertical-align: middle; }
 .ic.mute { color: var(--ink-faint); }
@@ -3273,6 +3232,4 @@ button, a, .chip, .nav-btn { touch-action: manipulation; }
 /* Iconos centralizados del splash (data-icon) */
 .field-icon .ic { width: 20px; height: 20px; }
 .field-eye .ic { width: 20px; height: 20px; }
-.role-ic .ic { width: 24px; height: 24px; }
-.role-go .ic { width: 20px; height: 20px; }
 .splash-form { display: block; }
