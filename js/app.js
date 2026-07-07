@@ -242,7 +242,7 @@ function pintarInicio() {
   const u = DATA.usuario;
 
   // ¿Vas a ir? (las que confirmaste)
-  const vas = DATA.eventos.filter((e) => (e.voy || e._voy) && !e.proximamente);
+  const vas = DATA.eventos.filter((e) => (e.voy || e._voy) && !e.proximamente && !yaPaso(e));
   // Próximamente (para crear expectativa)
   const pronto = DATA.eventos.filter((e) => e.proximamente);
 
@@ -315,7 +315,8 @@ function pintarEventos() {
   if (!lista) return;
   // Recomendaciones: públicas, ni "próximamente" ni las que ya vas
   const eventos = DATA.eventos.filter((e) =>
-    e.publico !== false && !e.proximamente && (categoriaActiva === 'todos' || e.cat.includes(categoriaActiva))
+    e.publico !== false && !e.proximamente && !yaPaso(e) &&
+    (categoriaActiva === 'todos' || e.cat.includes(categoriaActiva))
   );
 
   lista.innerHTML = eventos.length
@@ -799,6 +800,7 @@ function nuevoDraft() {
     temaColors: ['#8b5cf6', '#38bdf8'], // colores del tema personalizado (1-2)
     temaAnim: false,                    // si el tema personalizado fluye animado
     discoHue: 0,                        // color de las luces del tema Disco ('anim' = multicolor)
+    grupoId: null,                      // si la fiesta es de un grupo, su id
     efecto: 'ninguno',           // tipo de efecto del fondo
     tituloFont: 'classic',       // estilo de letra del título
     descripcion: '',
@@ -859,6 +861,8 @@ function nuevaFiesta() { draft = nuevoDraft(); irA('create'); abrirTemaCustom();
 function editarFiesta(id) {
   const e = DATA.eventos.find((x) => x.id === id);
   if (!e) return;
+  // Solo el organizador, co-organizadores o el grupo organizador editan
+  if (!puedeEditar(e)) { toast('Solo los organizadores pueden editar este evento 🔒'); return; }
   draft = nuevoDraft();
   draft.id = e.id;
   draft.nombre = e.nombre; draft.fecha = e.fecha; draft.lugar = e.lugar; draft.ciudad = e.ciudad || '';
@@ -878,6 +882,7 @@ function editarFiesta(id) {
   draft.temaAnim = !!e.temaAnim;
   draft.discoHue = e.discoHue || 0;
   draft.efecto = e.efecto || 'ninguno';
+  draft.grupoId = e.grupoId || null;
   draft.fechaInicio = e.fechaInicio || '';
   draft.fechaFin = e.fechaFin || '';
   draft.horaInicio = e.horaInicio || '';
@@ -2031,6 +2036,7 @@ function draftAEvento() {
     temaAnim: !!draft.temaAnim,
     discoHue: draft.discoHue,
     efecto: draft.efecto,
+    grupoId: draft.grupoId || null,
     tituloFont: draft.tituloFont,
     descripcion: draft.descripcion.trim(),
     dressCode: draft.dressCode.trim(),
@@ -2500,7 +2506,17 @@ function abrirGrupo(id) {
   const g = _grupo(id);
   if (!g) return;
   g.difusion = g.difusion || [];
-  abrirSheet(g.nombre, `
+  cerrarSheet();
+  // Fiestas organizadas por el grupo (visibles para la comunidad)
+  const evs = DATA.eventos.filter((ev) => ev.grupoId === g.id && ev.publico !== false && !yaPaso(ev));
+  let ov = document.getElementById('grupoFull');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'grupoFull'; ov.className = 'evfull'; document.body.appendChild(ov); }
+  ov.innerHTML = `
+    <div class="evfull-tema" style="background:linear-gradient(180deg, rgba(6,7,10,.55), var(--bg) 62%), ${g.color};background-repeat:no-repeat"></div>
+    <div class="evfull-bar">
+      <button class="round-btn" onclick="cerrarGrupo()" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="evfull-inner gr-inner">
     <div class="amigo-top">
       <div class="amigo-ava" style="background:${g.color}">${g.emoji}</div>
       <strong>${esc(g.nombre)}</strong>
@@ -2513,15 +2529,28 @@ function abrirGrupo(id) {
     </button>
 
     <div class="grupo-acciones">
-      <button class="chip" onclick="cerrarSheet(); crearFiestaGrupo('${g.id}')">＋ Fiesta del grupo</button>
+      <button class="chip" onclick="crearFiestaGrupo('${g.id}')">＋ Fiesta del grupo</button>
       <button class="chip" onclick="nuevoAviso('${g.id}')">${icon('mega', 'mute')} Aviso</button>
       <button class="chip" onclick="nuevaEncuesta('${g.id}')">${icon('doc', 'mute')} Encuesta</button>
     </div>
 
+    ${evs.length ? `
+      <div class="row-between"><h3>Fiestas del grupo</h3></div>
+      <div class="event-list gr-evs">${evs.map(tarjetaEvento).join('')}</div>` : ''}
+
     <div class="row-between"><h3>Canal de difusión</h3></div>
     <p class="hint">Solo el equipo publica. La comunidad reacciona con emojis (no hay comentarios), como un canal de difusión.</p>
     <div class="dif-list" id="difList">${difusionHTML(g)}</div>
-  `);
+    </div>
+  `;
+  ov.scrollTop = 0;
+  ov.classList.add('is-open');
+}
+
+// Cierra la vista completa del grupo
+function cerrarGrupo() {
+  const ov = document.getElementById('grupoFull');
+  if (ov) { ov.classList.remove('is-open'); ov.innerHTML = ''; }
 }
 
 // Unirse / salir de la comunidad del grupo (recibe los avisos)
@@ -2537,7 +2566,9 @@ function unirseGrupo(id) {
 function crearFiestaGrupo(id) {
   const g = _grupo(id);
   if (!g) return;
+  cerrarGrupo();
   draft = nuevoDraft();
+  draft.grupoId = g.id;
   draft.organizadores = g.miembros
     .filter((m) => m.nombre !== DATA.usuario.nombre)
     .map((m) => ({ ...m }));
@@ -2741,21 +2772,34 @@ let pfTab = 'fiestas';
 function setPfTab(t) { pfTab = t; pintarPerfil(); }
 
 // Pseudo-QR decorativo y determinista (mismo usuario = mismo dibujo)
-function qrSVG(seed, cls = '') {
-  const N = 21;
-  let h = 2166136261;
-  for (const ch of seed) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; }
-  const rand = () => ((h = (Math.imul(h, 1664525) + 1013904223) >>> 0) / 4294967296);
-  const enFinder = (x, y) => (x < 8 && y < 8) || (x > N - 9 && y < 8) || (x < 8 && y > N - 9);
-  let cells = '';
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    if (enFinder(x, y)) continue;
-    if (rand() < 0.46) cells += `<rect x="${x}" y="${y}" width="1" height="1"/>`;
-  }
-  const finder = (ox, oy) =>
-    `<path fill-rule="evenodd" d="M${ox} ${oy}h7v7h-7z M${ox + 1} ${oy + 1}v5h5v-5z"/>` +
-    `<rect x="${ox + 2}" y="${oy + 2}" width="3" height="3"/>`;
-  return `<svg class="${cls}" viewBox="0 0 ${N} ${N}" fill="#0b0e18" shape-rendering="crispEdges" aria-hidden="true">${finder(0, 0)}${finder(N - 7, 0)}${finder(0, N - 7)}${cells}</svg>`;
+// Firma corta y determinista del pase (folio); la validación real en la
+// puerta llegará con el backend (Firebase) — ver nota en abrirPases
+function firmaPase(txt) {
+  let h = 5381;
+  for (let i = 0; i < txt.length; i++) h = ((h << 5) + h + txt.charCodeAt(i)) >>> 0;
+  return h.toString(36).toUpperCase().padStart(7, '0');
+}
+
+// Contenido ÚNICO del QR: fiesta + invitado + firma
+function pasePayload(e, u) {
+  const base = `SOC1|${e.id}|${u.usuario}`;
+  return `${base}|${firmaPase(base)}`;
+}
+
+// QR REAL y ESCANEABLE (librería MIT qrcode-generator hospedada en el repo).
+// Cualquier lector de QR lo lee; el contenido es único por fiesta+invitado.
+function qrSVG(payload, cls = '') {
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(String(payload));
+    qr.make();
+    const n = qr.getModuleCount();
+    let cells = '';
+    for (let r = 0; r < n; r++) for (let c2 = 0; c2 < n; c2++) {
+      if (qr.isDark(r, c2)) cells += `<rect x="${c2 + 1}" y="${r + 1}" width="1" height="1"/>`;
+    }
+    return `<svg class="${cls}" viewBox="0 0 ${n + 2} ${n + 2}" shape-rendering="crispEdges" role="img" aria-label="Código QR del pase"><rect width="${n + 2}" height="${n + 2}" fill="#fff"/><g fill="#000">${cells}</g></svg>`;
+  } catch (err) { return ''; }
 }
 
 // Mis pases: UNO POR FIESTA confirmada (cada QR es único: usuario + evento)
@@ -2766,15 +2810,19 @@ function abrirPases() {
     <p class="hint">Un pase por fiesta. Enséñalo en la puerta: el staff lo escanea y listo.</p>
     <div class="pases-list">
       ${voy.map((e) => `
-        <div class="pase-ticket">
-          <div class="pt-strip" style="background:${e.grad}"></div>
-          <div class="pt-info">
-            <strong>${esc(e.nombre)}</strong>
-            <small>${esc(e.fecha)}</small>
-            <small>${esc(e.lugar)}${e.ciudad ? ' · ' + esc(e.ciudad) : ''}</small>
-            <span class="pt-user"><span class="host-ava sm" style="${avatarFondo(u)}">${avatarContenido(u)}</span>${u.usuario}</span>
+        <div class="tikt">
+          <div class="tikt-main" style="--tg:${e.grad}">
+            <div class="tikt-strip"></div>
+            <small class="tikt-brand">SOCIALICE · PASE DE ENTRADA</small>
+            <strong class="tikt-name">${esc(e.nombre)}</strong>
+            <span class="tikt-meta">${esc(e.fecha)}</span>
+            <span class="tikt-meta">${esc(e.lugar)}${e.ciudad ? ' · ' + esc(e.ciudad) : ''}</span>
+            <span class="pt-user"><span class="host-ava sm" style="${avatarFondo(u)}">${avatarContenido(u)}</span>${esc(u.usuario)}</span>
           </div>
-          <div class="pt-qr">${qrSVG(u.usuario + '·' + e.id)}</div>
+          <div class="tikt-stub">
+            ${qrSVG(pasePayload(e, u), 'qr-real')}
+            <small class="tikt-folio">Nº ${firmaPase('SOC1|' + e.id + '|' + u.usuario)}</small>
+          </div>
         </div>`).join('')}
     </div>` : `
     <p class="empty">Aún no tienes pases.<br>Confirma tu asistencia a una fiesta y aquí aparece su pase con QR 🎟️</p>
@@ -2874,7 +2922,7 @@ function pintarPerfil() {
     </section>
 
     <button class="pase-card" onclick="abrirPases()">
-      <span class="pase-qr">${qrSVG(u.usuario + '·' + (voy[0] ? voy[0].id : 'sin'))}</span>
+      <span class="pase-qr">${qrSVG(voy[0] ? pasePayload(voy[0], u) : 'SOCIALICE')}</span>
       <span class="pase-info"><strong>MIS PASES</strong><small>${voy.length ? `${voy.length} ${voy.length === 1 ? 'fiesta confirmada' : 'fiestas confirmadas'} · un QR por fiesta` : 'Confirma una fiesta para recibir tu pase'}</small></span>
       <span class="pase-arrow">›</span>
     </button>
@@ -3212,6 +3260,25 @@ function cuentaRegresiva(e) {
   return `En ${Math.ceil(d / 7)} semanas`;
 }
 
+// ¿Puedo EDITAR este evento? Solo el organizador, sus co-organizadores o
+// los miembros del grupo organizador. Nadie más.
+function puedeEditar(e) {
+  if (!e) return false;
+  const yo = DATA.usuario.nombre;
+  if (e.organizador === yo) return true;
+  if ((e.organizadores || []).some((o) => o.nombre === yo)) return true;
+  if (e.grupoId) {
+    const g = (DATA.grupos || []).find((x) => x.id === e.grupoId);
+    if (g && g.miembros.some((m) => m.nombre === yo)) return true;
+  }
+  return false;
+}
+
+// ¿El evento ya pasó? (para ocultar invitación/RSVP y sacarlo del inicio)
+function yaPaso(e) {
+  return !!e.fechaISO && cuentaRegresiva(e) === 'Ya pasó';
+}
+
 // Conteo de respuestas (van / tal vez / no), con tu respuesta incluida
 function rsvpCounts(e) {
   const base = e.asistentes || 0;
@@ -3255,13 +3322,14 @@ function abrirEvento(id) {
   if (!e) return;
   if (!e._comentarios) e._comentarios = (COMENTARIOS_SEED[e.id] || []).map((c) => ({ ...c }));
   if (e._rsvp === undefined && e.voy) e._rsvp = 'voy';   // ya estabas confirmado
-  const esMio = e.organizador === DATA.usuario.nombre;
+  const esMio = puedeEditar(e); // organizador, co-organizadores o su grupo
   const edadTxt = (e.edadRango && e.edadRango.max) ? `18–${e.edadRango.max} años` : '18+';
   const orgs = [{ nombre: e.organizador, avatar: DATA.usuario.avatar, color: DATA.usuario.color }].concat(e.organizadores || []);
   const c = rsvpCounts(e);
   const cuenta = cuentaRegresiva(e);
   const muestra = invitadosMuestra(e, 7);
   const listaOk = puedeVerLista(e);
+  const paso = yaPaso(e);
 
   // El evento se ve en PANTALLA COMPLETA (no en ventana) con SU tema de
   // fondo (video/gradiente) y SUS efectos, tal como lo armó el organizador
@@ -3300,7 +3368,7 @@ function abrirEvento(id) {
     <div class="ev-info">
       <div class="ev-irow">
         ${icon('cal','mute')}<div><strong>${esc(e.fecha)}</strong><small>Edad: ${edadTxt}</small></div>
-        ${e.fechaISO ? `<button class="ev-line-act" onclick="addCalendario('${e.id}')">＋ Calendario</button>` : ''}
+        ${(e.fechaISO && !paso) ? `<button class="ev-line-act" onclick="addCalendario('${e.id}')">＋ Calendario</button>` : ''}
       </div>
       <div class="ev-irow">
         ${icon('pin','mute')}<div><strong>${esc(e.lugar)}</strong><small>${esc(e.ciudad || '')}</small></div>
@@ -3314,7 +3382,7 @@ function abrirEvento(id) {
 
     ${casiLleno(e) ? `<div class="warn-full">${icon('fire')} ¡Casi se agotan los lugares! Quedan pocos.</div>` : ''}
 
-    ${esMio ? '' : `
+    ${(esMio || paso) ? '' : `
       ${e._rsvp === 'voy' ? `
       <div class="rsvp">
         <p class="rsvp-q">${icon('check')} Vas a esta fiesta</p>
@@ -3383,10 +3451,10 @@ function abrirEvento(id) {
     </div>
 
     <!-- Invitar -->
-    <div class="invite-row">
+    ${paso ? '' : `<div class="invite-row">
       <button class="btn full" onclick="copiarInvitacion('${e.id}')">${icon('link')} Copiar invitación</button>
-      <button class="icon-btn" onclick="compartir('${e.nombre}')" aria-label="Compartir">${icon('share')}</button>
-    </div>
+      <button class="icon-btn" data-n="${esc(e.nombre)}" onclick="compartir(this.dataset.n)" aria-label="Compartir">${icon('share')}</button>
+    </div>`}
 
     ${(e.noticias && e.noticias.length) ? `
       <div class="row-between"><h3>Publicaciones</h3></div>
@@ -3423,7 +3491,7 @@ function abrirEvento(id) {
         <button class="eva-btn primary" onclick="avisarTodos('${e.id}')">${icon('mega')} Avisar</button>`
       : e.proximamente ? `
         <button class="eva-btn primary ${e._interesado ? 'on' : ''}" onclick="interesadoPage('${e.id}')">${icon('star')} ${e._interesado ? 'Interesado ✓' : 'Me interesa'}</button>`
-      : `
+      : paso ? '' : `
         <button class="eva-btn voy ${e._rsvp === 'voy' ? 'on' : ''}" onclick="setRsvp('${e.id}','voy')">${icon('check')} Voy</button>
         <button class="eva-btn tal ${e._rsvp === 'tal' ? 'on' : ''}" onclick="setRsvp('${e.id}','tal')">${icon('quest')} Tal vez</button>
         <button class="eva-btn no ${e._rsvp === 'no' ? 'on' : ''}" onclick="setRsvp('${e.id}','no')">${icon('xmark')} No</button>`}
