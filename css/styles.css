@@ -2180,7 +2180,7 @@ body::before {
 .evfull .ev-cover { width: min(64%, 280px); margin: 6px auto 0; box-shadow: 0 26px 70px rgba(0,0,0,.55), 0 4px 16px rgba(0,0,0,.35); }
 .ev-nombre { margin: 0; font-size: clamp(1.5rem, 5.8vw, 2.1rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.08; text-shadow: 0 2px 14px rgba(0,0,0,.55); overflow-wrap: break-word; }
 .evfull .ev-count { display: inline-flex; align-items: center; gap: 6px; width: auto; margin-top: 10px; padding: 6px 14px !important; border-radius: 999px !important; font-weight: 700; font-size: .82rem; }
-@media (min-width: 1100px) { .evfull .ev-cover { width: min(68%, 320px); } }
+@media (min-width: 960px) { .evfull .ev-cover { width: min(68%, 320px); } }
 
 /* Tarjeta de info: filas COMPACTAS con divisores (fecha / lugar / organiza) */
 .evfull .ev-info { padding: 2px 12px !important; }
@@ -2226,8 +2226,8 @@ body::before {
 .eva-btn.voy.on { border-color: #34d399; color: #34d399; background: rgba(52,211,153,.2); }
 .eva-btn.tal.on { border-color: #f59e0b; color: #f5b301; background: rgba(245,158,11,.2); }
 .eva-btn.no.on { border-color: #fb7185; color: #fb7185; background: rgba(244,63,94,.2); }
-@media (min-width: 1100px) { .ev-actions { grid-column: 1 / -1; } .eva-btn { max-width: 260px; margin: 0 auto; } .ev-actions:has(.eva-btn + .eva-btn) .eva-btn { margin: 0; } }
-@media (min-width: 1100px) {
+@media (min-width: 960px) { .ev-actions { grid-column: 1 / -1; } .eva-btn { max-width: 260px; margin: 0 auto; } .ev-actions:has(.eva-btn + .eva-btn) .eva-btn { margin: 0; } }
+@media (min-width: 960px) {
   .evfull-inner {
     max-width: 1060px;
     display: grid; grid-template-columns: 1.08fr .92fr;
@@ -2237,9 +2237,8 @@ body::before {
 }
 
 /* --- Computadora / pantallas grandes --- */
-@media (min-width: 1100px) {
+@media (min-width: 960px) {
   :root { --app-max: 980px; }
-  .event-list { grid-template-columns: repeat(3, 1fr); }
 
   /* Ficha del evento en laptop: panel ancho, centrado y a DOS columnas
      (portada/RSVP/quién va | detalles/álbum/comentarios) para ocupar bien */
@@ -2267,7 +2266,7 @@ body::before {
 /* ================================================================== */
 /* FORMATO ESCRITORIO (≥1000px): menú lateral en vez de barra abajo   */
 /* ================================================================== */
-@media (min-width: 1000px) {
+@media (min-width: 860px) {
   /* La barra inferior se convierte en MENÚ LATERAL izquierdo */
   .bottom-nav {
     top: 0; bottom: 0; left: 0; right: auto;
@@ -2306,13 +2305,19 @@ body::before {
   body[data-screen="splash"] .app-shell { margin-left: 0; max-width: 100%; }
   .welcome-center { max-width: 520px; margin: 0 auto; }
 
-  /* Eventos en 3 columnas con buen aire */
-  .event-list { grid-template-columns: repeat(3, 1fr); gap: 20px; }
-  .voy-row { grid-template-columns: repeat(3, 1fr); }
+  /* Sigue en 2 columnas aquí (recién aparece el menú lateral): a 3
+     columnas las tarjetas quedan muy angostas y el texto se corta */
+  .event-list { gap: 20px; }
 
   /* CTA crear: que no quede gigante */
   .crear-pill { margin-left: 0; }
   .home-top { max-width: 100%; }
+}
+
+/* Ya con más aire real (menú lateral + 3 columnas cómodas) */
+@media (min-width: 1180px) {
+  .event-list { grid-template-columns: repeat(3, 1fr); }
+  .voy-row { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* Pantalla muy ancha: el contenido SIGUE CRECIENDO con la ventana (antes
@@ -2450,7 +2455,7 @@ body[data-screen="create"] .bottom-nav { display: none; }
 /* En iPad/PC el boceto se ADAPTA al ancho: título a lo ancho y DOS columnas
    (izq: hero + descripción + organizadores + mapa · der: boletos +
    acciones + publicaciones), con el riel de herramientas a la derecha */
-@media (min-width: 900px) {
+@media (min-width: 860px) {
   .crear-page {
     max-width: 1200px;
     display: grid;
