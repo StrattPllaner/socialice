@@ -3427,7 +3427,6 @@ function abrirEvento(id) {
   if (!e._comentarios) e._comentarios = (COMENTARIOS_SEED[e.id] || []).map((c) => ({ ...c }));
   if (e._rsvp === undefined && e.voy) e._rsvp = 'voy';   // ya estabas confirmado
   const esMio = puedeEditar(e); // organizador, co-organizadores o su grupo
-  const edadTxt = (e.edadRango && e.edadRango.max) ? `18–${e.edadRango.max} años` : '18+';
   const orgs = [{ nombre: e.organizador, avatar: DATA.usuario.avatar, color: DATA.usuario.color }].concat(e.organizadores || []);
   const c = rsvpCounts(e);
   const cuenta = cuentaRegresiva(e);
@@ -3458,24 +3457,24 @@ function abrirEvento(id) {
     <!-- En laptop la ficha se parte en 2 columnas (.ev-main | .ev-side);
          en teléfono los wrappers son display:contents y no cambian nada -->
     <div class="ev-main">
-    <!-- HERO: portada + nombre grande con su tipografía/color + cuenta -->
+    <!-- HERO: TÍTULO arriba, portada abajo, cuenta regresiva al final -->
     <div class="ev-hero">
+      <h1 class="ev-nombre" ${nombreAttrs(e)}>${esc(e.nombre)}</h1>
       <div class="ev-cover" style="${coverStyle(e)}">
         <span class="ev-cover-emoji">${e.coverImg ? '' : (e.emoji || '')}</span>
         <span class="event-price">${e.precio}</span>
       </div>
-      <h1 class="ev-nombre" ${nombreAttrs(e)}>${esc(e.nombre)}</h1>
       ${cuenta ? `<div class="ev-count ${cuenta === '¡Es hoy!' ? 'today' : ''}">${icon('clock', 'mute')} ${cuenta}</div>` : ''}
     </div>
 
-    <!-- Info del evento: UNA tarjeta con fecha, lugar y organizadores -->
+    <!-- Info del evento: UNA tarjeta compacta con fecha, lugar y organizadores -->
     <div class="ev-info">
       <div class="ev-irow">
-        ${icon('cal','mute')}<div><strong>${esc(e.fecha)}</strong><small>Edad: ${edadTxt}</small></div>
+        ${icon('cal','mute')}<strong>${esc(e.fecha)}</strong>
         ${(e.fechaISO && !paso) ? `<button class="ev-line-act" onclick="addCalendario('${e.id}')">＋ Calendario</button>` : ''}
       </div>
       <div class="ev-irow">
-        ${icon('pin','mute')}<div><strong>${esc(e.lugar)}</strong><small>${esc(e.ciudad || '')}</small></div>
+        ${icon('pin','mute')}<div><strong>${esc(e.lugar)}</strong>${e.ciudad ? `<small>${esc(e.ciudad)}</small>` : ''}</div>
         <button class="ev-line-act" onclick="toast('Mapa · próximamente 🗺️')">Ver mapa</button>
       </div>
       <div class="ev-irow">
@@ -3485,6 +3484,25 @@ function abrirEvento(id) {
     </div>
 
     ${casiLleno(e) ? `<div class="warn-full">${icon('fire')} ¡Casi se agotan los lugares! Quedan pocos.</div>` : ''}
+
+    <!-- Detalles -->
+    <div class="row-between"><h3>Detalles</h3></div>
+    <p class="ev-desc">${esc(e.descripcion) || `Una noche para recordar en ${esc(e.lugar)}. Música, luces y la mejor energía.`}</p>
+    <div class="detail-chips">
+      <span class="dchip"><span>${icon('dress', 'mute')} Código</span><b>${e.dressCode || 'Libre'}</b></span>
+      <span class="dchip"><span>${icon('ticket', 'mute')} Entrada</span><b>${e.precio}</b></span>
+    </div>
+
+    <!-- Boletos, justo debajo de la descripción, con el cupo total -->
+    ${(e.boletos && e.boletos.length) ? `
+      <div class="row-between"><h3>Boletos</h3>${e.capacidad ? `<span class="see-all">${icon('user','mute')} ${e.capacidad} cupos</span>` : ''}</div>
+      <div class="zona-list">
+        ${e.boletos.map((b) => `
+          <div class="zona-row">
+            <div><strong>${esc(b.nombre) || 'Boleto'}</strong><small>${b.cantidad} disponibles</small></div>
+            <span class="zona-precio">${(+b.precio) > 0 ? '$' + b.precio : 'Gratis'}</span>
+          </div>`).join('')}
+      </div>` : ''}
 
     ${(esMio || paso) ? '' : `
       ${e._rsvp === 'voy' ? `
@@ -3509,50 +3527,32 @@ function abrirEvento(id) {
           <button class="toggle ${e._recordar ? 'is-on' : ''}" onclick="toggleRecordar('${e.id}', this)"><span class="toggle-knob"></span></button>
         </div>
       </div>` : ''}`}
-
-    <!-- Quién va (la lista con nombres solo se abre si puedeVerLista) -->
-    <div class="row-between"><h3>Quién va</h3>${listaOk ? `<span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span>` : ''}</div>
-    <div class="ev-quien">
-    <div class="rsvp-counts">
-      <span class="rc voy" id="rcVoy">${icon('check')} ${c.van}</span>
-      <span class="rc tal">${icon('quest')} ${c.tal}</span>
-      <span class="rc no">${icon('xmark')} ${c.no}</span>
     </div>
-    <div class="ava-stack ${listaOk ? '' : 'anon'}" onclick="verListaInvitados('${e.id}')">
-      ${muestra.map((g) => `<span class="ava-mini" style="background:${g.color}">${g.avatar}</span>`).join('')}
-      ${c.van > muestra.length ? `<span class="ava-more">+${c.van - muestra.length}</span>` : ''}
+    <div class="ev-side">
+
+    <!-- Quién va: más abajo, avatares primero y el número como protagonista
+         (nada de contadores-pill de colores, se veía muy "generado") -->
+    <div class="row-between"><h3>Quién va</h3>${listaOk ? `<span class="see-all" onclick="verListaInvitados('${e.id}')">Ver lista</span>` : ''}</div>
+    <div class="ev-quien" onclick="verListaInvitados('${e.id}')">
+      <div class="ava-stack ${listaOk ? '' : 'anon'}">
+        ${muestra.map((g) => `<span class="ava-mini" style="background:${g.color}">${g.avatar}</span>`).join('')}
+        ${c.van > muestra.length ? `<span class="ava-more">+${c.van - muestra.length}</span>` : ''}
+      </div>
+      <div class="quien-txt">
+        <strong>${c.van} van</strong>
+        <small>${c.tal} tal vez · ${c.no} no pueden</small>
+      </div>
     </div>
     ${listaOk ? '' : `<div class="lock-note-in">${icon('lock','mute')}<span>${(e.listaVisible || 'confirmados') === 'nadie'
       ? 'El anfitrión mantiene la lista de invitados privada.'
       : 'Lista protegida: confirma tu asistencia para ver quién va.'}</span></div>`}
-    </div>
 
-    ${(e.boletos && e.boletos.length) ? `
-      <div class="row-between"><h3>Boletos</h3></div>
-      <div class="zona-list">
-        ${e.boletos.map((b) => `
-          <div class="zona-row">
-            <div><strong>${b.nombre || 'Boleto'}</strong><small>${b.cantidad} disponibles</small></div>
-            <span class="zona-precio">${(+b.precio) > 0 ? '$' + b.precio : 'Gratis'}</span>
-          </div>`).join('')}
-      </div>` : ''}
-    </div>
-    <div class="ev-side">
-
-    <!-- Detalles -->
-    <div class="row-between"><h3>Detalles</h3></div>
-    <p class="ev-desc">${esc(e.descripcion) || `Una noche para recordar en ${esc(e.lugar)}. Música, luces y la mejor energía.`}</p>
-    <div class="detail-chips">
-      <span class="dchip"><span>${icon('dress', 'mute')} Código</span><b>${e.dressCode || 'Libre'}</b></span>
-      <span class="dchip"><span>${icon('user', 'mute')} Edad</span><b>${edadTxt}</b></span>
-      <span class="dchip"><span>${icon('ticket', 'mute')} Entrada</span><b>${e.precio}</b></span>
-    </div>
-
-    <!-- Álbum -->
+    <!-- Álbum: solo después de que la fiesta ya pasó -->
+    ${paso ? `
     <div class="row-between"><h3>Álbum</h3><span class="see-all" onclick="toast('Subir foto · próximamente')">Subir</span></div>
     <div class="album-grid">
       ${(e.album || ['🌃','🪩','🥂','💃','✨','🎶']).map((f) => `<button class="album-cell" onclick="toast('Foto del evento')">${f}</button>`).join('')}
-    </div>
+    </div>` : ''}
 
     <!-- Invitar -->
     ${paso ? '' : `<div class="invite-row">
@@ -3567,7 +3567,7 @@ function abrirEvento(id) {
           <div class="post-card">
             <div class="post-head">
               <div class="post-ava" style="background:${DATA.usuario.color}">${DATA.usuario.avatar}</div>
-              <div><strong>${e.organizador}</strong><small>${n.fecha || ''}</small></div>
+              <div><strong>${esc(e.organizador)}</strong><small>${esc(n.fecha || '')}</small></div>
             </div>
             ${n.texto ? `<p class="post-text">${esc(n.texto)}</p>` : ''}
             ${mediaHTML(n)}
@@ -3654,7 +3654,6 @@ function acomp(id, d) {
   if (!e) return;
   e._rsvpExtra = Math.max(0, (e._rsvpExtra || 0) + d);
   const n = document.getElementById('acompN'); if (n) n.textContent = '+' + e._rsvpExtra;
-  const rc = document.getElementById('rcVoy'); if (rc) rc.innerHTML = icon('check') + ' ' + rsvpCounts(e).van;
 }
 // Recordatorio del evento
 function toggleRecordar(id, btn) {
