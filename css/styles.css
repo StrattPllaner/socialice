@@ -2121,8 +2121,10 @@ body::before {
 
   /* Listas de eventos en 2 columnas */
   .event-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
-  /* Amigos y grupos también en 2 columnas */
-  .friend-list, .grupo-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; align-items: start; }
+  /* Amigos y grupos: columnas con ancho acotado (no 1fr), para que en
+     pantallas anchas se agreguen MÁS columnas en vez de estirar cada
+     tarjeta a un tamaño enorme con espacio vacío adentro */
+  .friend-list, .grupo-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 380px)); gap: 12px; align-items: start; }
   /* Mini-listas y fotos aprovechan el ancho */
   .photo-grid, .album-grid { grid-template-columns: repeat(5, 1fr); }
 
