@@ -500,8 +500,16 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 }
 .chips-row::-webkit-scrollbar { display: none; }
 
-/* --- Lista y tarjetas de eventos --- */
-.event-list { display: flex; flex-direction: column; gap: 16px; }
+/* --- Lista y tarjetas de eventos ---
+   En celular: carrusel horizontal de tarjetas compactas (no una
+   tarjeta gigante estirada a lo ancho de toda la pantalla) */
+.event-list {
+  display: flex; flex-direction: row; gap: 14px;
+  overflow-x: auto; padding-bottom: 4px; scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+.event-list::-webkit-scrollbar { display: none; }
+.event-list > .ev2 { flex: 0 0 84%; max-width: 330px; scroll-snap-align: start; }
 .event-price {
   position: absolute;
   top: 10px;
@@ -1386,8 +1394,6 @@ body.no-scroll { overflow: hidden; }
   background: rgba(255,255,255,.05); border: 1px solid var(--line);
   padding: 5px 11px; border-radius: var(--r-pill);
 }
-.event-list { display: flex; flex-direction: column; gap: 16px; }
-
 /* Próximamente */
 .ev2.soon .ev2-cover { height: 150px; }
 .ev2-soon-badge {
@@ -2119,8 +2125,9 @@ body::before {
 @media (min-width: 760px) {
   :root { --app-max: 740px; }
 
-  /* Listas de eventos en 2 columnas */
-  .event-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; }
+  /* Listas de eventos en 2 columnas (ya no es el carrusel de celular) */
+  .event-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; overflow-x: visible; }
+  .event-list > .ev2 { flex: initial; max-width: none; }
   /* Amigos y grupos: columnas con ancho acotado (no 1fr), para que en
      pantallas anchas se agreguen MÁS columnas en vez de estirar cada
      tarjeta a un tamaño enorme con espacio vacío adentro */
