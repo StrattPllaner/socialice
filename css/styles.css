@@ -893,7 +893,10 @@ body.no-scroll { overflow: hidden; }
 .sheet-overlay.is-on { opacity: 1; pointer-events: auto; }
 .sheet {
   width: 100%; max-width: var(--app-max);
-  max-height: 90dvh; overflow-y: auto;
+  /* svh (no dvh): dvh cambia justo al abrir si Safari oculta/muestra
+     su barra, y el panel se veía "arriba" y luego encogía a su
+     tamaño real — svh usa el viewport chico (fijo) y no salta */
+  max-height: 90svh; overflow-y: auto;
   background: linear-gradient(180deg, #12141c, var(--bg-soft));
   border: 1px solid var(--line-strong);
   border-bottom: none;
