@@ -2088,7 +2088,7 @@ body::before {
 .ico-btn svg { width: 27px; height: 27px; }
 .ico-btn:active { transform: scale(.9); }
 /* Campana vibra cuando hay notificaciones nuevas */
-.ico-btn.bell.nuevo svg { transform-origin: top center; animation: bellShake 1.4s ease-in-out infinite; }
+.ico-btn.bell.nuevo svg { transform-origin: top center; animation: bellShake 2.6s ease-in-out infinite; }
 @keyframes bellShake {
   0%, 60%, 100% { transform: rotate(0); }
   5%  { transform: rotate(14deg); }  10% { transform: rotate(-12deg); }
