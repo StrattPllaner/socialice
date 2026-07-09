@@ -3301,8 +3301,15 @@ function abrirSheet(titulo, html) {
   document.getElementById('sheetOverlay').classList.add('is-on');
   document.body.classList.add('no-scroll');
   document.addEventListener('keydown', _sheetTrap);
-  const f = _sheetFocusables();
-  if (f.length) f[0].focus();
+  // El foco se manda DESPUÉS de que termine la animación de entrada:
+  // en iOS Safari, enfocar un elemento mientras el panel todavía está
+  // fuera de pantalla (a medio deslizar) hace que Safari "salte" el
+  // viewport para intentar mostrarlo — se veía como si el panel
+  // apareciera arriba y luego se acomodara abajo.
+  setTimeout(() => {
+    const f = _sheetFocusables();
+    if (f.length) f[0].focus({ preventScroll: true });
+  }, 320);
 }
 function cerrarSheet(ev) {
   // Si se hizo clic dentro del panel (no en el fondo), no cerrar
