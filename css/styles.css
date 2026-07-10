@@ -603,11 +603,19 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   display: flex;
   justify-content: space-around;
   padding: 10px 6px;
-  background: rgba(10, 12, 18, .88);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--line-strong);
+  /* Liquid glass: vidrio esmerilado con brillo arriba, más oscuro
+     abajo (como si la luz se curvara a través del borde) */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.03) 45%, rgba(6,9,16,.4) 100%),
+    rgba(10, 12, 18, .5);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.22);
   border-radius: var(--r-pill);
-  box-shadow: 0 14px 40px rgba(0,0,0,.5);
+  box-shadow:
+    0 14px 40px rgba(0,0,0,.5),
+    inset 0 1px 0 rgba(255,255,255,.4),
+    inset 0 -1px 0 rgba(255,255,255,.06);
   z-index: 50;
 }
 .nav-btn {
@@ -1912,8 +1920,6 @@ body.no-scroll { overflow: hidden; }
 /* Títulos un pelín más grandes y con más aire (editorial) */
 .page-head h1 { font-size: 2.1rem; letter-spacing: -.03em; }
 
-/* La barra inferior más limpia */
-.bottom-nav { background: rgba(6,10,18,.92); }
 
 /* Quitar el degradado del fondo del cuerpo si se siente "de más":
    lo dejamos pero más tenue */
