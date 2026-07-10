@@ -2029,7 +2029,27 @@ body::before {
 .app-shell { z-index: 1; }
 .bell-dot { position: absolute; top: 10px; right: 11px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); border: 2px solid var(--bg); }
 
-/* Notificaciones */
+/* Notificaciones: nube flotante anclada bajo la campana (NO un panel
+   de abajo) — crece desde su esquina superior derecha */
+.noti-drop {
+  position: fixed; z-index: 90; width: min(340px, calc(100vw - 32px));
+  background: linear-gradient(180deg, #14161f, var(--bg-soft));
+  border: 1px solid var(--line-strong); border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0,0,0,.55);
+  padding: 14px 16px calc(10px + env(safe-area-inset-bottom));
+  max-height: 70vh; overflow-y: auto;
+  transform-origin: top right;
+  transform: scale(.85) translateY(-8px); opacity: 0; pointer-events: none;
+  transition: transform .22s cubic-bezier(.2,.8,.2,1), opacity .18s ease;
+}
+.noti-drop.is-on { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+.noti-drop-head { margin-bottom: 6px; }
+.noti-drop-head h3 { font-size: 1.02rem; }
+@media (prefers-reduced-motion: reduce) {
+  .noti-drop { transition: opacity .18s ease; transform: none; }
+}
+
+/* Notificaciones (contenido, reutilizado dentro de la nube) */
 .noti-list { display: flex; flex-direction: column; gap: 4px; }
 .noti-item { display: flex; gap: 12px; align-items: center; padding: 12px 4px; border-bottom: 1px solid var(--line); }
 .noti-item:last-child { border-bottom: none; }

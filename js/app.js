@@ -3225,7 +3225,10 @@ function mostrarConectados() {
   `);
 }
 // Panel de notificaciones
+// Notificaciones: NO es un panel de abajo — es una "nube" pequeña que
+// se abre justo debajo de la campana, como un menú desplegable.
 function abrirNotificaciones() {
+  if (document.getElementById('notiDrop')) { cerrarNotiDrop(); return; }
   const notis = [
     { ava: '🐺', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)', txt: '<b>Mateo</b> confirmó que va a Neon Nights', t: 'hace 10 min' },
     { ava: '🌸', color: 'linear-gradient(135deg,#ec4899,#f43f5e)', txt: '<b>Sofía</b> comentó en Rooftop Sunset', t: 'hace 1 h' },
@@ -3237,7 +3240,13 @@ function abrirNotificaciones() {
   const bell = document.querySelector('.ico-btn.bell');
   if (bell) { bell.classList.remove('nuevo'); bell.querySelector('.bell-dot')?.remove(); }
 
-  abrirSheet('Notificaciones', `
+  const drop = document.createElement('div');
+  drop.className = 'noti-drop';
+  drop.id = 'notiDrop';
+  drop.setAttribute('role', 'dialog');
+  drop.setAttribute('aria-label', 'Notificaciones');
+  drop.innerHTML = `
+    <div class="noti-drop-head"><h3>Notificaciones</h3></div>
     <div class="noti-list">
       ${notis.map((n) => `
         <div class="noti-item">
@@ -3245,7 +3254,34 @@ function abrirNotificaciones() {
           <div class="noti-body"><p>${n.txt}</p><small>${n.t}</small></div>
         </div>`).join('')}
     </div>
-  `);
+  `;
+  document.body.appendChild(drop);
+
+  if (bell) {
+    const r = bell.getBoundingClientRect();
+    drop.style.top = Math.round(r.bottom + 10) + 'px';
+    drop.style.right = Math.round(window.innerWidth - r.right) + 'px';
+  }
+  requestAnimationFrame(() => drop.classList.add('is-on'));
+
+  // Se cierra al tocar fuera, al hacer scroll, o con Escape
+  const fuera = (ev) => { if (!drop.contains(ev.target)) cerrarNotiDrop(); };
+  document.addEventListener('keydown', _notiEsc);
+  setTimeout(() => {
+    document.addEventListener('click', fuera, { capture: true });
+    window.addEventListener('scroll', cerrarNotiDrop, { once: true, passive: true });
+  }, 0);
+  drop._fuera = fuera;
+}
+function _notiEsc(e) { if (e.key === 'Escape') cerrarNotiDrop(); }
+function cerrarNotiDrop() {
+  const drop = document.getElementById('notiDrop');
+  if (!drop) return;
+  document.removeEventListener('click', drop._fuera, { capture: true });
+  document.removeEventListener('keydown', _notiEsc);
+  window.removeEventListener('scroll', cerrarNotiDrop);
+  drop.classList.remove('is-on');
+  setTimeout(() => drop.remove(), 200);
 }
 
 // Logo del inicio: gira y luego abre el panel (para que el giro se vea)
