@@ -246,7 +246,7 @@ function pintarInicio() {
   // Próximamente (para crear expectativa)
   const pronto = DATA.eventos.filter((e) => e.proximamente);
 
-  const ciudad = (u.redes && u.ciudad) || 'CDMX';
+  const ciudad = u.ciudad || 'CDMX';
 
   cont.innerHTML = `
     <header class="home-top">

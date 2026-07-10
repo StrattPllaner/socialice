@@ -15,6 +15,7 @@ const DATA = {
     avatar: '🦄',
     logo: null,   // logo de la organizadora (imagen); si está, reemplaza al avatar
     color: 'linear-gradient(135deg,#2f7bff,#38bdf8)',
+    ciudad: 'Morelos',
     rol: 'organizador',
     privado: false,
     verificado: true,   // muestra la insignia ❄
