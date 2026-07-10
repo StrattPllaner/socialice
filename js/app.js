@@ -261,10 +261,22 @@ function pintarInicio() {
       </div>
     </header>
 
-    <!-- Saludo -->
-    <div class="home-greet">
-      <h2>Hola, ${u.nombre.split(' ')[0]} 👋</h2>
-      <p>¿Lista para tu próxima salida?</p>
+    <!-- Hero estilo Partiful: foto + etiqueta "sticker" de ciudad + burbuja flotante -->
+    <div class="pf-hero">
+      <img class="pf-hero-img" src="icons/splash-crowd.jpg" alt="">
+      <div class="pf-hero-fade"></div>
+      <p class="pf-hero-greet">Hola, ${esc(u.nombre.split(' ')[0])} 👋</p>
+      <h1 class="pf-hero-city">explore <b>${esc(ciudad)}</b></h1>
+      ${vas.length ? `
+        <span class="pf-float pf-float-a">
+          <span class="pf-float-ava" style="background:${u.color}">${u.avatar}</span>
+          <b>${esc(u.nombre.split(' ')[0])}</b> va 👍
+        </span>` : ''}
+      ${pronto.length ? `
+        <span class="pf-float pf-float-b">
+          <span class="pf-float-ava" style="background:${hostInfo(pronto[0]).color}">${hostInfo(pronto[0]).avatar}</span>
+          ${esc(totalInteresados(pronto[0]))} interesados ✨
+        </span>` : ''}
     </div>
 
     <!-- CTA crear evento -->
@@ -276,8 +288,8 @@ function pintarInicio() {
         ${vas.map(tarjetaVoy).join('')}
       </div>` : ''}
 
-    <div class="row-between" style="margin-top:${vas.length ? '22px' : '14px'}">
-      <h3>Tendencia en ${ciudad}</h3>
+    <div class="row-between pf-section" style="margin-top:${vas.length ? '22px' : '14px'}">
+      <h3>Tendencia en ${ciudad} ✨</h3>
       <span class="see-all" onclick="irA('search')">Ver todas</span>
     </div>
     <div class="chips-row" id="chipsRow"></div>
@@ -344,28 +356,29 @@ function hostInfo(e) {
   return { avatar: '🎧', color: 'linear-gradient(135deg,#0ea5e9,#6366f1)', nombre: e.organizador };
 }
 
-// Tarjeta de evento (estilo editorial: título sobre la portada). Clicable.
+// Tarjeta de evento (estilo Partiful: miniatura cuadrada + info a un lado
+// + fila inferior con anfitrión/invitados). Clicable.
 function tarjetaEvento(e) {
   const ch = chipFecha(e);
   const h = hostInfo(e);
   const cara = invitadosMuestra(e, 3);
   return `
-    <article class="ev2" onclick="abrirEvento('${e.id}')">
-      <div class="ev2-cover" style="${coverStyle(e)}">
-        ${ch ? `<span class="ev2-date"><b>${ch.dia}</b><i>${ch.mes}</i></span>` : `<span class="ev2-date soon"><b>✦</b><i>PRONTO</i></span>`}
-        <span class="ev2-price">${e.precio}</span>
-        <div class="ev2-overlay">
-          ${casiLleno(e) ? `<span class="ev2-warn-inline">${icon('fire')} ¡Últimos lugares!</span>` : ''}
-          <h3 ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
-          <p class="ev2-when">${esc(e.fecha)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
+    <article class="pf-card" onclick="abrirEvento('${e.id}')">
+      <div class="pf-row">
+        <div class="pf-thumb" style="${coverStyle(e)}">${e.coverImg ? '' : `<span class="pf-thumb-emoji">${e.emoji || '🎉'}</span>`}</div>
+        <div class="pf-body">
+          <div class="pf-tags">
+            ${ch ? `<span class="pf-date"><b>${ch.dia}</b> ${ch.mes}</span>` : `<span class="pf-date soon">✦ PRONTO</span>`}
+            ${casiLleno(e) ? `<span class="pf-tag hot">${icon('fire')} Últimos lugares</span>` : `<span class="pf-tag">${e.precio}</span>`}
+          </div>
+          <h3 class="pf-title" ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
+          <p class="pf-when">${esc(e.fecha)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
         </div>
       </div>
-      <div class="ev2-foot">
-        <span class="ev2-host"><span class="ev2-host-ava" style="background:${h.color}">${h.avatar}</span>${h.nombre.split(' ')[0]}</span>
-        <span class="ev2-going">
-          <span class="ev2-faces ${puedeVerLista(e) ? '' : 'anon'}">${cara.map((g) => `<span class="ev2-face" style="background:${g.color}">${g.avatar}</span>`).join('')}</span>
-          <span class="ev2-people ${casiLleno(e) ? 'full' : ''}">${e.proximamente ? totalInteresados(e) + ' interesados' : e.asistentes + (e.capacidad ? '/' + e.capacidad : '') + ' van'}</span>
-        </span>
+      <div class="pf-foot">
+        <span class="pf-host"><span class="pf-host-ava" style="background:${h.color}">${h.avatar}</span>${esc(h.nombre.split(' ')[0])}</span>
+        <span class="pf-faces ${puedeVerLista(e) ? '' : 'anon'}">${cara.map((g) => `<span class="pf-face" style="background:${g.color}">${g.avatar}</span>`).join('')}</span>
+        <span class="pf-count ${casiLleno(e) ? 'full' : ''}">${e.proximamente ? totalInteresados(e) + ' interesados' : e.asistentes + (e.capacidad ? '/' + e.capacidad : '') + ' van'}</span>
       </div>
     </article>`;
 }
@@ -391,17 +404,18 @@ function totalInteresados(e) {
 // Tarjeta "Próximamente"
 function tarjetaProximamente(e) {
   return `
-    <article class="ev2 soon" onclick="abrirEvento('${e.id}')">
-      <div class="ev2-cover" style="${coverStyle(e)}">
-        <span class="ev2-soon-badge">✦ Próximamente</span>
-        <div class="ev2-overlay">
-          <h3 ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
-          <p class="ev2-when">${esc(e.lugar)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
+    <article class="pf-card soon" onclick="abrirEvento('${e.id}')">
+      <div class="pf-row">
+        <div class="pf-thumb" style="${coverStyle(e)}">${e.coverImg ? '' : `<span class="pf-thumb-emoji">${e.emoji || '✦'}</span>`}</div>
+        <div class="pf-body">
+          <div class="pf-tags"><span class="pf-date soon">✦ PRONTO</span></div>
+          <h3 class="pf-title" ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
+          <p class="pf-when">${esc(e.lugar)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
         </div>
       </div>
-      <div class="ev2-foot">
-        <span class="ev2-place" id="int-${e.id}">${icon('eye')} ${totalInteresados(e)} interesados</span>
-        <button class="ev2-bell ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)">${icon('star')} ${e._interesado ? 'Interesado ✓' : 'Interesado'}</button>
+      <div class="pf-foot">
+        <span class="pf-count" id="int-${e.id}">${icon('eye')} ${totalInteresados(e)} interesados</span>
+        <button class="pf-star ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)" aria-label="Interesado">${icon('star')}</button>
       </div>
     </article>`;
 }
@@ -411,7 +425,7 @@ function interesado(id, btn) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   e._interesado = !e._interesado;
   btn.classList.toggle('on', e._interesado);
-  btn.innerHTML = icon('star') + (e._interesado ? ' Interesado ✓' : ' Interesado');
+  btn.innerHTML = btn.classList.contains('pf-star') ? icon('star') : icon('star') + (e._interesado ? ' Interesado ✓' : ' Interesado');
   // Actualiza el contador de interesados si está visible
   const c = document.getElementById('int-' + id);
   if (c) c.innerHTML = `${icon('eye')} ${totalInteresados(e)} interesados`;

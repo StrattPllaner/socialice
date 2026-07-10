@@ -100,7 +100,7 @@ body {
 /* ------------------------------------------------------------------ */
 h1, h2, h3,
 .brand-name, .home-brand, .splash-h, .hero-name, .eyebrow,
-.ev2-overlay h3, .voy-info strong, .past2-overlay strong, .cover-title {
+.pf-title, .pf-hero-city b, .voy-info strong, .past2-overlay strong, .cover-title {
   font-family: var(--font-display);
 }
 h1, h2, h3 { font-weight: 800; line-height: 1.06; letter-spacing: -.02em; }
@@ -509,7 +509,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   scrollbar-width: none;
 }
 .event-list::-webkit-scrollbar { display: none; }
-.event-list > .ev2 { flex: 0 0 84%; max-width: 330px; scroll-snap-align: start; }
+.event-list > .pf-card { flex: 0 0 84%; max-width: 330px; scroll-snap-align: start; }
 .event-price {
   position: absolute;
   top: 10px;
@@ -1371,48 +1371,87 @@ body.no-scroll { overflow: hidden; }
 /* ================================================================== */
 .home-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
 
-/* Tarjeta editorial: título sobre la portada */
-.ev2 {
-  border-radius: var(--r-lg); overflow: hidden; cursor: pointer;
+/* ===== Hero de inicio estilo Partiful: foto + etiqueta "sticker" +
+   burbujas flotantes de actividad de amigos ===== */
+.pf-hero { position: relative; height: 190px; border-radius: 22px; overflow: hidden; margin: 4px 0 18px; }
+.pf-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
+.pf-hero-fade {
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(4,7,15,.6) 0%, rgba(4,7,15,.15) 45%, rgba(4,7,15,.8) 100%);
+}
+.pf-hero-greet {
+  position: absolute; top: 14px; left: 16px; z-index: 2;
+  color: #fff; font-weight: 700; font-size: .95rem; text-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+.pf-hero-city {
+  position: absolute; left: 16px; bottom: 16px; z-index: 2; max-width: 62%;
+  background: #f4efe6; color: #12141c;
+  padding: 9px 16px 11px; border-radius: 14px 22px 20px 8px;
+  transform: rotate(-2.5deg); box-shadow: 0 10px 26px rgba(0,0,0,.4);
+  font-family: var(--font-display); font-size: .8rem; font-style: italic; line-height: 1.1;
+}
+.pf-hero-city b { display: block; font-size: 1.5rem; font-weight: 800; font-style: normal; letter-spacing: -.02em; text-transform: capitalize; }
+.pf-float {
+  position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(244,239,230,.95); color: #12141c;
+  font-size: .76rem; font-weight: 700;
+  padding: 5px 12px 5px 5px; border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.35); white-space: nowrap;
+}
+.pf-float-ava { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .82rem; flex-shrink: 0; }
+.pf-float-a { top: 46px; right: 14px; transform: rotate(4deg); }
+.pf-float-b { top: 104px; right: 8px; transform: rotate(-4deg); }
+@media (prefers-reduced-motion: no-preference) {
+  .pf-float-a { animation: pfFloat1 4.5s ease-in-out infinite; }
+  .pf-float-b { animation: pfFloat2 5.5s ease-in-out infinite; }
+}
+@keyframes pfFloat1 { 0%,100% { transform: rotate(4deg) translateY(0); } 50% { transform: rotate(4deg) translateY(-5px); } }
+@keyframes pfFloat2 { 0%,100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(-4deg) translateY(-5px); } }
+
+/* ===== Tarjeta de evento estilo Partiful: miniatura cuadrada + info,
+   con fila inferior de anfitrión/invitados ===== */
+.pf-card {
   background: var(--bg-soft); border: 1px solid var(--line);
+  border-radius: 20px; overflow: hidden; cursor: pointer;
+  padding: 14px 14px 12px;
   transition: transform .18s ease, border-color .2s ease, box-shadow .25s ease;
 }
-.ev2:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: 0 16px 44px rgba(0,0,0,.45); }
-.ev2-cover { position: relative; height: 168px; display: flex; align-items: flex-end; }
-.ev2-cover::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(180deg, transparent 30%, rgba(0,0,0,.62) 100%);
+.pf-card:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: 0 16px 44px rgba(0,0,0,.45); }
+.pf-row { display: flex; gap: 12px; }
+.pf-thumb {
+  width: 84px; height: 84px; flex-shrink: 0; border-radius: 14px;
+  background-size: cover; background-position: center;
+  display: grid; place-items: center; font-size: 1.8rem;
 }
-.ev2-price {
-  position: absolute; top: 12px; right: 12px; z-index: 2;
-  font-size: .82rem; font-weight: 800; color: #fff;
-  background: rgba(0,0,0,.42); backdrop-filter: blur(6px);
-  padding: 6px 12px; border-radius: var(--r-pill);
+.pf-thumb-emoji { filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+.pf-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+.pf-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pf-date, .pf-tag {
+  font-size: .72rem; font-weight: 800; color: var(--ink-soft);
+  background: rgba(255,255,255,.06); border: 1px solid var(--line);
+  padding: 3px 9px; border-radius: var(--r-pill);
 }
-.ev2-overlay { position: relative; z-index: 2; padding: 16px; width: 100%; }
-.ev2-overlay h3 { color: #fff; font-size: 1.45rem; line-height: 1.05; text-shadow: 0 2px 12px rgba(0,0,0,.5); }
-.ev2-when { color: rgba(255,255,255,.92); font-weight: 600; font-size: .9rem; margin-top: 4px; }
-.ev2-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; }
-.ev2-place { font-size: .88rem; color: var(--ink-soft); }
-.ev2-people {
-  font-size: .82rem; font-weight: 700; color: var(--ink-soft);
-  background: rgba(255,255,255,.05); border: 1px solid var(--line);
-  padding: 5px 11px; border-radius: var(--r-pill);
+.pf-date b { color: var(--ink); }
+.pf-date.soon { color: var(--cyan); }
+.pf-tag.hot { display: inline-flex; align-items: center; gap: 4px; color: #ff7088; background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.4); }
+.pf-title { font-size: 1.05rem; font-weight: 800; line-height: 1.15; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-when { font-size: .82rem; color: var(--ink-soft); }
+.pf-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.pf-host { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--ink-soft); flex-shrink: 0; }
+.pf-host-ava { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .85rem; }
+.pf-faces { display: flex; margin-left: auto; }
+.pf-faces.anon { filter: blur(4px) saturate(.65); }
+.pf-face { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; border: 2px solid var(--bg-soft); margin-left: -8px; }
+.pf-face:first-child { margin-left: 0; }
+.pf-count { font-size: .74rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.pf-count.full { color: #ff7088; }
+.pf-star {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; margin-left: auto;
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--cyan); background: rgba(0,212,255,.1); border: 1px solid rgba(0,212,255,.35);
 }
-/* Próximamente */
-.ev2.soon .ev2-cover { height: 150px; }
-.ev2-soon-badge {
-  position: absolute; top: 12px; left: 12px; z-index: 2;
-  font-size: .76rem; font-weight: 800; color: #fff;
-  background: rgba(99,102,241,.6); backdrop-filter: blur(6px);
-  padding: 6px 12px; border-radius: var(--r-pill); letter-spacing: .02em;
-}
-.ev2-bell {
-  font-family: inherit; font-weight: 700; font-size: .82rem; cursor: pointer;
-  color: var(--cyan); background: rgba(0,212,255,.1);
-  border: 1px solid rgba(0,212,255,.35); border-radius: var(--r-pill); padding: 7px 13px;
-}
-.ev2-bell.on { color: #fff; background: var(--grad-cool); border-color: transparent; }
+.pf-star.on { color: #fff; background: var(--grad-cool); border-color: transparent; }
+.pf-star .ic { width: 16px; height: 16px; }
 
 /* "Vas a ir" (carrusel horizontal) */
 .voy-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 4px; scrollbar-width: none; }
@@ -1641,7 +1680,7 @@ body.no-scroll { overflow: hidden; }
 /* MICRO-INTERACCIONES (sutiles, para que la app se sienta viva)      */
 /* ================================================================== */
 .btn, .chip, .icon-btn, .top-avatar, .name-dot, .grad-swatch,
-.add-btn, .rol-tile, .colab, .red, .cal-link, .ev2-bell, .filter-btn, .f-chip {
+.add-btn, .rol-tile, .colab, .red, .cal-link, .pf-star, .filter-btn, .f-chip {
   transition: transform .18s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, filter .2s ease, background .2s ease;
 }
 
@@ -1664,8 +1703,8 @@ body.no-scroll { overflow: hidden; }
 
 /* Compresión al presionar (feedback táctil) */
 .btn:active, .chip:active, .add-btn:active, .cal-link:active,
-.red:active, .colab:active, .ev2-bell:active, .filter-btn:active { transform: scale(.95); }
-.ev2:active, .voy-card:active, .friend-card:active, .mini-card:active,
+.red:active, .colab:active, .pf-star:active, .filter-btn:active { transform: scale(.95); }
+.pf-card:active, .voy-card:active, .friend-card:active, .mini-card:active,
 .past2:active { transform: scale(.985); }
 
 /* Rebote del icono al cambiar de pestaña en la barra inferior */
@@ -1714,16 +1753,7 @@ body.no-scroll { overflow: hidden; }
 .sheet-handle:hover .sheet-grip { background: rgba(255,255,255,.4); width: 56px; }
 .sheet-head { cursor: grab; touch-action: none; }
 
-/* Aviso "casi lleno" en las tarjetas */
-.ev2-warn {
-  position: absolute; top: 12px; left: 12px; z-index: 2;
-  font-size: .76rem; font-weight: 800; color: #fff;
-  background: rgba(239,68,68,.92); backdrop-filter: blur(6px);
-  padding: 6px 11px; border-radius: var(--r-pill);
-  animation: warnPulse 1.6s ease-in-out infinite;
-}
 @keyframes warnPulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.5); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
-.ev2-people.full { color: #ff7088; background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.4); }
 
 /* Aviso "casi lleno" dentro del detalle */
 .warn-full {
@@ -1808,7 +1838,7 @@ body.no-scroll { overflow: hidden; }
 .ava-mini { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; border: 2px solid var(--bg-soft); margin-left: -10px; }
 .ava-mini:first-child { margin-left: 0; }
 /* Lista protegida: los avatares se ven difuminados (no se sabe quién es) */
-.ava-stack.anon .ava-mini, .ev2-faces.anon .ev2-face { filter: blur(4px) saturate(.65); }
+.ava-stack.anon .ava-mini { filter: blur(4px) saturate(.65); }
 .ava-stack.anon { cursor: default; }
 .lock-note {
   display: flex; align-items: center; gap: 9px;
@@ -1859,14 +1889,14 @@ body.no-scroll { overflow: hidden; }
 .chips-row { gap: 8px; }
 
 /* Tarjetas: el hover solo levanta con sombra neutra (sin halo azul) */
-.ev2:hover { box-shadow: 0 14px 36px rgba(0,0,0,.5); }
+.pf-card:hover { box-shadow: 0 14px 36px rgba(0,0,0,.5); }
 .rol-tile:hover, .role-tile:hover { box-shadow: 0 12px 30px rgba(0,0,0,.4); }
 .colab:hover { box-shadow: 0 10px 24px rgba(0,0,0,.4); }
-.cover-preview, .ev-cover, .ev2-cover { box-shadow: none; }
+.cover-preview, .ev-cover { box-shadow: none; }
 
 /* Badges/insignias: menos brillo, más sobrias */
 .badge { box-shadow: none; }
-.pill-soft, .rc, .ev2-people { font-weight: 600; }
+.pill-soft, .rc, .pf-count { font-weight: 600; }
 
 /* Avatares del perfil: anillo sutil en vez de halo fuerte */
 .profile-avatar { box-shadow: 0 0 0 4px var(--bg-soft), 0 8px 24px rgba(0,0,0,.45); }
@@ -1881,7 +1911,6 @@ body.no-scroll { overflow: hidden; }
 
 /* Títulos un pelín más grandes y con más aire (editorial) */
 .page-head h1 { font-size: 2.1rem; letter-spacing: -.03em; }
-.ev2-overlay h3 { font-size: 1.5rem; letter-spacing: -.02em; }
 
 /* La barra inferior más limpia */
 .bottom-nav { background: rgba(6,10,18,.92); }
@@ -1904,31 +1933,6 @@ body {
 .nav-text { font-size: .68rem; }
 
 /* ================================================================== */
-/* TARJETAS DE EVENTO REMODELADAS                                     */
-/* ================================================================== */
-/* Chip de fecha estilo calendario, arriba a la izquierda */
-.ev2-date {
-  position: absolute; top: 12px; left: 12px; z-index: 3;
-  display: flex; flex-direction: column; align-items: center; line-height: 1;
-  background: rgba(4,7,15,.7); backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.18); border-radius: 14px;
-  padding: 7px 11px; min-width: 46px;
-}
-.ev2-date b { font-family: var(--font-display); font-size: 1.25rem; color: #fff; }
-.ev2-date i { font-style: normal; font-size: .62rem; font-weight: 800; letter-spacing: .08em; color: var(--cyan); margin-top: 2px; }
-.ev2-date.soon b { font-size: 1rem; }
-
-/* Pie con anfitrión y caras de quién va */
-.ev2-foot { padding: 13px 16px; }
-.ev2-host { display: inline-flex; align-items: center; gap: 7px; font-size: .85rem; font-weight: 600; color: var(--ink-soft); }
-.ev2-host-ava { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .9rem; }
-.ev2-going { display: inline-flex; align-items: center; gap: 8px; }
-.ev2-faces { display: flex; }
-.ev2-face { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .85rem; border: 2px solid var(--bg-soft); margin-left: -8px; }
-.ev2-face:first-child { margin-left: 0; }
-.ev2-people { font-size: .78rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
-.ev2-people.full { color: #ff7088; }
-
 /* Detalles (chips de info) + Álbum del evento */
 .detail-chips { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
 .dchip {
@@ -1946,13 +1950,6 @@ body {
 }
 .album-cell:active { transform: scale(.94); }
 
-/* Aviso "últimos lugares" en línea, sobre el título */
-.ev2-warn-inline {
-  display: inline-block; align-self: flex-start;
-  font-size: .72rem; font-weight: 800; color: #fff;
-  background: rgba(239,68,68,.92); padding: 4px 10px; border-radius: var(--r-pill);
-  margin-bottom: 8px;
-}
 
 /* ================================================================== */
 /* Panel "Crear" (público/privado) + logo del inicio + "Conectado"    */
@@ -2132,7 +2129,7 @@ body::before {
 
   /* Listas de eventos en 2 columnas (ya no es el carrusel de celular) */
   .event-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; align-items: start; overflow-x: visible; }
-  .event-list > .ev2 { flex: initial; max-width: none; }
+  .event-list > .pf-card { flex: initial; max-width: none; }
   /* Amigos y grupos: columnas con ancho acotado (no 1fr), para que en
      pantallas anchas se agreguen MÁS columnas en vez de estirar cada
      tarjeta a un tamaño enorme con espacio vacío adentro */
@@ -3303,8 +3300,9 @@ html, body { overflow-x: hidden; }
 .sheet-overlay { overflow: hidden; }
 
 /* Iconos de línea en avisos, contadores y etiquetas (antes eran emojis) */
-.ev2-warn-inline .ic, .warn-full .ic { width: 15px; height: 15px; vertical-align: -2.5px; color: #fb7185; }
-.ev2-place .ic, .ev2-bell .ic { width: 15px; height: 15px; vertical-align: -2.5px; }
+.warn-full .ic { width: 15px; height: 15px; vertical-align: -2.5px; color: #fb7185; }
+.pf-tag.hot .ic { width: 12px; height: 12px; vertical-align: -1.5px; }
+.pf-count .ic { width: 15px; height: 15px; vertical-align: -2.5px; }
 .preg-chip .ic { width: 15px; height: 15px; vertical-align: -2.5px; }
 .friend-locked .ic, .locked-box .ic, .set-row .ic { width: 15px; height: 15px; vertical-align: -2.5px; }
 .stat .ic { width: 15px; height: 15px; vertical-align: -1.5px; color: #fb7185; }
