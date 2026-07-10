@@ -261,22 +261,11 @@ function pintarInicio() {
       </div>
     </header>
 
-    <!-- Hero estilo Partiful: foto + etiqueta "sticker" de ciudad + burbuja flotante -->
-    <div class="pf-hero">
-      <img class="pf-hero-img" src="icons/splash-crowd.jpg" alt="">
-      <div class="pf-hero-fade"></div>
-      <p class="pf-hero-greet">Hola, ${esc(u.nombre.split(' ')[0])} 👋</p>
-      <h1 class="pf-hero-city">explore <b>${esc(ciudad)}</b></h1>
-      ${vas.length ? `
-        <span class="pf-float pf-float-a">
-          <span class="pf-float-ava" style="background:${u.color}">${u.avatar}</span>
-          <b>${esc(u.nombre.split(' ')[0])}</b> va 👍
-        </span>` : ''}
-      ${pronto.length ? `
-        <span class="pf-float pf-float-b">
-          <span class="pf-float-ava" style="background:${hostInfo(pronto[0]).color}">${hostInfo(pronto[0]).avatar}</span>
-          ${esc(totalInteresados(pronto[0]))} interesados ✨
-        </span>` : ''}
+    <!-- Abanico de temas (decorativo, estilo Partiful) -->
+    <div class="pf-fan">
+      <span class="pf-fan-card f1" style="background:${TEMAS[1].grad}">🌅<b>Atardecer</b></span>
+      <span class="pf-fan-card f2" style="background:${TEMAS[4].grad}">🌆<b>Synthwave</b></span>
+      <span class="pf-fan-card f3" style="background:${TEMAS[3].grad}">💿<b>Vaporwave</b></span>
     </div>
 
     <!-- CTA crear evento -->
@@ -364,19 +353,16 @@ function tarjetaEvento(e) {
   const cara = invitadosMuestra(e, 3);
   return `
     <article class="pf-card" onclick="abrirEvento('${e.id}')">
-      <div class="pf-row">
-        <div class="pf-thumb" style="${coverStyle(e)}">${e.coverImg ? '' : `<span class="pf-thumb-emoji">${e.emoji || '🎉'}</span>`}</div>
-        <div class="pf-body">
-          <div class="pf-tags">
-            ${ch ? `<span class="pf-date"><b>${ch.dia}</b> ${ch.mes}</span>` : `<span class="pf-date soon">✦ PRONTO</span>`}
-            ${casiLleno(e) ? `<span class="pf-tag hot">${icon('fire')} Últimos lugares</span>` : `<span class="pf-tag">${e.precio}</span>`}
-          </div>
-          <h3 class="pf-title" ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
-          <p class="pf-when">${esc(e.fecha)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
-        </div>
+      <div class="pf-poster" style="${coverStyle(e)}">
+        ${e.coverImg ? '' : `<span class="pf-poster-emoji">${e.emoji || '🎉'}</span>`}
+        <span class="pf-org"><span class="pf-org-ava" style="background:${h.color}">${h.avatar}</span>${esc(h.nombre.split(' ')[0])}</span>
+        ${ch ? `<span class="pf-date"><b>${ch.dia}</b> ${ch.mes}</span>` : `<span class="pf-date soon">✦ PRONTO</span>`}
+        ${casiLleno(e) ? `<span class="pf-tag hot">${icon('fire')} Últimos lugares</span>` : ''}
+        <button class="pf-star ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)" aria-label="Interesado">${icon('star')}</button>
       </div>
+      <h3 class="pf-title" ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
+      <p class="pf-when">${esc(e.fecha)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
       <div class="pf-foot">
-        <span class="pf-host"><span class="pf-host-ava" style="background:${h.color}">${h.avatar}</span>${esc(h.nombre.split(' ')[0])}</span>
         <span class="pf-faces ${puedeVerLista(e) ? '' : 'anon'}">${cara.map((g) => `<span class="pf-face" style="background:${g.color}">${g.avatar}</span>`).join('')}</span>
         <span class="pf-count ${casiLleno(e) ? 'full' : ''}">${e.proximamente ? totalInteresados(e) + ' interesados' : e.asistentes + (e.capacidad ? '/' + e.capacidad : '') + ' van'}</span>
       </div>
@@ -405,17 +391,15 @@ function totalInteresados(e) {
 function tarjetaProximamente(e) {
   return `
     <article class="pf-card soon" onclick="abrirEvento('${e.id}')">
-      <div class="pf-row">
-        <div class="pf-thumb" style="${coverStyle(e)}">${e.coverImg ? '' : `<span class="pf-thumb-emoji">${e.emoji || '✦'}</span>`}</div>
-        <div class="pf-body">
-          <div class="pf-tags"><span class="pf-date soon">✦ PRONTO</span></div>
-          <h3 class="pf-title" ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
-          <p class="pf-when">${esc(e.lugar)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
-        </div>
+      <div class="pf-poster" style="${coverStyle(e)}">
+        ${e.coverImg ? '' : `<span class="pf-poster-emoji">${e.emoji || '✦'}</span>`}
+        <span class="pf-date soon">✦ PRONTO</span>
+        <button class="pf-star ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)" aria-label="Interesado">${icon('star')}</button>
       </div>
+      <h3 class="pf-title" ${nombreAttrs(e)}>${esc(e.nombre)}</h3>
+      <p class="pf-when">${esc(e.lugar)}${e.ciudad ? " · " + esc(e.ciudad) : ""}</p>
       <div class="pf-foot">
         <span class="pf-count" id="int-${e.id}">${icon('eye')} ${totalInteresados(e)} interesados</span>
-        <button class="pf-star ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)" aria-label="Interesado">${icon('star')}</button>
       </div>
     </article>`;
 }

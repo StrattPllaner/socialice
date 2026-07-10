@@ -100,7 +100,7 @@ body {
 /* ------------------------------------------------------------------ */
 h1, h2, h3,
 .brand-name, .home-brand, .splash-h, .hero-name, .eyebrow,
-.pf-title, .pf-hero-city b, .voy-info strong, .past2-overlay strong, .cover-title {
+.pf-title, .pf-fan-card b, .voy-info strong, .past2-overlay strong, .cover-title {
   font-family: var(--font-display);
 }
 h1, h2, h3 { font-weight: 800; line-height: 1.06; letter-spacing: -.02em; }
@@ -1371,87 +1371,74 @@ body.no-scroll { overflow: hidden; }
 /* ================================================================== */
 .home-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
 
-/* ===== Hero de inicio estilo Partiful: foto + etiqueta "sticker" +
-   burbujas flotantes de actividad de amigos ===== */
-.pf-hero { position: relative; height: 190px; border-radius: 22px; overflow: hidden; margin: 4px 0 18px; }
-.pf-hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
-.pf-hero-fade {
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(4,7,15,.6) 0%, rgba(4,7,15,.15) 45%, rgba(4,7,15,.8) 100%);
+/* ===== Abanico de temas decorativo (estilo Partiful: mazo de
+   pósters apilados y rotados arriba del botón "Crear evento") ===== */
+.pf-fan { position: relative; height: 108px; margin: 6px 0 20px; }
+.pf-fan-card {
+  position: absolute; top: 0; width: 96px; height: 108px; border-radius: 16px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  font-size: 1.6rem; box-shadow: 0 10px 24px rgba(0,0,0,.4); border: 1px solid rgba(255,255,255,.15);
 }
-.pf-hero-greet {
-  position: absolute; top: 14px; left: 16px; z-index: 2;
-  color: #fff; font-weight: 700; font-size: .95rem; text-shadow: 0 2px 8px rgba(0,0,0,.5);
-}
-.pf-hero-city {
-  position: absolute; left: 16px; bottom: 16px; z-index: 2; max-width: 62%;
-  background: #f4efe6; color: #12141c;
-  padding: 9px 16px 11px; border-radius: 14px 22px 20px 8px;
-  transform: rotate(-2.5deg); box-shadow: 0 10px 26px rgba(0,0,0,.4);
-  font-family: var(--font-display); font-size: .8rem; font-style: italic; line-height: 1.1;
-}
-.pf-hero-city b { display: block; font-size: 1.5rem; font-weight: 800; font-style: normal; letter-spacing: -.02em; text-transform: capitalize; }
-.pf-float {
-  position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(244,239,230,.95); color: #12141c;
-  font-size: .76rem; font-weight: 700;
-  padding: 5px 12px 5px 5px; border-radius: 999px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.35); white-space: nowrap;
-}
-.pf-float-ava { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .82rem; flex-shrink: 0; }
-.pf-float-a { top: 46px; right: 14px; transform: rotate(4deg); }
-.pf-float-b { top: 104px; right: 8px; transform: rotate(-4deg); }
-@media (prefers-reduced-motion: no-preference) {
-  .pf-float-a { animation: pfFloat1 4.5s ease-in-out infinite; }
-  .pf-float-b { animation: pfFloat2 5.5s ease-in-out infinite; }
-}
-@keyframes pfFloat1 { 0%,100% { transform: rotate(4deg) translateY(0); } 50% { transform: rotate(4deg) translateY(-5px); } }
-@keyframes pfFloat2 { 0%,100% { transform: rotate(-4deg) translateY(0); } 50% { transform: rotate(-4deg) translateY(-5px); } }
+.pf-fan-card b { font-family: var(--font-display); font-size: .72rem; font-weight: 800; color: rgba(0,0,0,.75); }
+.pf-fan-card.f1 { left: calc(50% - 96px); transform: rotate(-9deg); z-index: 1; }
+.pf-fan-card.f2 { left: calc(50% - 48px); transform: rotate(0deg) scale(1.06); z-index: 2; }
+.pf-fan-card.f3 { left: calc(50% + 0px); transform: rotate(9deg); z-index: 1; }
 
-/* ===== Tarjeta de evento estilo Partiful: miniatura cuadrada + info,
-   con fila inferior de anfitrión/invitados ===== */
+/* ===== Tarjeta de evento estilo Partiful: póster grande arriba,
+   con anfitrión/fecha/interés superpuestos en el póster ===== */
 .pf-card {
   background: var(--bg-soft); border: 1px solid var(--line);
   border-radius: 20px; overflow: hidden; cursor: pointer;
-  padding: 14px 14px 12px;
   transition: transform .18s ease, border-color .2s ease, box-shadow .25s ease;
 }
 .pf-card:hover { transform: translateY(-3px); border-color: var(--line-strong); box-shadow: 0 16px 44px rgba(0,0,0,.45); }
-.pf-row { display: flex; gap: 12px; }
-.pf-thumb {
-  width: 84px; height: 84px; flex-shrink: 0; border-radius: 14px;
+.pf-poster {
+  position: relative; aspect-ratio: 1; border-radius: 20px 20px 0 0;
   background-size: cover; background-position: center;
-  display: grid; place-items: center; font-size: 1.8rem;
+  display: grid; place-items: center; font-size: 2.6rem; margin: 0;
 }
-.pf-thumb-emoji { filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
-.pf-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
-.pf-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.pf-date, .pf-tag {
-  font-size: .72rem; font-weight: 800; color: var(--ink-soft);
-  background: rgba(255,255,255,.06); border: 1px solid var(--line);
-  padding: 3px 9px; border-radius: var(--r-pill);
+.pf-poster-emoji { filter: drop-shadow(0 2px 8px rgba(0,0,0,.4)); }
+.pf-org {
+  position: absolute; top: 10px; left: 10px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(4,7,15,.62); backdrop-filter: blur(6px);
+  color: #fff; font-size: .74rem; font-weight: 700;
+  padding: 4px 10px 4px 4px; border-radius: var(--r-pill);
 }
-.pf-date b { color: var(--ink); }
+.pf-org-ava { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: .72rem; flex-shrink: 0; }
+.pf-date {
+  position: absolute; top: 10px; right: 10px; z-index: 2;
+  display: flex; flex-direction: column; align-items: center; line-height: 1;
+  background: rgba(4,7,15,.62); backdrop-filter: blur(6px);
+  color: #fff; font-size: .68rem; font-weight: 800;
+  padding: 5px 9px; border-radius: 10px;
+}
+.pf-date b { font-size: .92rem; }
 .pf-date.soon { color: var(--cyan); }
-.pf-tag.hot { display: inline-flex; align-items: center; gap: 4px; color: #ff7088; background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.4); }
-.pf-title { font-size: 1.05rem; font-weight: 800; line-height: 1.15; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pf-when { font-size: .82rem; color: var(--ink-soft); }
-.pf-foot { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
-.pf-host { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; font-weight: 600; color: var(--ink-soft); flex-shrink: 0; }
-.pf-host-ava { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .85rem; }
-.pf-faces { display: flex; margin-left: auto; }
+.pf-tag.hot {
+  position: absolute; bottom: 10px; left: 10px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: .7rem; font-weight: 800; color: #fff;
+  background: rgba(239,68,68,.92); padding: 5px 10px; border-radius: var(--r-pill);
+}
+.pf-star {
+  position: absolute; bottom: 10px; right: 10px; z-index: 2;
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; cursor: pointer;
+  color: #12141c; background: rgba(244,239,230,.95); border: none;
+  box-shadow: 0 4px 14px rgba(0,0,0,.35);
+}
+.pf-star.on { color: #fff; background: var(--grad-cool); }
+.pf-star .ic { width: 16px; height: 16px; }
+.pf-title { padding: 12px 14px 0; font-size: 1.05rem; font-weight: 800; line-height: 1.15; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-when { padding: 3px 14px 0; font-size: .82rem; color: var(--ink-soft); }
+.pf-foot { display: flex; align-items: center; gap: 8px; padding: 10px 14px 14px; }
+.pf-faces { display: flex; }
 .pf-faces.anon { filter: blur(4px) saturate(.65); }
 .pf-face { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; border: 2px solid var(--bg-soft); margin-left: -8px; }
 .pf-face:first-child { margin-left: 0; }
-.pf-count { font-size: .74rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+.pf-count { font-size: .74rem; font-weight: 700; color: var(--ink-soft); white-space: nowrap; margin-left: auto; }
 .pf-count.full { color: #ff7088; }
-.pf-star {
-  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0; margin-left: auto;
-  display: grid; place-items: center; cursor: pointer;
-  color: var(--cyan); background: rgba(0,212,255,.1); border: 1px solid rgba(0,212,255,.35);
-}
-.pf-star.on { color: #fff; background: var(--grad-cool); border-color: transparent; }
-.pf-star .ic { width: 16px; height: 16px; }
 
 /* "Vas a ir" (carrusel horizontal) */
 .voy-row { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 4px; scrollbar-width: none; }
