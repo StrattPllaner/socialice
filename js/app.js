@@ -1141,10 +1141,10 @@ function pintarCrear() {
   let tb = document.getElementById('crearToolbar');
   if (!tb) { tb = document.createElement('div'); tb.id = 'crearToolbar'; tb.className = 'crear-toolbar'; document.body.appendChild(tb); }
   tb.innerHTML = `
-    <button onclick="abrirTemas()"><span class="ct-ico" style="background:${t.grad}"></span>Tema</button>
-    <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()"><span class="ct-fx">${icon('spark')}</span>Efecto</button>
-    <button onclick="abrirAjustesEvento()"><span class="ct-fx">${icon('gear')}</span>Ajustes</button>
-    <button onclick="vistaPreviaEvento()"><span class="ct-fx">${icon('eye')}</span>Vista</button>
+    <button onclick="abrirTemas()" aria-label="Tema"><span class="ct-ico" style="background:${t.grad}"></span></button>
+    <button class="${efxOn ? 'on' : ''}" onclick="abrirEfectos()" aria-label="Efecto"><span class="ct-fx">${icon('spark')}</span></button>
+    <button onclick="abrirAjustesEvento()" aria-label="Ajustes"><span class="ct-fx">${icon('gear')}</span></button>
+    <button onclick="vistaPreviaEvento()" aria-label="Vista previa"><span class="ct-fx">${icon('eye')}</span></button>
   `;
 
   pintarBoletos();

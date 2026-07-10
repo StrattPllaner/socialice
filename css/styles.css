@@ -1383,6 +1383,16 @@ body.no-scroll { overflow: hidden; }
 .pf-fan-card.f1 { left: calc(50% - 96px); transform: rotate(-9deg); z-index: 1; }
 .pf-fan-card.f2 { left: calc(50% - 48px); transform: rotate(0deg) scale(1.06); z-index: 2; }
 .pf-fan-card.f3 { left: calc(50% + 0px); transform: rotate(9deg); z-index: 1; }
+/* El mazo respira: cada carta flota a su propio ritmo, para que el
+   inicio no se sienta estático */
+@media (prefers-reduced-motion: no-preference) {
+  .pf-fan-card.f1 { animation: pfFan1 4.8s ease-in-out infinite; }
+  .pf-fan-card.f2 { animation: pfFan2 4.2s ease-in-out infinite; }
+  .pf-fan-card.f3 { animation: pfFan3 5.4s ease-in-out infinite; }
+}
+@keyframes pfFan1 { 0%,100% { transform: rotate(-9deg) translateY(0); } 50% { transform: rotate(-12deg) translateY(-7px); } }
+@keyframes pfFan2 { 0%,100% { transform: rotate(0deg) scale(1.06) translateY(0); } 50% { transform: rotate(2deg) scale(1.06) translateY(-9px); } }
+@keyframes pfFan3 { 0%,100% { transform: rotate(9deg) translateY(0); } 50% { transform: rotate(12deg) translateY(-7px); } }
 
 /* ===== Tarjeta de evento estilo Partiful: póster grande arriba,
    con anfitrión/fecha/interés superpuestos en el póster ===== */
@@ -1420,6 +1430,9 @@ body.no-scroll { overflow: hidden; }
   display: inline-flex; align-items: center; gap: 4px;
   font-size: .7rem; font-weight: 800; color: #fff;
   background: rgba(239,68,68,.92); padding: 5px 10px; border-radius: var(--r-pill);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pf-tag.hot { animation: warnPulse 1.8s ease-in-out infinite; }
 }
 .pf-star {
   position: absolute; bottom: 10px; right: 10px; z-index: 2;
@@ -2104,6 +2117,13 @@ body::before {
 }
 .crear-pill:hover { filter: brightness(1.06); transform: translateY(-1px); }
 .crear-pill:active { transform: scale(.97); }
+@media (prefers-reduced-motion: no-preference) {
+  .crear-pill { animation: pillGlow 3.2s ease-in-out infinite; }
+}
+@keyframes pillGlow {
+  0%,100% { box-shadow: 0 10px 28px rgba(47,123,255,.4); }
+  50% { box-shadow: 0 12px 38px rgba(47,123,255,.7), 0 0 0 5px rgba(47,123,255,.1); }
+}
 
 /* ================================================================== */
 /* RESPONSIVO: aprovechar el espacio en iPad y computadora            */
@@ -2392,18 +2412,22 @@ body[data-screen="create"] .bottom-nav { display: none; }
 .ha { font-family: inherit; font-weight: 700; font-size: .92rem; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid var(--line-strong); border-radius: var(--r-md); padding: 14px; cursor: pointer; text-align: left; }
 .ha.on { color: var(--violet); border-color: rgba(47,123,255,.5); background: rgba(47,123,255,.12); }
 
-/* Barra inferior Tema / Efecto / Ajustes */
+/* Barra Tema / Efecto / Ajustes / Vista: estilo FAB — pila vertical de
+   botones circulares independientes pegados al borde derecho */
 .crear-toolbar {
-  position: fixed; bottom: calc(14px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
-  display: flex; gap: 4px; z-index: 60;
-  background: rgba(10,12,18,.9); backdrop-filter: blur(18px);
-  border: 1px solid var(--line-strong); border-radius: var(--r-pill); padding: 8px;
-  box-shadow: 0 14px 40px rgba(0,0,0,.55);
+  position: fixed; right: 16px; bottom: calc(90px + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 12px; z-index: 60;
 }
-.crear-toolbar button { display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: inherit; font-weight: 600; font-size: .72rem; color: var(--ink-soft); background: none; border: none; cursor: pointer; padding: 6px 15px; border-radius: var(--r-pill); }
-.crear-toolbar button.on { color: var(--violet); background: rgba(47,123,255,.14); }
-.ct-ico { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,.5); }
-.ct-fx { font-size: 1.2rem; }
+.crear-toolbar button {
+  width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; padding: 0;
+  font-family: inherit; cursor: pointer; color: var(--ink-soft);
+  background: rgba(10,12,18,.88); backdrop-filter: blur(14px);
+  border: 1px solid var(--line-strong); box-shadow: 0 10px 26px rgba(0,0,0,.5);
+}
+.crear-toolbar button.on { color: #fff; background: var(--grad-cool); border-color: transparent; }
+.ct-ico { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); }
+.ct-fx { font-size: 1.25rem; display: grid; place-items: center; }
 
 /* Selector de tema */
 .tema-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
@@ -2469,14 +2493,8 @@ body[data-screen="create"] .bottom-nav { display: none; }
   .cr-col-der > .row-between:first-child { margin-top: 2px; margin-bottom: 12px; }
   .crear-page .titulo-input { font-size: clamp(1.9rem, 2.4vw, 2.3rem); }
   .crear-desc { min-height: 110px; }
-  /* Riel vertical de herramientas pegado al borde derecho */
-  .crear-toolbar {
-    left: auto; right: 20px; bottom: auto; top: 50%; transform: translateY(-50%);
-    flex-direction: column; gap: 4px; padding: 8px 6px;
-    border-radius: 24px;
-    box-shadow: 0 14px 44px rgba(0,0,0,.5);
-  }
-  .crear-toolbar button { padding: 9px 11px; font-size: .68rem; }
+  /* En escritorio la pila de FABs queda centrada verticalmente */
+  .crear-toolbar { right: 24px; bottom: auto; top: 50%; transform: translateY(-50%); }
 }
 
 /* ================================================================== */
@@ -2540,7 +2558,9 @@ html, body { overscroll-behavior: none; }
 /* Título: barra de herramientas (no se muestran todas las opciones) */
 /* Estilo del título escondido tras un botón ⋯ (ahorra espacio) */
 .titulo-tools { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.tt-more { width: 36px; height: 30px; border-radius: 10px; background: rgba(255,255,255,.08); border: 1px solid var(--line); color: var(--ink); cursor: pointer; display: grid; place-items: center; flex-shrink: 0; }
+.tt-more { width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,.03); border: 1px solid var(--line); color: var(--ink); cursor: pointer; display: grid; place-items: center; flex-shrink: 0; transition: background .2s ease, transform .15s ease; }
+.tt-more:hover { background: rgba(255,255,255,.08); }
+.tt-more:active { transform: scale(.92); }
 .tt-more .ic { width: 18px; height: 18px; }
 .titulo-tools.open .tt-more { background: rgba(255,255,255,.18); border-color: var(--line-strong); }
 .tt-menu { display: none; align-items: center; gap: 8px; }
@@ -2641,7 +2661,7 @@ html, body { overscroll-behavior: none; }
 /* Neón: el efecto ilumina TODO (no solo el fondo) */
 .efx-neon .titulo-card, .efx-neon .cover-banner,
 .efx-neon .host-block, .efx-neon .crear-desc,
-.efx-neon .zona-card, .efx-neon .crear-toolbar, .efx-neon .chip, .efx-neon .ha {
+.efx-neon .zona-card, .efx-neon .crear-toolbar button, .efx-neon .chip, .efx-neon .ha {
   border-color: rgba(34,211,238,.7) !important;
   box-shadow: 0 0 14px rgba(34,211,238,.45), inset 0 0 10px rgba(34,211,238,.12);
   animation: neonHue 5s linear infinite;
@@ -2831,9 +2851,9 @@ body.creando .post-compose { padding: 10px 12px; }
 body.creando .chip, .cover-edit, .crear-toolbar button { transition: transform .16s ease, background .16s ease, box-shadow .16s ease; }
 body.creando .chip:hover { transform: translateY(-2px); background: rgba(18,22,36,.78); box-shadow: 0 8px 22px rgba(0,0,0,.35); }
 .cover-edit:hover { transform: scale(1.1); background: rgba(0,0,0,.65); }
-/* La barra flotante (Tema/Efecto/Ajustes) NO es contenido editable: se queda
-   oscura para que siempre se distinga */
-body.creando .crear-toolbar { background: rgba(8,10,18,.58) !important; }
+/* Los FABs (Tema/Efecto/Ajustes) NO son contenido editable: se quedan
+   oscuros para que siempre se distingan */
+body.creando .crear-toolbar button { background: rgba(8,10,18,.7) !important; }
 body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 /* Texto legible sobre video/fondos claros */
 body.creando .titulo-card, body.creando .host-block, body.creando .zona-card,
