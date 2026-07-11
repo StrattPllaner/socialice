@@ -624,6 +624,10 @@ const TEMAS = [
   // Nevado es VIDEO real (icons/nevado.mp4); el gradiente helado es solo respaldo
   { nombre: 'Nevado', grad: 'linear-gradient(135deg,#c8d5de,#8fa6b5)',
     bg: 'linear-gradient(180deg,#b9c4cc 0%,#9aa9b3 50%,#6d7f8b 100%)' },
+  // Llamas es VIDEO real (icons/llamas.mp4), con color de luces elegible
+  // (draft.llamaHue / LLAMA_COLORES); el gradiente de fuego es solo respaldo
+  { nombre: 'Llamas', grad: 'linear-gradient(135deg,#f97316,#dc2626)',
+    bg: 'radial-gradient(60% 40% at 50% 100%, rgba(255,140,50,.45), transparent 70%), linear-gradient(180deg,#1a0a05 0%,#0d0603 60%,#050302 100%)' },
   // El último SIEMPRE es el editable: el fondo se arma con los colores del usuario
   { nombre: 'Tus colores', custom: true, grad: '', bg: '' }
 ];
@@ -649,8 +653,28 @@ const TEMA_VIDEOS = {
   fuego:      { src: 'icons/fuego.mp4',      rate: 0.6 },
   disco:      { src: 'icons/disco.mp4',      rate: 1 },
   nevado:     { src: 'icons/nevado.mp4',     rate: 1 },
-  medianoche: { src: 'icons/medianoche.mp4', rate: 1 }
+  medianoche: { src: 'icons/medianoche.mp4', rate: 1 },
+  llamas:     { src: 'icons/llamas.mp4',     rate: 1 }
 };
+
+// Colores elegibles para las LLAMAS: un filtro gira el tono del video
+// (calibrados sobre el naranja natural del fuego, no son los mismos
+// grados que DISCO_COLORES porque el color base del video es distinto)
+const LLAMA_COLORES = [
+  { nombre: 'Naranja',    hue: 0,   c: '#f97316' },
+  { nombre: 'Verde',      hue: 60,  c: '#4ade80' },
+  { nombre: 'Azul',       hue: 180, c: '#38bdf8' },
+  { nombre: 'Morado',     hue: 220, c: '#a855f7' },
+  { nombre: 'Rosa',       hue: 260, c: '#f472b6' },
+  { nombre: 'Multicolor', hue: 'anim', c: 'conic-gradient(#f44,#fb3,#4d4,#3cf,#86f,#f4c,#f44)' }
+];
+
+// Aplica al <video> de Llamas el color elegido en draft.llamaHue
+function aplicarLlamaHue(v) {
+  if (!v) return;
+  v.classList.toggle('vfx-hue', draft.llamaHue === 'anim');
+  v.style.filter = (typeof draft.llamaHue === 'number' && draft.llamaHue) ? `hue-rotate(${draft.llamaHue}deg)` : '';
+}
 
 // Colores elegibles para las LUCES del tema Disco: un filtro gira el tono
 // del video al color elegido ('anim' = multicolor, van rotando solas)
@@ -700,7 +724,7 @@ let _videosCalentados = false;
 function calentarVideos() {
   if (_videosCalentados) return;
   _videosCalentados = true;
-  const orden = ['nevado', 'cielo', 'medianoche', 'fuego', 'disco', 'playa', 'tropical'];
+  const orden = ['llamas', 'nevado', 'cielo', 'medianoche', 'fuego', 'disco', 'playa', 'tropical'];
   setTimeout(async () => {
     for (const slug of orden) {
       if (!TEMA_VIDEOS[slug]) continue;
@@ -798,6 +822,7 @@ function nuevoDraft() {
     temaColors: ['#8b5cf6', '#38bdf8'], // colores del tema personalizado (1-2)
     temaAnim: false,                    // si el tema personalizado fluye animado
     discoHue: 0,                        // color de las luces del tema Disco ('anim' = multicolor)
+    llamaHue: 0,                        // color de las llamas del tema Llamas ('anim' = multicolor)
     grupoId: null,                      // si la fiesta es de un grupo, su id
     efecto: 'ninguno',           // tipo de efecto del fondo
     tituloFont: 'classic',       // estilo de letra del título
@@ -879,6 +904,7 @@ function editarFiesta(id) {
   if (e.temaColors && e.temaColors.length) draft.temaColors = e.temaColors.slice();
   draft.temaAnim = !!e.temaAnim;
   draft.discoHue = e.discoHue || 0;
+  draft.llamaHue = e.llamaHue || 0;
   draft.efecto = e.efecto || 'ninguno';
   draft.grupoId = e.grupoId || null;
   draft.fechaInicio = e.fechaInicio || '';
@@ -991,6 +1017,7 @@ function pintarCrear() {
     temaBg.classList.add('con-video');
     temaBg.appendChild(vEl);
     if (slug === 'disco') aplicarDiscoHue(vEl);
+    if (slug === 'llamas') aplicarLlamaHue(vEl);
     vEl.play().catch(() => {});
   }
   calentarVideos();
@@ -1393,9 +1420,10 @@ function abrirTemas() {
         const slug = temaSlug(t.nombre);
         // Temas con video: la vista previa también es el VIDEO real
         const tv = TEMA_VIDEOS[slug];
-        // Disco: la vista previa sale del color de luces elegido
-        const hueAttr = slug === 'disco'
-          ? (draft.discoHue === 'anim' ? ' class="vfx-hue"' : (draft.discoHue ? ` style="filter:hue-rotate(${draft.discoHue}deg)"` : ''))
+        // Disco/Llamas: la vista previa sale del color elegido
+        const hueVal = slug === 'disco' ? draft.discoHue : slug === 'llamas' ? draft.llamaHue : 0;
+        const hueAttr = (slug === 'disco' || slug === 'llamas')
+          ? (hueVal === 'anim' ? ' class="vfx-hue"' : (hueVal ? ` style="filter:hue-rotate(${hueVal}deg)"` : ''))
           : '';
         const video = tv ? `<video${hueAttr} src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>` : '';
         return `
@@ -1403,6 +1431,7 @@ function abrirTemas() {
           <span class="tema-prev tema-${slug}${anim}" style="background:${tt.bg}">${video}</span>
           ${t.custom ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirTemaCustom()" title="Cambiar colores">✎</span>` : ''}
           ${slug === 'disco' ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirDiscoColor()" title="Color de las luces">✎</span>` : ''}
+          ${slug === 'llamas' ? `<span class="tema-edit" onclick="event.stopPropagation(); abrirLlamaColor()" title="Color de las llamas">✎</span>` : ''}
           <span class="tema-pill" style="background:${tt.grad}"></span>
           <small>${t.custom ? '🎨 ' : ''}${t.nombre}</small>
         </button>`;
@@ -1510,6 +1539,35 @@ function aplicarDiscoColor() {
   cerrarSheet();
   pintarCrear();
   toast('Luces del disco 🪩');
+}
+
+function abrirLlamaColor() {
+  abrirSheet('Color de las llamas', `
+    <p class="hint">Elige de qué color se ven las llamas, o multicolor para que vayan cambiando solas.</p>
+    <div class="disco-prev"><video id="llamaPrevVid" src="${TEMA_VIDEOS.llamas.src}" muted loop autoplay playsinline></video></div>
+    <div class="disco-dots">
+      ${LLAMA_COLORES.map((d) => `
+        <button class="disco-dot ${draft.llamaHue === d.hue ? 'on' : ''}" style="background:${d.c}" title="${d.nombre}"
+          onclick="setLlamaHue(${typeof d.hue === 'number' ? d.hue : `'anim'`})"></button>`).join('')}
+    </div>
+    <button class="btn full" onclick="aplicarLlamaColor()">Usar este color</button>
+  `);
+  const pv = document.getElementById('llamaPrevVid');
+  aplicarLlamaHue(pv);
+  pv.play().catch(() => {});
+}
+function setLlamaHue(h) {
+  draft.llamaHue = h;
+  aplicarLlamaHue(document.getElementById('llamaPrevVid'));
+  document.querySelectorAll('.disco-dot').forEach((b, i) => b.classList.toggle('on', LLAMA_COLORES[i].hue === h));
+  // Si Llamas ya está de fondo, el color cambia EN VIVO
+  if (temaSlug((TEMAS[draft.tema] || {}).nombre) === 'llamas') aplicarLlamaHue(_videoPool.llamas);
+}
+function aplicarLlamaColor() {
+  draft.tema = TEMAS.findIndex((t) => temaSlug(t.nombre) === 'llamas');
+  cerrarSheet();
+  pintarCrear();
+  toast('Color de las llamas 🔥');
 }
 
 // Ajustes del evento (público, edad, etc.)
@@ -2038,6 +2096,7 @@ function draftAEvento() {
     temaColors: draft.temaColors.slice(),
     temaAnim: !!draft.temaAnim,
     discoHue: draft.discoHue,
+    llamaHue: draft.llamaHue,
     efecto: draft.efecto,
     grupoId: draft.grupoId || null,
     tituloFont: draft.tituloFont,
@@ -3478,7 +3537,7 @@ function abrirEvento(id) {
   const tv = TEMA_VIDEOS[slug];
   let videoTag = '';
   if (tv) {
-    const hue = slug === 'disco' ? (e.discoHue || 0) : 0;
+    const hue = slug === 'disco' ? (e.discoHue || 0) : slug === 'llamas' ? (e.llamaHue || 0) : 0;
     videoTag = `<video class="tema-video${hue === 'anim' ? ' vfx-hue' : ''}"${(typeof hue === 'number' && hue) ? ` style="filter:hue-rotate(${hue}deg)"` : ''} src="${tv.src}" data-rate="${tv.rate}" muted loop autoplay playsinline></video>`;
   }
   let ov = document.getElementById('eventoFull');
