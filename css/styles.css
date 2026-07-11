@@ -2407,40 +2407,18 @@ body[data-screen="create"] .bottom-nav { display: none; }
 .save-btn { font-family: inherit; font-weight: 800; font-size: .95rem; color: #04070f; background: #fff; border: none; border-radius: var(--r-pill); padding: 10px 22px; cursor: pointer; }
 .save-btn:active, .round-btn:active, .pub-toggle:active { transform: scale(.95); }
 
-/* Título + estilos de letra */
-.titulo-card { background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 12px; margin-bottom: 10px; backdrop-filter: blur(8px); }
-.titulo-input { width: 100%; border: none; background: none; outline: none; color: var(--ink); font-size: clamp(1.8rem, 5.6vw, 2.2rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
-.titulo-input::placeholder { color: rgba(255,255,255,.45); }
-
-/* Portada */
-/* Portada CUADRADA simétrica (1:1): la foto se adapta al marco (cover) */
-.cover-banner {
-  position: relative; aspect-ratio: 1 / 1; border-radius: var(--r-lg);
-  display: grid; place-items: center; overflow: hidden; margin-bottom: 12px;
-  background-size: cover; background-position: center;
-  box-shadow: 0 22px 60px rgba(0,0,0,.45), 0 4px 16px rgba(0,0,0,.3);
-}
+/* Portada: el botón de editar flota sobre .ev-cover (mismo tamaño/forma
+   que la ficha ya publicada — ver .cr-ev-cover más abajo) */
 .cover-edit { position: absolute; bottom: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.3); color: #fff; cursor: pointer; backdrop-filter: blur(6px); }
 
-/* Campo grande (fecha) */
-
-/* Anfitrión */
-.host-block { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-md); padding: 10px 12px; margin-bottom: 10px; }
-.host-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+/* Avatar redondo reutilizado en anfitrión/co-organizadores/boletos */
 .host-ava { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0; }
-.host-row strong { flex: 1; min-width: 0; }
-
-/* Filas de datos */
 
 /* Chips rápidos */
 .quick-chips { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 10px; }
 .link-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .link-chip { display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-pill); padding: 9px 14px; font-size: .9rem; }
 .link-chip span { margin-left: auto; color: var(--ink-faint); cursor: pointer; }
-
-/* Descripción */
-.crear-desc { width: 100%; min-height: 78px; resize: vertical; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: var(--r-md); padding: 11px 12px; color: var(--ink); font-family: inherit; font-size: .95rem; outline: none; margin-bottom: 8px; }
-.crear-desc::placeholder { color: rgba(255,255,255,.45); }
 
 /* Vista previa RSVP */
 
@@ -2486,27 +2464,40 @@ body[data-screen="create"] .bottom-nav { display: none; }
 
 @media (min-width: 1000px) { .crear-page { padding-bottom: 120px; } }
 
-/* ===== CREAR según el boceto: mismo layout compacto en cel, iPad y PC =====
-   Título arriba · HERO (portada chica | fecha+horas) · descripción ·
-   organizadores | datos rápidos · y el resto aparece al hacer scroll */
-.cr-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr); gap: 10px; margin-bottom: 10px; align-items: start; }
-.cr-hero .cover-banner { margin: 0; width: 100%; }
-.cr-fechas { display: flex; flex-direction: column; gap: 8px; }
-.cr-horas { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.cr-hora { display: flex; flex-direction: column; gap: 1px; padding: 6px 10px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
-.cr-hora small { color: var(--ink-soft); font-weight: 700; font-size: .62rem; text-transform: uppercase; letter-spacing: .05em; }
-.cr-hora input { width: 100%; background: none; border: none; outline: none; color: var(--ink); font-family: inherit; font-size: .95rem; font-weight: 700; }
-.cr-dato { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line); }
-.cr-dato span { width: 20px; display: grid; place-items: center; flex-shrink: 0; }
-.cr-dato .ic { width: 17px; height: 17px; }
-.cr-dato input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: var(--ink); font-family: inherit; font-size: .92rem; }
-.cr-dato input::placeholder, .cr-hora input::placeholder { color: rgba(255,255,255,.45); }
-.cr-dato b { font-size: 1rem; }
-.cr-dato small { color: var(--ink-soft); }
-.cr-fecha-big input { color-scheme: dark; font-weight: 700; }
-.cr-info { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 10px; margin-bottom: 10px; }
-.cr-info .host-block { margin-bottom: 0; }
-.cr-datos { display: flex; flex-direction: column; gap: 8px; }
+/* ===== CREAR con el MISMO look que la ficha ya publicada =====
+   Título arriba (sin tarjeta) · portada centrada (.ev-cover) · una
+   tarjeta de info con fecha/lugar/organizadores (.ev-info + .ev-irow,
+   igual que abrirEvento) · descripción y chips con el mismo velo */
+.cr-ev-hero { text-align: center; margin-bottom: 10px; }
+.cr-ev-cover { width: min(64%, 280px); margin: 6px auto 18px; }
+.cr-titulo-tools { justify-content: center; margin: 6px 0 4px; }
+.cr-ev-row-org { flex-wrap: wrap; row-gap: 8px; }
+.cr-org-add { display: flex; gap: 6px; margin-left: auto; flex-shrink: 0; }
+.cr-inline-input {
+  background: none; border: none; outline: none; color: var(--ink);
+  font-family: inherit; font-size: .92rem; font-weight: 700; flex: 1; min-width: 0;
+}
+.cr-inline-input::placeholder { color: rgba(255,255,255,.45); }
+.cr-inline-input[type="date"] { color-scheme: dark; flex: 1.3; }
+.cr-hora-input { flex: 0 0 64px; text-align: center; }
+.cr-dash { color: var(--ink-faint); flex-shrink: 0; }
+.cr-dchip-edit input {
+  background: none; border: none; outline: none; width: 100%;
+  color: var(--ink); font-family: inherit; font-size: .9rem; font-weight: 700;
+}
+.cr-dchip-edit input::placeholder { color: rgba(255,255,255,.4); font-weight: 600; }
+/* Mismo velo translúcido que usa la ficha publicada para leer sobre el tema */
+body.creando .cr-ev-info, body.creando .cr-ev-desc {
+  background: rgba(8,10,18,.55) !important;
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.08) !important; border-radius: 14px;
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.cr-ev-desc {
+  width: 100%; min-height: 78px; resize: vertical; border: none; outline: none;
+  color: var(--ink); font-family: inherit; font-size: .95rem; line-height: 1.55;
+}
+.cr-ev-desc::placeholder { color: rgba(255,255,255,.45); }
 
 /* En teléfono las dos columnas de PC se disuelven (flujo normal) */
 .cr-col-izq, .cr-col-der { display: contents; }
@@ -2524,12 +2515,11 @@ body[data-screen="create"] .bottom-nav { display: none; }
   }
   .crear-bar { grid-column: 1 / -1; grid-row: 1; position: sticky; top: 10px; z-index: 30; pointer-events: none; display: flex; justify-content: space-between; }
   .crear-bar > * { pointer-events: auto; }
-  .titulo-card { grid-column: 1 / -1; grid-row: 2; }
+  .cr-ev-hero { grid-column: 1 / -1; grid-row: 2; }
   .cr-col-izq { display: block; min-width: 0; grid-column: 1; grid-row: 3; }
   .cr-col-der { display: block; min-width: 0; grid-column: 2; grid-row: 3; }
   .cr-col-der > .row-between:first-child { margin-top: 2px; margin-bottom: 12px; }
-  .crear-page .titulo-input { font-size: clamp(1.9rem, 2.4vw, 2.3rem); }
-  .crear-desc { min-height: 110px; }
+  .cr-ev-desc { min-height: 110px; }
   /* En escritorio la pila de FABs queda centrada verticalmente */
   .crear-toolbar { right: 24px; bottom: auto; top: 50%; transform: translateY(-50%); }
 }
@@ -2549,18 +2539,13 @@ html, body { overscroll-behavior: none; }
   body[data-screen="create"] .app-shell { margin-left: 0 !important; max-width: 100% !important; }
 }
 
-/* Título: contenteditable más compacto + placeholder */
-.titulo-card { padding: 14px; }
-.titulo-input { width: 100%; outline: none; color: var(--ink); font-size: clamp(1.55rem, 5vw, 1.9rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; min-height: 1.4em; }
+/* Título: contenteditable — el TAMAÑO/peso los da .ev-nombre (mismo
+   que la ficha publicada); aquí solo el comportamiento de "campo" */
+.titulo-input { width: 100%; border: none; background: none; outline: none; color: var(--ink); min-height: 1.2em; cursor: text; }
 .titulo-input:empty::before { content: attr(data-ph); color: rgba(255,255,255,.45); }
 .titulo-input.name-anim { -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; background-size: 300% auto; animation: nameflow 4s linear infinite; }
 .name-dot { width: 26px; height: 26px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); cursor: pointer; padding: 0; }
 .name-dot.sel { border-color: #fff; transform: scale(1.12); }
-
-/* Fecha y hora compactas con selector */
-
-/* Co-anfitriones + grupo */
-.host-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 
 /* Selector de efectos */
 .efx-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; }
@@ -2617,16 +2602,6 @@ html, body { overscroll-behavior: none; }
 
 /* Fecha más limpia (menos "IA"): sin emojis, etiquetas finas */
 
-/* Organiza: cabecera con botones a la derecha */
-.host-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
-.host-title { font-weight: 700; color: var(--ink-soft); font-size: .88rem; display: inline-flex; align-items: center; gap: 5px; }
-.host-title .ic { width: 16px; height: 16px; }
-/* Organizadores comprimido */
-.host-add-row { margin-top: 0; gap: 6px; }
-.host-add-row .chip { padding: 5px 10px; font-size: .76rem; }
-.cr-info .host-block .host-ava { width: 28px; height: 28px; font-size: .9rem; }
-.cr-info .host-block .host-row { gap: 8px; font-size: .92rem; }
-.host-add-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0; }
 
 /* --- Efectos basados en CSS (humo/reflectores/grano): viven DENTRO de la
    capa .efx-layer (que cuelga del body), nunca dentro de la pantalla ---- */
@@ -2696,8 +2671,7 @@ html, body { overscroll-behavior: none; }
 @keyframes grainShift { 25% { transform: translate(-5px,3px); } 50% { transform: translate(4px,-4px); } 75% { transform: translate(-3px,-5px); } }
 
 /* Neón: el efecto ilumina TODO (no solo el fondo) */
-.efx-neon .titulo-card, .efx-neon .cover-banner,
-.efx-neon .host-block, .efx-neon .crear-desc,
+.efx-neon .cr-ev-info, .efx-neon .cr-ev-desc,
 .efx-neon .zona-card, .efx-neon .crear-toolbar button, .efx-neon .chip, .efx-neon .ha {
   border-color: rgba(34,211,238,.7) !important;
   box-shadow: 0 0 14px rgba(34,211,238,.45), inset 0 0 10px rgba(34,211,238,.12);
@@ -2863,11 +2837,6 @@ body[data-screen="create"] .efx-layer { display: block; }
 /* Al crear, TODO lo editable va SEMI-transparente: un velo oscuro LIGERO
    (mucho más suave que antes) deja ver el tema (video o gradiente) detrás,
    con un blur tipo vidrio esmerilado para que el texto se lea */
-body.creando .titulo-card,
-body.creando .cr-hora,
-body.creando .cr-dato,
-body.creando .host-block,
-body.creando .crear-desc,
 body.creando .zona-card,
 body.creando .post-compose,
 body.creando .news-list .post-card {
@@ -2879,7 +2848,7 @@ body.creando .news-list .post-card {
 body.creando .zona-card input,
 body.creando .post-compose textarea { background: transparent !important; }
 /* La portada apenas traslúcida pero LUMINOSA (compensa el velo con brillo) */
-body.creando .cover-banner { opacity: .96; filter: brightness(1.07) saturate(1.04); }
+body.creando .cr-ev-cover { opacity: .96; filter: brightness(1.07) saturate(1.04); }
 /* Boletos y publicaciones también compactos al crear */
 body.creando .zona-card { padding: 11px 12px; margin-bottom: 8px; }
 body.creando .ha { padding: 10px 12px; font-size: .88rem; }
@@ -2893,9 +2862,8 @@ body.creando .chip:hover { transform: translateY(-2px); background: rgba(18,22,3
 body.creando .crear-toolbar button { background: rgba(8,10,18,.7) !important; }
 body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 /* Texto legible sobre video/fondos claros */
-body.creando .titulo-card, body.creando .host-block, body.creando .zona-card,
-body.creando .zona-card input, body.creando .post-compose textarea,
-body.creando .crear-desc { text-shadow: 0 1px 6px rgba(0,0,0,.55); }
+body.creando .zona-card,
+body.creando .zona-card input, body.creando .post-compose textarea { text-shadow: 0 1px 6px rgba(0,0,0,.55); }
 /* Los chips (+Link, +Playlist, Foto de fondo…) van del MISMO gris traslúcido
    que las tarjetas, no azul marino sólido que desentona en temas claros */
 body.creando .chip {

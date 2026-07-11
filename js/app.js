@@ -1004,13 +1004,13 @@ function pintarCrear() {
         <button class="save-btn" onclick="guardarFiesta()">${editando ? 'Guardar cambios' : 'Guardar'}</button>
       </div>
 
-      <!-- Título + acceso a tipografías y color -->
-      <div class="titulo-card">
-        <div class="titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
+      <!-- HERO: título arriba (sin tarjeta) y portada centrada abajo —
+           MISMO look que la ficha ya publicada del evento -->
+      <div class="ev-hero cr-ev-hero">
+        <h1 class="ev-nombre titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
              data-ph="Evento sin título" style="font-family:${font}; ${anim ? `background-image:${animGrad(draft.cover.anim)}` : `color:${draft.cover.titleColor}`}"
-             oninput="draft.nombre=this.textContent">${esc(draft.nombre)}</div>
-        <!-- Estilo del título dentro de un menú ⋯ (no ocupa espacio) -->
-        <div class="titulo-tools">
+             oninput="draft.nombre=this.textContent">${esc(draft.nombre)}</h1>
+        <div class="titulo-tools cr-titulo-tools">
           <button class="tt-more" onclick="this.closest('.titulo-tools').classList.toggle('open')" aria-label="Estilo del título">${icon('dots')}</button>
           <div class="tt-menu">
             <button class="tt-btn" onclick="abrirTipografias()" style="font-family:${font}">Aa <small>Tipografía</small></button>
@@ -1020,56 +1020,52 @@ function pintarCrear() {
             <button class="tt-anim ${anim ? 'on' : ''}" onclick="abrirColorAnim()" title="Color animado">${icon('spark')}</button>
           </div>
         </div>
+        <div class="ev-cover cr-ev-cover ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
+          ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Portada</button>'}
+          <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+          <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
+        </div>
       </div>
 
       <!-- En PC: dos columnas (izq: hero/descripción/organizadores/mapa ·
            der: boletos/acciones/publicaciones). En teléfono: una columna -->
       <div class="cr-col-izq">
-      <!-- HERO (como el boceto): portada chica a la IZQUIERDA y a la
-           DERECHA la fecha con horas de inicio/final -->
-      <div class="cr-hero">
-        <div class="cover-banner ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
-          ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Portada</button>'}
-          <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
-          <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
+
+      <!-- INFO: una sola tarjeta con fecha, lugar y organizadores
+           (divididas por líneas) — MISMO patrón que .ev-info publicado -->
+      <div class="ev-info cr-ev-info">
+        <div class="ev-irow">
+          ${icon('cal', 'mute')}
+          <input type="date" class="cr-inline-input" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; if(!draft.fechaFin)draft.fechaFin=this.value; syncFecha()">
+          <input type="text" class="cr-inline-input cr-hora-input" inputmode="numeric" value="${draft.horaInicio}" placeholder="9:30 pm" oninput="draft.horaInicio=this.value; syncFecha()">
+          <span class="cr-dash">–</span>
+          <input type="text" class="cr-inline-input cr-hora-input" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value">
         </div>
-        <div class="cr-fechas">
-          <label class="cr-dato cr-fecha-big"><span>${icon('cal', 'mute')}</span>
-            <input type="date" value="${draft.fechaInicio}" oninput="draft.fechaInicio=this.value; if(!draft.fechaFin)draft.fechaFin=this.value; syncFecha()">
-          </label>
-          <div class="cr-horas">
-            <label class="cr-hora"><small>Inicio</small><input type="text" inputmode="numeric" value="${draft.horaInicio}" placeholder="9:30 pm" oninput="draft.horaInicio=this.value; syncFecha()"></label>
-            <label class="cr-hora"><small>Final</small><input type="text" inputmode="numeric" value="${draft.horaFin}" placeholder="2:00 am" oninput="draft.horaFin=this.value"></label>
+        <div class="ev-irow">
+          ${icon('pin', 'mute')}
+          <input class="cr-inline-input" id="cvLugar" value="${esc(draft.lugar)}" placeholder="Ubicación" oninput="draft.lugar=this.value">
+        </div>
+        <div class="ev-irow cr-ev-row-org">
+          <div class="ev-host-avas"><span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span></div>
+          <div><small>Organiza</small><strong>${esc(u.nombre)}</strong></div>
+          <div class="cr-org-add">
+            <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitrión</button>
+            <button class="chip" onclick="agregarGrupoOrg()">＋ Grupo</button>
           </div>
-          <!-- El espacio que sobra bajo las horas lo llena el CUPO TOTAL -->
-          <div class="cr-dato"><span>${icon('user', 'mute')}</span><b id="capTotalMini">0</b><small>cupo total</small></div>
         </div>
+        <div id="orgList"></div>
       </div>
 
-      <!-- Descripción -->
-      <textarea class="crear-desc" placeholder="Descripción de tu evento…" oninput="draft.descripcion=this.value">${esc(draft.descripcion)}</textarea>
+      <!-- Descripción: texto plano editable, sin tarjeta — igual que
+           "Detalles" en la ficha publicada -->
+      <div class="row-between"><h3>Detalles</h3></div>
+      <textarea class="ev-desc cr-ev-desc" placeholder="Descripción de tu evento…" oninput="draft.descripcion=this.value">${esc(draft.descripcion)}</textarea>
 
-      <!-- Organizadores | datos rápidos (ubicación, costo, cupo) -->
-      <div class="cr-info">
-        <div class="crear-block host-block">
-          <div class="host-head">
-            <span class="host-title">${icon('crown', 'mute')} Organizadores</span>
-            <div class="host-add-row">
-              <button class="chip" onclick="agregarCoanfitrion()">＋ Co‑anfitrión</button>
-              <button class="chip" onclick="agregarGrupoOrg()">＋ Grupo</button>
-            </div>
-          </div>
-          <div class="host-row">
-            <span class="host-ava" style="${avatarFondo(u)}">${avatarContenido(u)}</span>
-            <strong>${u.nombre}</strong>
-          </div>
-          <div id="orgList"></div>
-        </div>
-        <div class="cr-datos">
-          <label class="cr-dato"><span>${icon('pin', 'mute')}</span><input id="cvLugar" value="${esc(draft.lugar)}" placeholder="Ubicación" oninput="draft.lugar=this.value"></label>
-          <label class="cr-dato"><span>${icon('dollar', 'mute')}</span><input id="cvCosto" value="${esc(draft.costo)}" placeholder="Costo" oninput="draft.costo=this.value"></label>
-          <label class="cr-dato"><span>${icon('dress', 'mute')}</span><input id="cvDress" value="${esc(draft.dressCode)}" placeholder="Código de vestimenta" oninput="draft.dressCode=this.value"></label>
-        </div>
+      <!-- Código de vestimenta y costo como chips — igual que los
+           .detail-chips de la ficha publicada -->
+      <div class="detail-chips">
+        <label class="dchip cr-dchip-edit"><span>${icon('dress', 'mute')} Código</span><input id="cvDress" value="${esc(draft.dressCode)}" placeholder="Libre" oninput="draft.dressCode=this.value"></label>
+        <label class="dchip cr-dchip-edit"><span>${icon('dollar', 'mute')} Entrada</span><input id="cvCosto" value="${esc(draft.costo)}" placeholder="Gratis" oninput="draft.costo=this.value"></label>
       </div>
 
       <!-- Chips rápidos -->
