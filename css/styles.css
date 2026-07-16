@@ -53,9 +53,9 @@
      en una columna estrecha aunque la pantalla sea enorme. */
   --app-max: 460px;
 
-  /* Tipografías: titulares con personalidad + cuerpo limpio (look diseñado) */
-  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-body:    'Hanken Grotesk', system-ui, sans-serif;
+  /* Tipografía: Baloo Bhaijaan 2 en TODA la app (misma que Strattpllaner) */
+  --font-display: 'Baloo Bhaijaan 2', system-ui, sans-serif;
+  --font-body:    'Baloo Bhaijaan 2', system-ui, sans-serif;
 }
 
 /* ------------------------------------------------------------------ */
@@ -603,21 +603,25 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   display: flex;
   justify-content: space-around;
   padding: 10px 6px;
-  /* Liquid glass: vidrio esmerilado con brillo arriba, más oscuro
-     abajo (como si la luz se curvara a través del borde) */
+  /* Liquid glass DE VERDAD: casi transparente — lo que se ve es el fondo
+     desenfocado a través del vidrio, con brillo arriba y borde luminoso */
   background:
-    linear-gradient(180deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.03) 45%, rgba(6,9,16,.4) 100%),
-    rgba(10, 12, 18, .5);
-  backdrop-filter: blur(26px) saturate(180%);
-  -webkit-backdrop-filter: blur(26px) saturate(180%);
-  border: 1px solid rgba(255,255,255,.22);
+    linear-gradient(180deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.04) 40%, rgba(255,255,255,0) 62%, rgba(6,9,16,.2) 100%),
+    rgba(16, 20, 30, .14);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid rgba(255,255,255,.26);
   border-radius: var(--r-pill);
   box-shadow:
-    0 14px 40px rgba(0,0,0,.5),
-    inset 0 1px 0 rgba(255,255,255,.4),
-    inset 0 -1px 0 rgba(255,255,255,.06);
+    0 14px 40px rgba(0,0,0,.4),
+    inset 0 1px 0 rgba(255,255,255,.45),
+    inset 0 -1px 0 rgba(255,255,255,.08);
   z-index: 50;
+  /* Al hacer scroll se encoge un poquito (clase .nav-mini desde JS) */
+  transform-origin: 50% 100%;
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
 }
+.bottom-nav.nav-mini { transform: translateX(-50%) scale(.85); }
 .nav-btn {
   flex: 1;
   background: none;
@@ -906,13 +910,13 @@ body.no-scroll { overflow: hidden; }
      transform hace que Safari lo pinte un instante a su alto máximo
      (arriba) antes de encoger al alto real del contenido (abajo) */
   max-height: 90svh;
-  /* Liquid glass: mismo acabado que la barra de navegación */
+  /* Liquid glass: mismo acabado (casi transparente) que la barra de nav */
   background:
-    linear-gradient(180deg, rgba(255,255,255,.1) 0%, rgba(255,255,255,.02) 35%, rgba(6,9,16,.55) 100%),
-    rgba(14,16,24,.55);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255,255,255,.18);
+    linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.03) 35%, rgba(255,255,255,0) 60%, rgba(6,9,16,.28) 100%),
+    rgba(14,16,24,.26);
+  backdrop-filter: blur(30px) saturate(190%);
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+  border: 1px solid rgba(255,255,255,.24);
   border-bottom: none;
   border-radius: 26px 26px 0 0;
   padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
@@ -2039,13 +2043,13 @@ body::before {
    de abajo) — crece desde su esquina superior derecha */
 .noti-drop {
   position: fixed; z-index: 90; width: min(340px, calc(100vw - 32px));
-  /* Liquid glass: mismo acabado que la barra de navegación y los sheets */
+  /* Liquid glass: mismo acabado (casi transparente) que nav y sheets */
   background:
-    linear-gradient(180deg, rgba(255,255,255,.1) 0%, rgba(255,255,255,.02) 35%, rgba(6,9,16,.55) 100%),
-    rgba(14,16,24,.55);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: 1px solid rgba(255,255,255,.18); border-radius: 20px;
+    linear-gradient(180deg, rgba(255,255,255,.12) 0%, rgba(255,255,255,.03) 35%, rgba(255,255,255,0) 60%, rgba(6,9,16,.28) 100%),
+    rgba(14,16,24,.26);
+  backdrop-filter: blur(30px) saturate(190%);
+  -webkit-backdrop-filter: blur(30px) saturate(190%);
+  border: 1px solid rgba(255,255,255,.24); border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.32);
   padding: 14px 16px calc(10px + env(safe-area-inset-bottom));
   max-height: 70vh; overflow-y: auto;
@@ -2328,10 +2332,17 @@ body::before {
     width: 240px; height: 100dvh;
     flex-direction: column; justify-content: flex-start; align-items: stretch;
     gap: 4px; padding: 86px 16px 24px;
-    transform: none; border-top: none; border-right: 1px solid var(--line);
-    border-radius: 0; background: rgba(6,10,18,.72); backdrop-filter: blur(16px);
+    transform: none; border-top: none; border-right: 1px solid rgba(255,255,255,.14);
+    border-radius: 0;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.02) 30%, rgba(6,9,16,.3) 100%),
+      rgba(10,14,22,.3);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     box-shadow: none;
   }
+  /* El menú lateral NO se encoge con el scroll (eso es solo del pill móvil) */
+  .bottom-nav.nav-mini { transform: none; }
   /* Marca arriba del menú lateral */
   .bottom-nav::before {
     content: 'Socialice'; position: absolute; top: 28px; left: 24px;
@@ -2437,14 +2448,29 @@ body[data-screen="create"] .bottom-nav { display: none; }
   width: 50px; height: 50px; border-radius: 50%; flex-shrink: 0;
   display: grid; place-items: center; padding: 0;
   font-family: inherit; cursor: pointer; color: var(--ink-soft);
-  background: rgba(10,12,18,.88); backdrop-filter: blur(14px);
-  border: 1px solid var(--line-strong); box-shadow: 0 10px 26px rgba(0,0,0,.5);
+  /* Liquid glass: mismo vidrio casi transparente que la nav */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.03) 45%, rgba(6,9,16,.22) 100%),
+    rgba(16,20,30,.18);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255,255,255,.24);
+  box-shadow: 0 10px 26px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.35);
 }
 .crear-toolbar button.on { color: #fff; background: var(--grad-cool); border-color: transparent; }
 .ct-ico { width: 24px; height: 24px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); }
 .ct-fx { font-size: 1.25rem; display: grid; place-items: center; }
 
 /* Selector de tema */
+/* Apartado de COLOR arriba del selector: cambia en línea el color de los
+   temas que lo permiten (Disco, Llamas) sin abrir otro panel */
+.tc-top { margin: 0 0 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.tc-top .hint { margin-bottom: 8px; }
+.tc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.tc-row:last-child { margin-bottom: 0; }
+.tc-name { flex-shrink: 0; width: 62px; font-weight: 700; font-size: .85rem; color: var(--ink-soft); }
+.tc-row .disco-dots { justify-content: flex-start; margin: 0; gap: 8px; }
+.tc-row .disco-dot { width: 28px; height: 28px; border-width: 2px; }
 .tema-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
 .tema-swatch { aspect-ratio: 1; border-radius: var(--r-md); cursor: pointer; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding: 12px; position: relative; overflow: hidden; background: #0a0f1c; }
 .tema-swatch.on { border-color: #fff; }
@@ -2859,7 +2885,13 @@ body.creando .chip:hover { transform: translateY(-2px); background: rgba(18,22,3
 .cover-edit:hover { transform: scale(1.1); background: rgba(0,0,0,.65); }
 /* Los FABs (Tema/Efecto/Ajustes) NO son contenido editable: se quedan
    oscuros para que siempre se distingan */
-body.creando .crear-toolbar button { background: rgba(8,10,18,.7) !important; }
+body.creando .crear-toolbar button {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14) 0%, rgba(255,255,255,.02) 45%, rgba(6,9,16,.3) 100%),
+    rgba(10,14,22,.3) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
 body.creando .crear-page h3 { text-shadow: 0 1px 6px rgba(0,0,0,.6); }
 /* Texto legible sobre video/fondos claros */
 body.creando .zona-card,

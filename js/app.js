@@ -1035,7 +1035,7 @@ function pintarCrear() {
            MISMO look que la ficha ya publicada del evento -->
       <div class="ev-hero cr-ev-hero">
         <h1 class="ev-nombre titulo-input ${anim ? 'name-anim' : ''}" id="cvTitulo" contenteditable="true"
-             data-ph="Evento sin título" style="font-family:${font}; ${anim ? `background-image:${animGrad(draft.cover.anim)}` : `color:${draft.cover.titleColor}`}"
+             data-ph="Título" style="font-family:${font}; ${anim ? `background-image:${animGrad(draft.cover.anim)}` : `color:${draft.cover.titleColor}`}"
              oninput="draft.nombre=this.textContent">${esc(draft.nombre)}</h1>
         <div class="titulo-tools cr-titulo-tools">
           <button class="tt-more" onclick="this.closest('.titulo-tools').classList.toggle('open')" aria-label="Estilo del título">${icon('dots')}</button>
@@ -1411,7 +1411,26 @@ function delPregunta(i) { draft.preguntas.splice(i, 1); pintarCrear(); }
 function abrirTemas() {
   const idxC = TEMAS.findIndex((t) => t.custom);
   const orden = [idxC, ...TEMAS.map((_, i) => i).filter((i) => i !== idxC)];
+  // Apartado de COLOR arriba: los temas que aceptan cambio de color
+  // (Disco, Llamas) se recolorean aquí mismo, sin abrir otro panel
+  const colorables = [
+    { slug: 'disco', nombre: 'Disco', colores: DISCO_COLORES, cur: draft.discoHue },
+    { slug: 'llamas', nombre: 'Llamas', colores: LLAMA_COLORES, cur: draft.llamaHue },
+  ];
   abrirSheet('Tema del evento', `
+    <div class="tc-top">
+      <p class="hint">Color del tema (los que se pueden cambiar):</p>
+      ${colorables.map((c) => `
+        <div class="tc-row">
+          <small class="tc-name">${c.nombre}</small>
+          <div class="disco-dots">
+            ${c.colores.map((o) => `
+              <button class="disco-dot ${String(c.cur) === String(o.hue) ? 'on' : ''}"
+                style="background:${o.c}" title="${o.nombre}"
+                onclick="setHueTema('${c.slug}', ${typeof o.hue === 'number' ? o.hue : `'${o.hue}'`}, this)"></button>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>
     <div class="tema-grid">
       ${orden.map((i) => {
         const t = TEMAS[i];
@@ -1444,6 +1463,19 @@ function abrirTemas() {
     v.playbackRate = +v.dataset.rate || 1;
     v.play().catch(() => {});
   });
+}
+// Cambia el color de un tema coloreable DESDE el selector de temas: marca
+// el punto, recolorea la vista previa del mosaico y (si ese tema ya está
+// puesto) también el fondo en vivo
+function setHueTema(slug, hue, btn) {
+  if (slug === 'disco') draft.discoHue = hue; else draft.llamaHue = hue;
+  const aplicar = slug === 'disco' ? aplicarDiscoHue : aplicarLlamaHue;
+  btn.parentElement.querySelectorAll('.disco-dot').forEach((d) => d.classList.remove('on'));
+  btn.classList.add('on');
+  aplicar(document.querySelector(`.tema-prev.tema-${slug} video`));
+  if (temaSlug((TEMAS[draft.tema] || {}).nombre || '') === slug) {
+    aplicar(document.querySelector('#temaBg video'));
+  }
 }
 function setTema(i) {
   const tt = TEMAS[i].custom ? customTema(draft.temaColors) : TEMAS[i];
@@ -4023,6 +4055,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Rellena los iconos declarados en el HTML estático (<span data-icon="mail">):
   // un solo lugar (ICON_PATHS) en vez de SVGs repetidos por pantalla
   document.querySelectorAll('[data-icon]').forEach((el) => { el.innerHTML = icon(el.dataset.icon); });
+
+  // La barra de navegación se ENCOGE un poco mientras haces scroll (deja ver
+  // más el contenido detrás del vidrio) y vuelve a su tamaño al soltar
+  let navMiniT = null;
+  const navEl = document.querySelector('.bottom-nav');
+  window.addEventListener('scroll', () => {
+    if (!navEl) return;
+    navEl.classList.add('nav-mini');
+    clearTimeout(navMiniT);
+    navMiniT = setTimeout(() => navEl.classList.remove('nav-mini'), 420);
+  }, { passive: true });
 
   // ⚠️ TEMPORAL (modo pruebas): entra DIRECTO a la app sin pedir crear
   // cuenta ni login. Para reactivar el splash, borra estas 2 líneas.
