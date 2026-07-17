@@ -428,6 +428,8 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .field-input::placeholder { color: var(--ink-faint); font-weight: 400; }
 .field-eye { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: .6; flex-shrink: 0; }
 .field-eye:hover { opacity: 1; }
+/* Nota bajo un campo (ej. requisito de edad en el registro) */
+.field-hint { font-size: .8rem; color: var(--ink-faint); margin: -4px 2px 0; }
 
 /* ============== DIVISOR "o continúa con" ============== */
 .divider { display: flex; align-items: center; gap: 14px; margin: 20px 0; }

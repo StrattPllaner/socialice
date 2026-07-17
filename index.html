@@ -154,6 +154,15 @@
             </div>
             <button class="field-eye" type="button" onclick="verPass('regPass2', this)" aria-label="Mostrar contraseña" data-icon="eye"></button>
           </div>
+          <div class="field">
+            <span class="field-icon" data-icon="cal"></span>
+            <div class="field-main">
+              <label class="field-label" for="regNacimiento">Fecha de nacimiento</label>
+              <!-- max se calcula en app.js (init) para no permitir menores de 18 en el selector -->
+              <input type="date" class="field-input" id="regNacimiento" autocomplete="bday" required>
+            </div>
+          </div>
+          <p class="field-hint">Debes tener 18 años o más para usar Socialice.</p>
           </form>
         </div>
         <div class="splash-bottom">

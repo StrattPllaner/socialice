@@ -169,6 +169,36 @@ function verPass(id, btn) {
 // NOTA: ya no hay roles separados — las cuentas están FUSIONADAS: todos
 // pueden organizar fiestas Y asistir a las de otros (decisión del usuario).
 
+/* --- Verificación de edad (18+): Socialice es solo para mayores. ---
+   Toda la lógica de edad vive aquí para reusarla (registro y, a futuro,
+   login social). El backend SIEMPRE debe recalcular la edad; esto es solo
+   la primera barrera en el cliente. --- */
+const EDAD_MINIMA = 18;
+
+// Edad exacta en años a partir de una fecha ISO 'YYYY-MM-DD' (resta un año si
+// aún no ha pasado el cumpleaños de este año). Devuelve null si no es válida.
+function edadEnAnios(fechaISO) {
+  if (!fechaISO) return null;
+  const nac = new Date(fechaISO + 'T00:00:00');
+  if (isNaN(nac.getTime())) return null;
+  const hoy = new Date();
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+  return edad;
+}
+
+// Fecha máxima seleccionable (hace EXACTAMENTE 18 años) como 'YYYY-MM-DD',
+// usando la hora LOCAL (nada de toISOString, que usa UTC y se corre un día).
+// Sirve para bloquear a menores directamente en el <input type="date">.
+function maxFechaNacimiento() {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() - EDAD_MINIMA);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
 /* --- Formularios del splash: validación nativa + feedback claro ---
    (Enter envía, los errores se muestran con reportValidity + toast) --- */
 function loginSubmit(ev) {
@@ -190,6 +220,24 @@ function reg1Submit(ev) {
     p2.reportValidity();
     p2.setCustomValidity('');
     toast('Las contraseñas no coinciden');
+    return false;
+  }
+  // Verificación de edad 18+ (el campo es required, así que reportValidity ya
+  // atrapa el vacío; aquí calculamos la edad exacta y bloqueamos a menores).
+  const fNac = document.getElementById('regNacimiento');
+  const edad = edadEnAnios(fNac.value);
+  if (edad === null) {
+    fNac.setCustomValidity('Ingresa tu fecha de nacimiento');
+    fNac.reportValidity();
+    fNac.setCustomValidity('');
+    toast('Ingresa tu fecha de nacimiento');
+    return false;
+  }
+  if (edad < EDAD_MINIMA) {
+    fNac.setCustomValidity('Debes tener al menos 18 años');
+    fNac.reportValidity();
+    fNac.setCustomValidity('');
+    toast('Lo sentimos: debes tener 18 años o más para usar Socialice.');
     return false;
   }
   splashIr('reg2');
@@ -222,9 +270,14 @@ function reg3Submit(ev) {
   const nombre = document.getElementById('reg2Name').value.trim();
   const user = document.getElementById('reg2User').value.trim().toLowerCase();
   const bio = document.getElementById('reg3Bio').value.trim();
+  // Fecha de nacimiento capturada en el paso 1 (ISO 'YYYY-MM-DD'). Se guarda
+  // tal cual para enviarla al backend, que revalidará la edad. NO guardamos un
+  // booleano "esMayor": guardamos la fecha para poder recalcular/auditar.
+  const fechaNacimiento = document.getElementById('regNacimiento').value;
   if (nombre) DATA.usuario.nombre = nombre;
   if (user) DATA.usuario.usuario = '@' + user.replace(/^@+/, '');
   if (bio) DATA.usuario.bio = bio;
+  if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
   entrarApp();
   toast('¡Bienvenido a Socialice! 🎉');
   return false;
@@ -4055,6 +4108,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Rellena los iconos declarados en el HTML estático (<span data-icon="mail">):
   // un solo lugar (ICON_PATHS) en vez de SVGs repetidos por pantalla
   document.querySelectorAll('[data-icon]').forEach((el) => { el.innerHTML = icon(el.dataset.icon); });
+
+  // Registro: el selector de fecha no permite elegir a un menor de 18
+  // (el máximo es "hace 18 años"). Se calcula al abrir por si cambia el día.
+  const fNacInput = document.getElementById('regNacimiento');
+  if (fNacInput) fNacInput.max = maxFechaNacimiento();
 
   // La barra de navegación se ENCOGE un poco mientras haces scroll (deja ver
   // más el contenido detrás del vidrio) y vuelve a su tamaño al soltar

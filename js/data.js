@@ -11,6 +11,10 @@ const DATA = {
   usuario: {
     nombre: 'Andrea Ríos',
     usuario: '@andrea',
+    // Fecha de nacimiento (ISO). Dato PRIVADO: se usa solo para verificar 18+;
+    // NO se muestra en el perfil público ni se manda en respuestas que no la
+    // necesiten. Se guarda la fecha (no un booleano) para poder recalcular edad.
+    fechaNacimiento: '1998-04-12',
     bio: 'Coleccionando noches inolvidables ✨',
     avatar: '🦄',
     logo: null,   // logo de la organizadora (imagen); si está, reemplaza al avatar
