@@ -16,6 +16,10 @@ const ICON_PATHS = {
   home:   '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9"/>',
   user:   '<circle cx="12" cy="8" r="3.5"/><path d="M5 20c.8-3.6 3.5-5.3 7-5.3s6.2 1.7 7 5.3"/>',
   users:  '<circle cx="9" cy="8" r="3.2"/><path d="M3.5 19.5c.6-3.2 2.9-4.8 5.5-4.8s4.9 1.6 5.5 4.8"/><path d="M15.5 5.3a3.2 3.2 0 0 1 0 5.4"/><path d="M17 14.9c2 .7 3.3 2.1 3.7 4.6"/>',
+  // Variantes de fiesta (solo para la barra de navegación): la misma persona
+  // pero con gorrito de fiesta inclinado + pompón en la punta
+  userParty:  '<circle cx="12" cy="9.3" r="3.2"/><path d="M6 20.5c.8-3.4 3.3-5 6-5s5.2 1.6 6 5"/><path d="M9.4 6.1 11 2.3l2.9 4.1Z" fill="currentColor" stroke="none"/><circle cx="10.8" cy="1.5" r=".95" fill="currentColor" stroke="none"/>',
+  usersParty: '<circle cx="9" cy="9.3" r="3"/><path d="M3.8 20c.6-3 2.8-4.5 5.2-4.5s4.6 1.5 5.2 4.5"/><path d="M15.3 6.8a3 3 0 0 1 0 5"/><path d="M16.8 15.6c1.9.7 3.1 2 3.5 4.4"/><path d="M6.6 6.3 8.1 2.6l2.8 3.9Z" fill="currentColor" stroke="none"/><circle cx="7.9" cy="1.8" r=".9" fill="currentColor" stroke="none"/>',
   plus:   '<path d="M12 5.5v13M5.5 12h13"/>',
   ticket: '<path d="M4 7.5A1.5 1.5 0 0 1 5.5 6h13A1.5 1.5 0 0 1 20 7.5v2a1.5 1.5 0 0 0 0 5v2A1.5 1.5 0 0 1 18.5 18h-13A1.5 1.5 0 0 1 4 16.5v-2a1.5 1.5 0 0 0 0-5Z"/><path d="M14 6.5v11" stroke-dasharray="1.5 2.6"/>',
   mic:    '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v4"/>',
@@ -3301,8 +3305,8 @@ function pintarNav() {
     { go: 'home',    ic: 'home',   texto: 'Inicio' },
     { go: 'search',  ic: 'search', texto: 'Buscar' },
     { go: 'create',  ic: 'plus',   texto: 'Crear'  },
-    { go: 'friends', ic: 'users',  texto: 'Amigos' },
-    { go: 'profile', ic: 'user',   texto: 'Perfil' }
+    { go: 'friends', ic: 'usersParty', texto: 'Amigos' },
+    { go: 'profile', ic: 'userParty',  texto: 'Perfil' }
   ];
 
   const actual = document.body.dataset.screen;
