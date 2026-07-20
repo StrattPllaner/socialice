@@ -3156,7 +3156,13 @@ function pintarPerfil() {
         <button class="pf2-editbtn" onclick="editarPerfil()">Editar</button>
       </div>
       <p class="pf2-bio">${u.bio}</p>
-      ${redesHTML(u)}
+      <div class="pf2-conn">
+        ${redesHTML(u)}
+        <button class="pases-mini" onclick="abrirPases()" aria-label="Mis pases">
+          <span class="pases-mini-qr">${qrSVG(voy[0] ? pasePayload(voy[0], u) : 'SOCIALICE')}</span>
+          <span class="pases-mini-tx"><strong>Pases</strong><small>${voy.length ? `${voy.length} ${voy.length === 1 ? 'fiesta' : 'fiestas'}` : 'sin fiestas'}</small></span>
+        </button>
+      </div>
       <div class="pf2-stats">
         <div class="pf2-stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
         <div class="pf2-stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
@@ -3164,12 +3170,6 @@ function pintarPerfil() {
         <button class="pf2-stat" onclick="verSeguidores()"><strong>${kilo(u.stats.seguidores)}</strong><small>seguidores</small></button>
       </div>
     </section>
-
-    <button class="pase-card" onclick="abrirPases()">
-      <span class="pase-qr">${qrSVG(voy[0] ? pasePayload(voy[0], u) : 'SOCIALICE')}</span>
-      <span class="pase-info"><strong>MIS PASES</strong><small>${voy.length ? `${voy.length} ${voy.length === 1 ? 'fiesta confirmada' : 'fiestas confirmadas'} · un QR por fiesta` : 'Confirma una fiesta para recibir tu pase'}</small></span>
-      <span class="pase-arrow">›</span>
-    </button>
 
     <div class="pf2-tabs">
       <button class="${pfTab === 'fiestas' ? 'on' : ''}" onclick="setPfTab('fiestas')">Fiestas</button>
@@ -4282,15 +4282,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (fNacInput) fNacInput.max = maxFechaNacimiento();
 
   // La barra de navegación se ENCOGE un poco mientras haces scroll (deja ver
-  // más el contenido detrás del vidrio) y vuelve a su tamaño al soltar
+  // más el contenido detrás del vidrio) y vuelve a su tamaño al soltar.
+  // Se escucha en document con capture: así también cuenta el scroll de
+  // contenedores internos (vistas full-screen, listas), no solo el del body.
   let navMiniT = null;
   const navEl = document.querySelector('.bottom-nav');
-  window.addEventListener('scroll', () => {
+  document.addEventListener('scroll', () => {
     if (!navEl) return;
     navEl.classList.add('nav-mini');
     clearTimeout(navMiniT);
-    navMiniT = setTimeout(() => navEl.classList.remove('nav-mini'), 420);
-  }, { passive: true });
+    navMiniT = setTimeout(() => navEl.classList.remove('nav-mini'), 480);
+  }, { capture: true, passive: true });
 
   // ⚠️ TEMPORAL (modo pruebas): entra DIRECTO a la app sin pedir crear
   // cuenta ni login. Para reactivar el splash, borra estas 2 líneas.

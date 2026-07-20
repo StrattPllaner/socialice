@@ -623,7 +623,7 @@ body[data-screen="splash"] .bottom-nav { display: none; }
   transform-origin: 50% 100%;
   transition: transform .35s cubic-bezier(.2,.8,.2,1);
 }
-.bottom-nav.nav-mini { transform: translateX(-50%) scale(.85); }
+.bottom-nav.nav-mini { transform: translateX(-50%) scale(.82); }
 .nav-btn {
   flex: 1;
   background: none;
@@ -2130,6 +2130,25 @@ body::before {
 /* Editar perfil en pantalla completa (patrón .evfull, como eventos/grupos) */
 .edp-title { font-size: 1.15rem; font-weight: 800; }
 .evfull-inner.edp-inner { max-width: 560px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+
+/* Fila redes + botón compacto de pases en el encabezado del perfil */
+.pf2-conn { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 18px; margin: 12px 0 0; }
+.pf2-conn .redes-row2 { padding: 0; margin: 0; }
+.pases-mini {
+  display: inline-flex; align-items: center; gap: 9px; margin-left: auto;
+  padding: 6px 14px 6px 7px; border-radius: 999px;
+  background: rgba(47,123,255,.16); border: 1px solid rgba(125,190,255,.45);
+  color: #fff; cursor: pointer; font-family: inherit; text-align: left;
+  transition: transform .15s ease;
+}
+.pases-mini:active { transform: scale(.95); }
+.pases-mini-qr {
+  width: 32px; height: 32px; border-radius: 9px; background: #fff;
+  display: grid; place-items: center; overflow: hidden; flex: none;
+}
+.pases-mini-qr svg { width: 26px; height: 26px; display: block; }
+.pases-mini-tx strong { display: block; font-size: .85rem; line-height: 1.1; }
+.pases-mini-tx small { display: block; color: var(--ink-soft); font-size: .68rem; }
 
 /* Preview en vivo de la portada + nombre dentro del editor */
 .edp-cover {
