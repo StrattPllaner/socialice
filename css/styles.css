@@ -2127,6 +2127,10 @@ body::before {
 .field-icon.red-ic.ig { color: #e75982; }
 .field-icon.red-ic.tk { color: #fff; }
 
+/* Editar perfil en pantalla completa (patrón .evfull, como eventos/grupos) */
+.edp-title { font-size: 1.15rem; font-weight: 800; }
+.evfull-inner.edp-inner { max-width: 560px; padding-bottom: calc(40px + env(safe-area-inset-bottom)); }
+
 /* Evento PRIVADO con animación plateada */
 .crear-card.privado {
   position: relative; overflow: hidden;

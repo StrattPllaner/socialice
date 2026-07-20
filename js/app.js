@@ -3970,6 +3970,8 @@ const RED_SVGS = () => ({ instagram: IG_SVG, tiktok: TT_SVG });
 let _redesTmp = null;   // borrador del editor: texto por red, o null = red no vinculada
 let _perfilTmp = null;  // lo escrito en nombre/usuario/bio que aún no se guarda
 
+// Editar perfil abre en PANTALLA COMPLETA (mismo patrón que eventos/grupos),
+// no en sheet. cerrarEditarPerfil() cierra sin guardar.
 function editarPerfil(rePintado) {
   const u = DATA.usuario;
   if (!rePintado) {
@@ -3983,7 +3985,17 @@ function editarPerfil(rePintado) {
     };
   }
   const v = _perfilTmp || {};
-  abrirSheet('Editar perfil', `
+  cerrarSheet();
+  let ov = document.getElementById('editarFull');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'editarFull'; ov.className = 'evfull'; document.body.appendChild(ov); }
+  const scroll = rePintado ? ov.scrollTop : 0;   // no brincar al re-pintar por logo
+  ov.innerHTML = `
+    <div class="evfull-tema" style="background:linear-gradient(180deg, rgba(6,7,10,.55), var(--bg) 62%), ${u.color};background-repeat:no-repeat"></div>
+    <div class="evfull-bar">
+      <button class="round-btn" onclick="cerrarEditarPerfil()" aria-label="Cerrar">✕</button>
+      <strong class="edp-title">Editar perfil</strong>
+    </div>
+    <div class="evfull-inner edp-inner">
     <p class="form-label">Logo o foto</p>
     <div class="logo-edit">
       <div class="logo-prev" style="${avatarFondo(u)}">${u.logo ? '' : ((_avatarTmp || u.avatar) || inicialesDe(u.nombre))}</div>
@@ -4018,7 +4030,16 @@ function editarPerfil(rePintado) {
     <div class="sheet-actions">
       <button class="btn full" onclick="guardarPerfil()">Guardar cambios</button>
     </div>
-  `);
+    </div>
+  `;
+  ov.classList.add('is-open');
+  ov.scrollTop = scroll;
+}
+
+// Cierra la pantalla de editar perfil (sin guardar)
+function cerrarEditarPerfil() {
+  const ov = document.getElementById('editarFull');
+  if (ov) { ov.classList.remove('is-open'); ov.innerHTML = ''; }
 }
 
 // Chips de redes + campos SOLO de las redes prendidas
@@ -4092,7 +4113,7 @@ function guardarPerfil() {
   delete u.redes.whatsapp;   // ya no pedimos teléfono
   _redesTmp = null;
   _perfilTmp = null;
-  cerrarSheet();
+  cerrarEditarPerfil();
   pintarPerfil();
   toast('Perfil actualizado ✓');
 }
