@@ -2104,6 +2104,27 @@ body::before {
 .red2.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
 .red2.tk { background: #111; border: 1px solid var(--line-strong); }
 
+/* Selector de redes en "Editar perfil": chips para elegir cuáles mostrar */
+.redsel-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 14px; }
+.redsel {
+  display: inline-flex; align-items: center; gap: 7px; padding: 9px 14px;
+  border-radius: 999px; border: 1px solid var(--line-strong);
+  background: rgba(255,255,255,.05); color: var(--ink-soft);
+  font-family: inherit; font-size: .85rem; font-weight: 700; cursor: pointer;
+  transition: transform .15s ease, background .2s ease, border-color .2s ease, color .2s ease;
+}
+.redsel:active { transform: scale(.95); }
+.redsel .soc-ic { width: 16px; height: 16px; }
+.redsel.is-on { color: #fff; border-color: transparent; }
+.redsel.is-on.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
+.redsel.is-on.tk { background: #111; border-color: var(--line-strong); }
+.redsel.is-on.wa { background: #25d366; }
+.field-icon.red-ic { display: grid; place-items: center; }
+.field-icon.red-ic .soc-ic { width: 18px; height: 18px; }
+.field-icon.red-ic.ig { color: #e75982; }
+.field-icon.red-ic.tk { color: #fff; }
+.field-icon.red-ic.wa { color: #25d366; }
+
 /* Evento PRIVADO con animación plateada */
 .crear-card.privado {
   position: relative; overflow: hidden;

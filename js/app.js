@@ -278,6 +278,8 @@ function reg3Submit(ev) {
   if (user) DATA.usuario.usuario = '@' + user.replace(/^@+/, '');
   if (bio) DATA.usuario.bio = bio;
   if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
+  // Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil"
+  DATA.usuario.redes = { whatsapp: '', instagram: '', tiktok: '', web: '' };
   entrarApp();
   toast('¡Bienvenido a Socialice! 🎉');
   return false;
@@ -3184,9 +3186,9 @@ function pintarPerfil() {
 function redesHTML(u) {
   const r = u.redes || {};
   const items = [];
-  if (r.whatsapp)  items.push(`<a class="red2 wa" href="https://wa.me/${r.whatsapp}" target="_blank" rel="noopener" title="WhatsApp">${WA_SVG}</a>`);
-  if (r.instagram) items.push(`<a class="red2 ig" href="https://instagram.com/${r.instagram}" target="_blank" rel="noopener" title="Instagram">${IG_SVG}</a>`);
-  if (r.tiktok)    items.push(`<a class="red2 tk" href="https://tiktok.com/@${r.tiktok}" target="_blank" rel="noopener" title="TikTok">${TT_SVG}</a>`);
+  if (r.whatsapp)  items.push(`<a class="red2 wa" href="https://wa.me/${encodeURIComponent(r.whatsapp)}" target="_blank" rel="noopener" title="WhatsApp">${WA_SVG}</a>`);
+  if (r.instagram) items.push(`<a class="red2 ig" href="https://instagram.com/${encodeURIComponent(r.instagram)}" target="_blank" rel="noopener" title="Instagram">${IG_SVG}</a>`);
+  if (r.tiktok)    items.push(`<a class="red2 tk" href="https://tiktok.com/@${encodeURIComponent(r.tiktok)}" target="_blank" rel="noopener" title="TikTok">${TT_SVG}</a>`);
   return items.length ? `<div class="redes-row2">${items.join('')}</div>` : '';
 }
 
@@ -3957,12 +3959,38 @@ const COMENTARIOS_SEED = {
 
 // --- Editar perfil ---
 const AVATARES = ['🦄','🐺','🌸','🎧','🦋','🐱','🌙','🔥','😎','👑','🎈','🪩'];
-function editarPerfil() {
+
+// Redes que se pueden vincular al perfil. El usuario ELIGE cuáles: en el
+// editor cada red es un chip que se prende/apaga; solo las prendidas tienen
+// campo, y en el perfil solo se muestran las que tengan algo escrito.
+const RED_DEFS = {
+  instagram: { nombre: 'Instagram', label: 'Usuario de Instagram',        ph: 'tuusuario',     cls: 'ig' },
+  tiktok:    { nombre: 'TikTok',    label: 'Usuario de TikTok',           ph: 'tuusuario',     cls: 'tk' },
+  whatsapp:  { nombre: 'WhatsApp',  label: 'Número con lada (ej: 52155…)', ph: '5215512345678', cls: 'wa' }
+};
+const RED_SVGS = () => ({ instagram: IG_SVG, tiktok: TT_SVG, whatsapp: WA_SVG });
+
+let _redesTmp = null;   // borrador del editor: texto por red, o null = red no vinculada
+let _perfilTmp = null;  // lo escrito en nombre/usuario/bio que aún no se guarda
+
+function editarPerfil(rePintado) {
   const u = DATA.usuario;
+  if (!rePintado) {
+    // Apertura fresca: el borrador arranca desde lo guardado
+    _perfilTmp = null;
+    _avatarTmp = null;
+    const r = u.redes || {};
+    _redesTmp = {
+      instagram: r.instagram || null,
+      tiktok:    r.tiktok    || null,
+      whatsapp:  r.whatsapp  || null
+    };
+  }
+  const v = _perfilTmp || {};
   abrirSheet('Editar perfil', `
     <p class="form-label">Logo o foto</p>
     <div class="logo-edit">
-      <div class="logo-prev" style="${avatarFondo(u)}">${u.logo ? '' : (u.avatar || inicialesDe(u.nombre))}</div>
+      <div class="logo-prev" style="${avatarFondo(u)}">${u.logo ? '' : ((_avatarTmp || u.avatar) || inicialesDe(u.nombre))}</div>
       <input type="file" accept="image/*" id="logoFile" hidden onchange="subirLogo(event)">
       <button class="chip" onclick="document.getElementById('logoFile').click()">⬆ Subir logo</button>
       ${u.logo ? `<button class="chip" onclick="quitarLogo()">Quitar</button>` : ''}
@@ -3970,50 +3998,82 @@ function editarPerfil() {
     <p class="form-label">…o elige un emoji</p>
     <div class="avatar-grid" id="avatarGrid">
       ${AVATARES.map((a) => `
-        <button class="avatar-opt ${a === u.avatar ? 'is-sel' : ''}" onclick="elegirAvatar('${a}', this)">${a}</button>
+        <button class="avatar-opt ${a === (_avatarTmp || u.avatar) ? 'is-sel' : ''}" onclick="elegirAvatar('${a}', this)">${a}</button>
       `).join('')}
     </div>
 
     <div class="field"><div class="field-main">
       <label class="field-label">Nombre</label>
-      <input class="field-input" id="edNombre" value="${u.nombre}">
+      <input class="field-input" id="edNombre" value="${esc(v.nombre ?? u.nombre)}">
     </div></div>
     <div class="field"><div class="field-main">
       <label class="field-label">Usuario</label>
-      <input class="field-input" id="edUsuario" value="${u.usuario}">
+      <input class="field-input" id="edUsuario" value="${esc(v.usuario ?? u.usuario)}">
     </div></div>
     <div class="field"><div class="field-main">
       <label class="field-label">Bio</label>
-      <input class="field-input" id="edBio" value="${u.bio}">
+      <input class="field-input" id="edBio" value="${esc(v.bio ?? u.bio)}">
     </div></div>
 
-    <p class="form-label" style="margin-top:18px">Redes y contacto</p>
-    <div class="field"><span class="field-icon">💬</span><div class="field-main">
-      <label class="field-label">WhatsApp (con lada, ej: 52155…)</label>
-      <input class="field-input" id="edWa" value="${(u.redes||{}).whatsapp||''}" placeholder="5215512345678">
-    </div></div>
-    <div class="field"><span class="field-icon">📸</span><div class="field-main">
-      <label class="field-label">Instagram (usuario)</label>
-      <input class="field-input" id="edIg" value="${(u.redes||{}).instagram||''}" placeholder="tuusuario">
-    </div></div>
-    <div class="field"><span class="field-icon">🎵</span><div class="field-main">
-      <label class="field-label">TikTok (usuario)</label>
-      <input class="field-input" id="edTk" value="${(u.redes||{}).tiktok||''}" placeholder="tuusuario">
-    </div></div>
+    <p class="form-label" style="margin-top:18px">Redes sociales</p>
+    <p class="hint">Toca las que quieras mostrar en tu perfil. Solo se ven las que agregues.</p>
+    <div id="redesEd">${redesEdHTML()}</div>
 
     <div class="sheet-actions">
       <button class="btn full" onclick="guardarPerfil()">Guardar cambios</button>
     </div>
   `);
 }
+
+// Chips de redes + campos SOLO de las redes prendidas
+function redesEdHTML() {
+  const svgs = RED_SVGS();
+  const chips = Object.keys(RED_DEFS).map((k) => {
+    const d = RED_DEFS[k], on = _redesTmp[k] !== null;
+    return `<button type="button" class="redsel ${d.cls} ${on ? 'is-on' : ''}" onclick="toggleRed('${k}')">${svgs[k]}<span>${d.nombre}</span></button>`;
+  }).join('');
+  const campos = Object.keys(RED_DEFS).filter((k) => _redesTmp[k] !== null).map((k) => {
+    const d = RED_DEFS[k];
+    return `
+      <div class="field"><span class="field-icon red-ic ${d.cls}">${svgs[k]}</span><div class="field-main">
+        <label class="field-label">${d.label}</label>
+        <input class="field-input" id="edRed_${k}" value="${esc(_redesTmp[k])}" placeholder="${d.ph}"${k === 'whatsapp' ? ' inputmode="tel"' : ''}>
+      </div></div>`;
+  }).join('');
+  return `<div class="redsel-row">${chips}</div>${campos}`;
+}
+
+// Junta lo escrito en los campos de redes visibles (antes de re-pintar)
+function _capturarRedes() {
+  Object.keys(RED_DEFS).forEach((k) => {
+    const inp = document.getElementById('edRed_' + k);
+    if (inp) _redesTmp[k] = inp.value;
+  });
+}
+// Junta TODO lo escrito en el editor (para que no se pierda al re-pintar)
+function _capturarPerfil() {
+  _capturarRedes();
+  _perfilTmp = {
+    nombre:  document.getElementById('edNombre')?.value,
+    usuario: document.getElementById('edUsuario')?.value,
+    bio:     document.getElementById('edBio')?.value
+  };
+}
+function toggleRed(k) {
+  _capturarRedes();
+  _redesTmp[k] = _redesTmp[k] === null ? '' : null;   // prender ↔ apagar
+  document.getElementById('redesEd').innerHTML = redesEdHTML();
+  if (_redesTmp[k] !== null) document.getElementById('edRed_' + k)?.focus();
+}
+
 function subirLogo(ev) {
   const f = ev.target.files[0];
   if (!f) return;
   const r = new FileReader();
-  r.onload = () => { DATA.usuario.logo = r.result; editarPerfil(); };
+  r.onload = () => { _capturarPerfil(); DATA.usuario.logo = r.result; editarPerfil(true); };
   r.readAsDataURL(f);
 }
-function quitarLogo() { DATA.usuario.logo = null; editarPerfil(); }
+function quitarLogo() { _capturarPerfil(); DATA.usuario.logo = null; editarPerfil(true); }
 
 let _avatarTmp = null;
 function elegirAvatar(a, btn) {
@@ -4028,11 +4088,14 @@ function guardarPerfil() {
   u.bio = document.getElementById('edBio').value.trim();
   if (_avatarTmp) u.avatar = _avatarTmp;
   _avatarTmp = null;
-  // Redes sociales
+  // Redes sociales: solo las que el usuario dejó vinculadas
+  _capturarRedes();
   u.redes = u.redes || {};
-  u.redes.whatsapp  = document.getElementById('edWa').value.trim().replace(/[^\d]/g, '');
-  u.redes.instagram = document.getElementById('edIg').value.trim().replace(/^@/, '');
-  u.redes.tiktok    = document.getElementById('edTk').value.trim().replace(/^@/, '');
+  u.redes.instagram = (_redesTmp.instagram || '').trim().replace(/^@+/, '');
+  u.redes.tiktok    = (_redesTmp.tiktok    || '').trim().replace(/^@+/, '');
+  u.redes.whatsapp  = (_redesTmp.whatsapp  || '').replace(/[^\d]/g, '');
+  _redesTmp = null;
+  _perfilTmp = null;
   cerrarSheet();
   pintarPerfil();
   toast('Perfil actualizado ✓');
