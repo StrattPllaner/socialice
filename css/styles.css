@@ -2134,19 +2134,32 @@ body::before {
 /* Fila redes + botón compacto de pases en el encabezado del perfil */
 .pf2-conn { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 18px; margin: 12px 0 0; }
 .pf2-conn .redes-row2 { padding: 0; margin: 0; }
+/* Con forma de BOLETO: muescas recortadas arriba/abajo + línea perforada
+   que separan el "talón" (logo QR) del resto, como un ticket real */
 .pases-mini {
-  display: inline-flex; align-items: center; gap: 9px; margin-left: auto;
-  padding: 6px 14px 6px 7px; border-radius: 999px;
+  --cut: 42px;   /* dónde caen las muescas y la línea perforada */
+  position: relative; display: inline-flex; align-items: center; margin-left: auto;
+  padding: 8px 15px 8px 0; border-radius: 13px;
   background: rgba(47,123,255,.16); border: 1px solid rgba(125,190,255,.45);
   color: #fff; cursor: pointer; font-family: inherit; text-align: left;
   transition: transform .15s ease;
+  -webkit-mask-image:
+    radial-gradient(circle 5px at var(--cut) 0%, transparent 4.4px, #000 5.2px),
+    radial-gradient(circle 5px at var(--cut) 100%, transparent 4.4px, #000 5.2px);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(circle 5px at var(--cut) 0%, transparent 4.4px, #000 5.2px),
+    radial-gradient(circle 5px at var(--cut) 100%, transparent 4.4px, #000 5.2px);
+  mask-composite: intersect;
+}
+.pases-mini::before {
+  content: ''; position: absolute; top: 7px; bottom: 7px; left: calc(var(--cut) - 1px);
+  border-left: 1.6px dashed rgba(200,220,255,.45);
 }
 .pases-mini:active { transform: scale(.95); }
-.pases-mini-qr {
-  width: 32px; height: 32px; border-radius: 9px; background: #fff;
-  display: grid; place-items: center; overflow: hidden; flex: none;
-}
-.pases-mini-qr svg { width: 26px; height: 26px; display: block; }
+.pases-mini-qr { width: var(--cut); display: grid; place-items: center; color: #fff; flex: none; }
+.pases-mini-qr .ic { width: 23px; height: 23px; }
+.pases-mini-tx { padding-left: 12px; }
 .pases-mini-tx strong { display: block; font-size: .85rem; line-height: 1.1; }
 .pases-mini-tx small { display: block; color: var(--ink-soft); font-size: .68rem; }
 
