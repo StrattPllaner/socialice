@@ -3141,7 +3141,7 @@ function pintarPerfil() {
 
   cont.innerHTML = `
     <section class="pf2 ${popular ? 'is-popular' : ''}">
-      <div class="pf2-cover" style="${u.logo ? `background-image:url(${u.logo});background-size:cover;background-position:center` : `background:${u.color}`}">
+      <div class="pf2-cover" style="${portadaBg(u)}">
         <div class="pf2-topbtns">
           <button class="pf2-fab" onclick="compartir('mi perfil')" aria-label="Compartir">${icon('share')}</button>
           <button class="pf2-fab" onclick="abrirAjustes()" aria-label="Ajustes">${icon('gear')}</button>
@@ -3150,7 +3150,7 @@ function pintarPerfil() {
       <div class="pf2-head">
         <div class="pf2-ava ${popular ? 'ring' : ''}" style="${avatarFondo(u)}">${avatarContenido(u)}</div>
         <div class="pf2-id">
-          <h2>${u.nombre} ${insignia}</h2>
+          <h2 style="font-family:${fontCss(u.nombreFont)}">${u.nombre} ${insignia}</h2>
           <p>${u.usuario}</p>
         </div>
         <button class="pf2-editbtn" onclick="editarPerfil()">Editar</button>
@@ -3958,6 +3958,33 @@ const COMENTARIOS_SEED = {
 // --- Editar perfil ---
 const AVATARES = ['🦄','🐺','🌸','🎧','🦋','🐱','🌙','🔥','😎','👑','🎈','🪩'];
 
+// Fondos de portada del perfil: gradientes en capas (luz + color) para que
+// se vean con profundidad, no planos. El usuario también puede subir su foto.
+const PORTADAS = [
+  { id: 'aurora',     nombre: 'Aurora',     bg: 'radial-gradient(120% 140% at 15% 0%, rgba(34,211,238,.5), transparent 52%), radial-gradient(120% 130% at 88% 8%, rgba(168,85,247,.55), transparent 55%), linear-gradient(165deg, #0b1c3f, #16337e 55%, #0e7490)' },
+  { id: 'neon',       nombre: 'Neón',       bg: 'radial-gradient(110% 130% at 85% 12%, rgba(244,63,94,.5), transparent 55%), radial-gradient(120% 120% at 8% 90%, rgba(0,212,255,.35), transparent 55%), linear-gradient(140deg, #1a0533, #5b21b6 58%, #db2777)' },
+  { id: 'atardecer',  nombre: 'Atardecer',  bg: 'radial-gradient(130% 110% at 50% 108%, rgba(255,200,80,.75), transparent 55%), linear-gradient(180deg, #312e81, #7c3aed 42%, #f472b6 78%, #fb923c)' },
+  { id: 'medianoche', nombre: 'Medianoche', bg: 'radial-gradient(circle at 22% 30%, rgba(255,255,255,.9) 0 1px, transparent 1.6px), radial-gradient(circle at 68% 18%, rgba(255,255,255,.8) 0 1px, transparent 1.6px), radial-gradient(circle at 42% 62%, rgba(255,255,255,.7) 0 .8px, transparent 1.4px), radial-gradient(circle at 85% 45%, rgba(255,255,255,.85) 0 1px, transparent 1.6px), radial-gradient(circle at 12% 70%, rgba(255,255,255,.6) 0 .8px, transparent 1.4px), linear-gradient(180deg, #050816, #0d1b3e 70%, #17275c)' },
+  { id: 'oceano',     nombre: 'Océano',     bg: 'radial-gradient(120% 120% at 80% 0%, rgba(125,211,252,.55), transparent 55%), linear-gradient(160deg, #032b45, #0369a1 55%, #06b6d4)' },
+  { id: 'esmeralda',  nombre: 'Esmeralda',  bg: 'radial-gradient(120% 130% at 15% 5%, rgba(52,211,153,.5), transparent 55%), linear-gradient(150deg, #022c22, #065f46 55%, #0d9488)' },
+  { id: 'dorado',     nombre: 'Dorado',     bg: 'radial-gradient(120% 140% at 80% 0%, rgba(253,224,71,.5), transparent 55%), linear-gradient(150deg, #451a03, #92400e 55%, #f59e0b)' },
+  { id: 'cerezo',     nombre: 'Cerezo',     bg: 'radial-gradient(120% 130% at 20% 0%, rgba(251,207,232,.6), transparent 55%), linear-gradient(150deg, #4c0519, #9f1239 55%, #f472b6)' },
+  { id: 'lava',       nombre: 'Lava',       bg: 'radial-gradient(130% 120% at 50% 110%, rgba(251,146,60,.7), transparent 55%), linear-gradient(170deg, #18020a, #7f1d1d 60%, #ea580c)' },
+  { id: 'uva',        nombre: 'Uva',        bg: 'radial-gradient(120% 130% at 85% 10%, rgba(196,181,253,.5), transparent 55%), linear-gradient(150deg, #1e1040, #5b21b6 60%, #8b5cf6)' },
+  { id: 'hielo',      nombre: 'Hielo',      bg: 'radial-gradient(120% 130% at 20% 0%, rgba(255,255,255,.5), transparent 50%), linear-gradient(160deg, #0c4a6e, #0284c7 55%, #7dd3fc)' },
+  { id: 'grafito',    nombre: 'Grafito',    bg: 'radial-gradient(120% 140% at 80% 0%, rgba(148,163,184,.35), transparent 55%), linear-gradient(160deg, #0b0f19, #1f2937 60%, #475569)' }
+];
+
+// CSS de la fuente elegida para el nombre (reusa la lista FONTS de eventos)
+function fontCss(id) { return (FONTS.find((f) => f.id === id) || FONTS[0]).css; }
+
+// Estilo de la portada del perfil: foto propia > fondo elegido > color base
+function portadaBg(u) {
+  if (u.portadaImg) return `background-image:url(${u.portadaImg});background-size:cover;background-position:center`;
+  const p = PORTADAS.find((x) => x.id === u.portada);
+  return `background:${p ? p.bg : u.color}`;
+}
+
 // Redes que se pueden vincular al perfil. El usuario ELIGE cuáles: en el
 // editor cada red es un chip que se prende/apaga; solo las prendidas tienen
 // campo, y en el perfil solo se muestran las que tengan algo escrito.
@@ -3969,6 +3996,9 @@ const RED_SVGS = () => ({ instagram: IG_SVG, tiktok: TT_SVG });
 
 let _redesTmp = null;   // borrador del editor: texto por red, o null = red no vinculada
 let _perfilTmp = null;  // lo escrito en nombre/usuario/bio que aún no se guarda
+let _edpFont = null;      // tipografía del nombre (borrador)
+let _edpPortada = null;   // fondo elegido (id de PORTADAS, o null = color base)
+let _edpPortadaImg = null; // foto propia de portada (borrador)
 
 // Editar perfil abre en PANTALLA COMPLETA (mismo patrón que eventos/grupos),
 // no en sheet. cerrarEditarPerfil() cierra sin guardar.
@@ -3978,6 +4008,9 @@ function editarPerfil(rePintado) {
     // Apertura fresca: el borrador arranca desde lo guardado
     _perfilTmp = null;
     _avatarTmp = null;
+    _edpFont = u.nombreFont || 'classic';
+    _edpPortada = u.portada || null;
+    _edpPortadaImg = u.portadaImg || null;
     const r = u.redes || {};
     _redesTmp = {
       instagram: r.instagram || null,
@@ -4012,7 +4045,8 @@ function editarPerfil(rePintado) {
 
     <div class="field"><div class="field-main">
       <label class="field-label">Nombre</label>
-      <input class="field-input" id="edNombre" value="${esc(v.nombre ?? u.nombre)}">
+      <input class="field-input" id="edNombre" value="${esc(v.nombre ?? u.nombre)}"
+        oninput="const n=document.querySelector('.edp-cover-name'); if(n) n.textContent=this.value||'Tu nombre'">
     </div></div>
     <div class="field"><div class="field-main">
       <label class="field-label">Usuario</label>
@@ -4022,6 +4056,8 @@ function editarPerfil(rePintado) {
       <label class="field-label">Bio</label>
       <input class="field-input" id="edBio" value="${esc(v.bio ?? u.bio)}">
     </div></div>
+
+    <div id="edpEstilo">${estiloEdHTML()}</div>
 
     <p class="form-label" style="margin-top:18px">Redes sociales</p>
     <p class="hint">Toca las que quieras mostrar en tu perfil. Solo se ven las que agregues.</p>
@@ -4041,6 +4077,53 @@ function cerrarEditarPerfil() {
   const ov = document.getElementById('editarFull');
   if (ov) { ov.classList.remove('is-open'); ov.innerHTML = ''; }
 }
+
+// Sección "estilo" del editor: preview en vivo + fondos + tipografía
+function estiloEdHTML() {
+  const u = DATA.usuario;
+  const nombre = (_perfilTmp && _perfilTmp.nombre != null ? _perfilTmp.nombre : u.nombre) || 'Tu nombre';
+  const prevBg = _edpPortadaImg
+    ? `background-image:url(${_edpPortadaImg});background-size:cover;background-position:center`
+    : `background:${(PORTADAS.find((p) => p.id === _edpPortada) || {}).bg || u.color}`;
+  return `
+    <p class="form-label" style="margin-top:18px">Fondo del perfil</p>
+    <div class="edp-cover" style="${prevBg}">
+      <span class="edp-cover-name" style="font-family:${fontCss(_edpFont)}">${esc(nombre)}</span>
+    </div>
+    <div class="port-grid">
+      <button type="button" class="port-opt ${!_edpPortada && !_edpPortadaImg ? 'is-sel' : ''}" style="background:${u.color}" title="Tu color" onclick="setPortada(null)"></button>
+      ${PORTADAS.map((p) => `
+        <button type="button" class="port-opt ${_edpPortada === p.id && !_edpPortadaImg ? 'is-sel' : ''}" style="background:${p.bg}" title="${p.nombre}" onclick="setPortada('${p.id}')"></button>`).join('')}
+    </div>
+    <div class="logo-edit" style="margin-top:10px">
+      <input type="file" accept="image/*" id="portFile" hidden onchange="subirPortada(event)">
+      <button class="chip" onclick="document.getElementById('portFile').click()">⬆ Tu propia foto</button>
+      ${_edpPortadaImg ? `<button class="chip" onclick="quitarPortada()">Quitar foto</button>` : ''}
+    </div>
+
+    <p class="form-label" style="margin-top:18px">Tipografía de tu nombre</p>
+    <div class="fontsel-row">
+      ${FONTS.map((f) => `
+        <button type="button" class="fontsel ${f.id === _edpFont ? 'is-sel' : ''}" onclick="setEdpFont('${f.id}')">
+          <b style="font-family:${f.css}">Aa</b><small>${f.nombre}</small>
+        </button>`).join('')}
+    </div>`;
+}
+// Re-pinta SOLO la sección de estilo (sin tocar lo escrito en los campos)
+function refrescarEstiloEd() {
+  const c = document.getElementById('edpEstilo');
+  if (c) { _capturarPerfil(); c.innerHTML = estiloEdHTML(); }
+}
+function setPortada(id) { _edpPortada = id; _edpPortadaImg = null; refrescarEstiloEd(); }
+function setEdpFont(id) { _edpFont = id; refrescarEstiloEd(); }
+function subirPortada(ev) {
+  const f = ev.target.files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { _edpPortadaImg = r.result; refrescarEstiloEd(); };
+  r.readAsDataURL(f);
+}
+function quitarPortada() { _edpPortadaImg = null; refrescarEstiloEd(); }
 
 // Chips de redes + campos SOLO de las redes prendidas
 function redesEdHTML() {
@@ -4105,6 +4188,10 @@ function guardarPerfil() {
   u.bio = document.getElementById('edBio').value.trim();
   if (_avatarTmp) u.avatar = _avatarTmp;
   _avatarTmp = null;
+  // Estilo: tipografía del nombre y fondo del perfil
+  u.nombreFont = _edpFont;
+  u.portada = _edpPortada;
+  u.portadaImg = _edpPortadaImg;
   // Redes sociales: solo las que el usuario dejó vinculadas
   _capturarRedes();
   u.redes = u.redes || {};

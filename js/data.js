@@ -19,6 +19,9 @@ const DATA = {
     avatar: '🦄',
     logo: null,   // logo de la organizadora (imagen); si está, reemplaza al avatar
     color: 'linear-gradient(135deg,#2f7bff,#38bdf8)',
+    nombreFont: 'classic',   // tipografía del nombre (ids de FONTS)
+    portada: 'aurora',       // fondo del perfil (ids de PORTADAS); null = color
+    portadaImg: null,        // foto propia de portada (si sube una)
     ciudad: 'Morelos',
     rol: 'organizador',
     privado: false,
