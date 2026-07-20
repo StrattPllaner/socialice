@@ -645,6 +645,29 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .nav-btn.is-active { color: var(--violet); }
 .nav-btn.is-active .nav-icon svg { transform: translateY(-1px); stroke-width: 2.1; }
 
+/* Pastilla luminosa que RESALTA el apartado activo (y responde al mouse
+   y al toque). Vive en ::before, detrás del icono y el texto. */
+.nav-btn { position: relative; z-index: 0; }
+.nav-btn::before {
+  content: ''; position: absolute; inset: 3px 10%; z-index: -1;
+  border-radius: 15px;
+  background: linear-gradient(180deg, rgba(125,190,255,.30), rgba(47,123,255,.14));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 4px 16px rgba(47,123,255,.28);
+  opacity: 0; transform: scale(.7);
+  transition: opacity .22s ease, transform .3s cubic-bezier(.2,.8,.2,1);
+}
+.nav-btn.is-active::before { opacity: 1; transform: scale(1); animation: navPillIn .35s cubic-bezier(.2,.8,.2,1); }
+@keyframes navPillIn { from { opacity: 0; transform: scale(.55); } }
+/* Al presionar (touch o click): la pastilla aparece y se comprime tantito */
+.nav-btn:active::before { opacity: .75; transform: scale(.92); }
+/* Con mouse (PC): al pasar encima se ilumina sin llegar al azul del activo */
+@media (hover: hover) {
+  .nav-btn:hover { color: #fff; }
+  .nav-btn:not(.is-active):hover::before { opacity: .45; transform: scale(1); }
+  .nav-btn:hover .nav-icon svg { transform: translateY(-2px); }
+  .nav-btn.is-active:hover .nav-icon svg { transform: translateY(-2px); stroke-width: 2.1; }
+}
+
 /* ================================================================== */
 /* ELEMENTOS COMPARTIDOS DE CONTENIDO                                  */
 /* ================================================================== */
@@ -1749,7 +1772,7 @@ body.no-scroll { overflow: hidden; }
 @keyframes cardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
 @media (prefers-reduced-motion: reduce) {
-  .nav-btn.is-active .nav-icon svg, .event-list > * { animation: none; }
+  .nav-btn.is-active .nav-icon svg, .nav-btn.is-active::before, .event-list > * { animation: none; }
   .btn:hover, .icon-btn:hover, .top-avatar:hover, .name-dot:hover,
   .grad-swatch:hover, .colab:hover, .red:hover { transform: none; }
   .icon-btn.sm:hover svg, .icon-btn.sm:active svg { transform: none; }
@@ -2467,6 +2490,8 @@ body::before {
   .nav-btn .nav-icon svg { width: 24px; height: 24px; }
   .nav-text { font-size: 1rem; font-weight: 600; }
   .nav-btn.is-active { background: rgba(47,123,255,.16); color: var(--violet); }
+  /* En el menú lateral el botón entero ya se resalta: fuera la pastilla */
+  .nav-btn::before { display: none; }
 
   /* El contenido se recorre a la derecha del menú y usa un área ancha */
   body:not([data-screen="splash"]) .app-shell {
