@@ -13,6 +13,12 @@
    ===================================================================== */
 
 const VERSION = 'socialice-v44-media-cache';
+// Rev del SW: bumpear ESTE número (no VERSION) cuando quieras forzar que las
+// apps ya abiertas se recarguen con el código nuevo. Cambiar cualquier byte de
+// este archivo instala un SW nuevo → controllerchange → index recarga una vez.
+// VERSION solo se bumpea si un video cambió bajo el mismo nombre (tira la
+// caché de medios y los usuarios re-descargan TODO).
+const SW_REV = 2;
 const CODIGO = 'socialice-codigo-v1';
 const FUENTES = 'socialice-fuentes-v1';
 const CACHES_VIVAS = [VERSION, CODIGO, FUENTES];
