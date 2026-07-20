@@ -2100,7 +2100,6 @@ body::before {
 }
 .red2:active { transform: scale(.92); }
 .red2 .soc-ic { width: 22px; height: 22px; }
-.red2.wa { background: #25d366; }
 .red2.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
 .red2.tk { background: #111; border: 1px solid var(--line-strong); }
 
@@ -2117,13 +2116,16 @@ body::before {
 .redsel .soc-ic { width: 16px; height: 16px; }
 .redsel.is-on { color: #fff; border-color: transparent; }
 .redsel.is-on.ig { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
-.redsel.is-on.tk { background: #111; border-color: var(--line-strong); }
-.redsel.is-on.wa { background: #25d366; }
+/* TikTok prendido: negro con borde blanco y el doble glow cian/rosa de la
+   marca — sin esto se veía casi igual que apagado y parecía que no respondía */
+.redsel.is-on.tk {
+  background: #000; border-color: rgba(255,255,255,.85);
+  box-shadow: -3px 0 10px rgba(37,244,238,.45), 3px 0 10px rgba(254,44,85,.45);
+}
 .field-icon.red-ic { display: grid; place-items: center; }
 .field-icon.red-ic .soc-ic { width: 18px; height: 18px; }
 .field-icon.red-ic.ig { color: #e75982; }
 .field-icon.red-ic.tk { color: #fff; }
-.field-icon.red-ic.wa { color: #25d366; }
 
 /* Evento PRIVADO con animación plateada */
 .crear-card.privado {

@@ -279,7 +279,7 @@ function reg3Submit(ev) {
   if (bio) DATA.usuario.bio = bio;
   if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
   // Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil"
-  DATA.usuario.redes = { whatsapp: '', instagram: '', tiktok: '', web: '' };
+  DATA.usuario.redes = { instagram: '', tiktok: '', web: '' };
   entrarApp();
   toast('¡Bienvenido a Socialice! 🎉');
   return false;
@@ -3186,7 +3186,6 @@ function pintarPerfil() {
 function redesHTML(u) {
   const r = u.redes || {};
   const items = [];
-  if (r.whatsapp)  items.push(`<a class="red2 wa" href="https://wa.me/${encodeURIComponent(r.whatsapp)}" target="_blank" rel="noopener" title="WhatsApp">${WA_SVG}</a>`);
   if (r.instagram) items.push(`<a class="red2 ig" href="https://instagram.com/${encodeURIComponent(r.instagram)}" target="_blank" rel="noopener" title="Instagram">${IG_SVG}</a>`);
   if (r.tiktok)    items.push(`<a class="red2 tk" href="https://tiktok.com/@${encodeURIComponent(r.tiktok)}" target="_blank" rel="noopener" title="TikTok">${TT_SVG}</a>`);
   return items.length ? `<div class="redes-row2">${items.join('')}</div>` : '';
@@ -3338,7 +3337,6 @@ function nuevaFiestaTipo(publico) {
 }
 
 // Iconos SVG limpios para redes
-const WA_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 20.5l1.4-4A8 8 0 1 1 8 19.1l-4.5 1.4Z"/><path d="M9 9.5c.3 2 2.5 4.2 4.5 4.5l1-1.2 1.7.8c.1 1.2-1 2-2 1.9-2.7-.3-5.2-2.8-5.5-5.5-.1-1 .7-2.1 1.9-2l.8 1.7-1.2 1Z" fill="currentColor" stroke="none"/></svg>';
 const IG_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5.5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>';
 const TT_SVG = '<svg class="soc-ic" viewBox="0 0 24 24" fill="currentColor"><path d="M15.4 3h-2.6v12.1a2.6 2.6 0 1 1-2.2-2.6v-2.7a5.3 5.3 0 1 0 4.8 5.3V9.2a6.6 6.6 0 0 0 4 1.3V7.9A3.9 3.9 0 0 1 15.4 3z"/></svg>';
 
@@ -3964,11 +3962,10 @@ const AVATARES = ['🦄','🐺','🌸','🎧','🦋','🐱','🌙','🔥','😎'
 // editor cada red es un chip que se prende/apaga; solo las prendidas tienen
 // campo, y en el perfil solo se muestran las que tengan algo escrito.
 const RED_DEFS = {
-  instagram: { nombre: 'Instagram', label: 'Usuario de Instagram',        ph: 'tuusuario',     cls: 'ig' },
-  tiktok:    { nombre: 'TikTok',    label: 'Usuario de TikTok',           ph: 'tuusuario',     cls: 'tk' },
-  whatsapp:  { nombre: 'WhatsApp',  label: 'Número con lada (ej: 52155…)', ph: '5215512345678', cls: 'wa' }
+  instagram: { nombre: 'Instagram', label: 'Usuario de Instagram', ph: 'tuusuario', cls: 'ig' },
+  tiktok:    { nombre: 'TikTok',    label: 'Usuario de TikTok',    ph: 'tuusuario', cls: 'tk' }
 };
-const RED_SVGS = () => ({ instagram: IG_SVG, tiktok: TT_SVG, whatsapp: WA_SVG });
+const RED_SVGS = () => ({ instagram: IG_SVG, tiktok: TT_SVG });
 
 let _redesTmp = null;   // borrador del editor: texto por red, o null = red no vinculada
 let _perfilTmp = null;  // lo escrito en nombre/usuario/bio que aún no se guarda
@@ -3982,8 +3979,7 @@ function editarPerfil(rePintado) {
     const r = u.redes || {};
     _redesTmp = {
       instagram: r.instagram || null,
-      tiktok:    r.tiktok    || null,
-      whatsapp:  r.whatsapp  || null
+      tiktok:    r.tiktok    || null
     };
   }
   const v = _perfilTmp || {};
@@ -4037,7 +4033,7 @@ function redesEdHTML() {
     return `
       <div class="field"><span class="field-icon red-ic ${d.cls}">${svgs[k]}</span><div class="field-main">
         <label class="field-label">${d.label}</label>
-        <input class="field-input" id="edRed_${k}" value="${esc(_redesTmp[k])}" placeholder="${d.ph}"${k === 'whatsapp' ? ' inputmode="tel"' : ''}>
+        <input class="field-input" id="edRed_${k}" value="${esc(_redesTmp[k])}" placeholder="${d.ph}">
       </div></div>`;
   }).join('');
   return `<div class="redsel-row">${chips}</div>${campos}`;
@@ -4093,7 +4089,7 @@ function guardarPerfil() {
   u.redes = u.redes || {};
   u.redes.instagram = (_redesTmp.instagram || '').trim().replace(/^@+/, '');
   u.redes.tiktok    = (_redesTmp.tiktok    || '').trim().replace(/^@+/, '');
-  u.redes.whatsapp  = (_redesTmp.whatsapp  || '').replace(/[^\d]/g, '');
+  delete u.redes.whatsapp;   // ya no pedimos teléfono
   _redesTmp = null;
   _perfilTmp = null;
   cerrarSheet();

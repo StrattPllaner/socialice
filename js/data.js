@@ -23,12 +23,11 @@ const DATA = {
     rol: 'organizador',
     privado: false,
     verificado: true,   // muestra la insignia ❄
-    // Redes sociales y contacto: SOLO las que el usuario eligió vincular
+    // Redes sociales: SOLO las que el usuario eligió vincular
     // (las vacías no aparecen en el perfil; se agregan en "Editar perfil")
     redes: {
-      whatsapp: '5215512345678',
       instagram: 'andrea.eventos',
-      tiktok: '',
+      tiktok: 'andrea.eventos',
       web: ''
     },
     // Colaboradores (links a otros perfiles)
