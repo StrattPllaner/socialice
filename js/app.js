@@ -4256,6 +4256,21 @@ function guardarPerfil() {
   cerrarEditarPerfil();
   pintarPerfil();
   toast('Perfil actualizado ✓');
+
+  // Persistir en Firestore (si hay backend). No mandamos imágenes base64
+  // (portadaImg/logo): eso irá a Firebase Storage más adelante. undefined no
+  // es válido en Firestore, así que coercionamos a null.
+  if (window.Socialice && window.Socialice.configurado) {
+    window.Socialice.actualizarPerfil({
+      nombre: u.nombre,
+      usuario: u.usuario,
+      bio: u.bio || '',
+      avatar: u.avatar || null,
+      nombreFont: u.nombreFont || null,
+      portada: u.portada || null,
+      redes: u.redes || {},
+    }).catch((e) => toast(window.Socialice.mensajeError(e)));
+  }
 }
 
 // --- Ajustes ---
@@ -4327,6 +4342,23 @@ function rutaSesion(user) {
     document.body.dataset.screen = 'splash';
     splashIr('welcome');
   }
+}
+
+// Vuelca el perfil real (documento de Firestore) en DATA.usuario antes de
+// renderizar. Lo llama el router de firebase-init al entrar. Solo pisa los
+// campos presentes (no borra lo que el doc todavía no tenga).
+function aplicarPerfil(p) {
+  if (!p) return;
+  const u = DATA.usuario;
+  if (p.nombre) u.nombre = p.nombre;
+  if (p.usuario) u.usuario = p.usuario[0] === '@' ? p.usuario : '@' + p.usuario;
+  if (typeof p.bio === 'string') u.bio = p.bio;
+  if (typeof p.fechaNacimiento === 'string') u.fechaNacimiento = p.fechaNacimiento;
+  if (p.avatar) u.avatar = p.avatar;
+  if (p.nombreFont) u.nombreFont = p.nombreFont;
+  if ('portada' in p) u.portada = p.portada;   // null = usar el color base
+  if (p.ciudad) u.ciudad = p.ciudad;
+  if (p.redes) u.redes = p.redes;
 }
 
 // Onboarding tras entrar con Google (cuenta nueva sin perfil). Lo llama el

@@ -40,7 +40,7 @@ if (!CONFIGURADO) {
     signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged,
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-auth.js`);
   const {
-    getFirestore, doc, setDoc, getDoc, serverTimestamp, Timestamp,
+    getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp,
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-firestore.js`);
 
   const app = initializeApp(firebaseConfig);
@@ -113,11 +113,21 @@ if (!CONFIGURADO) {
     return guardarPerfil(u.uid, { nombre, usuario, bio, fechaNacimiento, proveedor: 'google' });
   }
 
+  // Actualiza campos del perfil del usuario logueado. NO toca fechaNacimiento
+  // (las reglas exigen que no cambie). No se guardan imágenes base64 aquí
+  // (portadaImg/logo van a Firebase Storage más adelante).
+  function actualizarPerfil(cambios) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return updateDoc(doc(db, 'usuarios', u.uid), cambios);
+  }
+
   const logout = () => signOut(auth);
   const onSesion = (cb) => onAuthStateChanged(auth, cb);
 
   Object.assign(window.Socialice, {
-    crearCuenta, login, loginGoogle, completarPerfilGoogle, logout, onSesion, mensajeError,
+    crearCuenta, login, loginGoogle, completarPerfilGoogle, actualizarPerfil,
+    logout, onSesion, mensajeError,
   });
 
   // Router de sesión (las funciones viven en app.js). Se dispara al cargar y en
@@ -128,14 +138,31 @@ if (!CONFIGURADO) {
   //  - Google SIN perfil     → rutaOnboarding()  (pide fecha 18+ y crea el doc)
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.rutaSesion && window.rutaSesion(null); return; }
-    const esGoogle = (user.providerData || []).some((p) => p.providerId === 'google.com');
-    if (!esGoogle) { window.rutaSesion && window.rutaSesion(user); return; }
-    let tieneDoc = false;
-    try { tieneDoc = (await getDoc(doc(db, 'usuarios', user.uid))).exists(); } catch (_) {}
-    if (tieneDoc) {
+    // Carga el documento de perfil del usuario logueado.
+    let perfil = null;
+    try {
+      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      if (snap.exists()) perfil = snap.data();
+    } catch (_) {}
+    if (perfil) {
+      // Timestamp -> 'YYYY-MM-DD' para que app.js no dependa de tipos de Firestore.
+      if (perfil.fechaNacimiento && perfil.fechaNacimiento.toDate) {
+        const d = perfil.fechaNacimiento.toDate();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        perfil.fechaNacimiento = `${d.getFullYear()}-${mm}-${dd}`;
+      }
+      if (window.aplicarPerfil) window.aplicarPerfil(perfil);
       window.rutaSesion && window.rutaSesion(user);
-    } else if (window.rutaOnboarding) {
+      return;
+    }
+    // Sin documento: Google en su primer login → onboarding. Un usuario por
+    // email en pleno registro ya tiene DATA seteado por reg3Submit → entra.
+    const esGoogle = (user.providerData || []).some((p) => p.providerId === 'google.com');
+    if (esGoogle && window.rutaOnboarding) {
       window.rutaOnboarding({ uid: user.uid, nombre: user.displayName || '', email: user.email || '' });
+    } else {
+      window.rutaSesion && window.rutaSesion(user);
     }
   });
 
