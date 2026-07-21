@@ -38,9 +38,11 @@ if (!CONFIGURADO) {
   const {
     getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
     signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged,
+    sendPasswordResetEmail,
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-auth.js`);
   const {
-    getFirestore, doc, setDoc, getDoc, updateDoc, serverTimestamp, Timestamp,
+    getFirestore, doc, setDoc, getDoc, updateDoc, writeBatch,
+    serverTimestamp, Timestamp,
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-firestore.js`);
 
   const app = initializeApp(firebaseConfig);
@@ -61,16 +63,29 @@ if (!CONFIGURADO) {
     if (c === 'auth/operation-not-allowed') return 'Falta habilitar Email/Password en Firebase → Authentication.';
     if (c === 'auth/popup-closed-by-user') return 'Cerraste la ventana de Google.';
     if (c === 'auth/network-request-failed') return 'Sin conexión. Revisa tu internet.';
-    if (c === 'permission-denied') return 'Debes tener 18 años o más para usar Socialice.';
+    if (c === 'auth/too-many-requests') return 'Demasiados intentos. Espera un momento.';
+    if (c === 'permission-denied') return 'No se pudo completar (revisa tu edad o usuario).';
     return 'Algo salió mal. Intenta de nuevo.';
   }
 
-  // Guarda el documento de perfil en Firestore. Las reglas rechazan a menores
-  // (recalculan la edad desde la fecha). Se usa tanto en el registro por email
-  // como al completar el perfil tras entrar con Google. Guarda la FECHA, no un
-  // booleano, para poder auditar/recalcular.
+  // Normaliza un @usuario a la clave del documento en 'usernames' (sin @, minúsculas).
+  const claveUsuario = (usuario) => (usuario || '').replace(/^@+/, '').toLowerCase();
+
+  // ¿El @usuario está libre? Lectura pública de 'usernames' (para UX). La
+  // garantía real de unicidad es el batch de creación (las reglas impiden
+  // sobrescribir un usuario ya tomado).
+  async function usuarioDisponible(usuario) {
+    const snap = await getDoc(doc(db, 'usernames', claveUsuario(usuario)));
+    return !snap.exists();
+  }
+
+  // Guarda el perfil + RESERVA el usuario de forma atómica (batch). Si el
+  // usuario ya está tomado, el batch falla entero (no crea nada). Las reglas
+  // también rechazan a menores. Guarda la FECHA, no un booleano.
   function guardarPerfil(uid, { nombre, usuario, bio, fechaNacimiento, proveedor }) {
-    return setDoc(doc(db, 'usuarios', uid), {
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'usernames', claveUsuario(usuario)), { uid });  // create → falla si existe
+    batch.set(doc(db, 'usuarios', uid), {
       nombre,
       usuario,
       bio: bio || '',
@@ -78,6 +93,7 @@ if (!CONFIGURADO) {
       proveedor: proveedor || 'email',
       creado: serverTimestamp(),
     });
+    return batch.commit();
   }
 
   // Registro por email: crea la cuenta (Auth) + su documento. Si las reglas
@@ -114,12 +130,31 @@ if (!CONFIGURADO) {
   }
 
   // Actualiza campos del perfil del usuario logueado. NO toca fechaNacimiento
-  // (las reglas exigen que no cambie). No se guardan imágenes base64 aquí
-  // (portadaImg/logo van a Firebase Storage más adelante).
+  // (las reglas exigen que no cambie) ni el usuario (eso usa cambiarUsuario).
   function actualizarPerfil(cambios) {
     const u = auth.currentUser;
     if (!u) throw new Error('No hay sesión activa');
     return updateDoc(doc(db, 'usuarios', u.uid), cambios);
+  }
+
+  // Cambia el @usuario: reserva el nuevo, libera el viejo y actualiza el perfil,
+  // todo en un batch. Si el nuevo ya está tomado, el batch falla (no cambia nada).
+  function cambiarUsuario(nuevo, viejo) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    const nuevoKey = claveUsuario(nuevo);
+    const viejoKey = claveUsuario(viejo);
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'usernames', nuevoKey), { uid: u.uid });   // create → falla si existe
+    if (viejoKey && viejoKey !== nuevoKey) batch.delete(doc(db, 'usernames', viejoKey));
+    batch.update(doc(db, 'usuarios', u.uid), { usuario: nuevo });
+    return batch.commit();
+  }
+
+  // Envía el correo de restablecimiento de contraseña (Firebase). Con la
+  // protección anti-enumeración activa, no revela si el correo existe.
+  function recuperarPass(email) {
+    return sendPasswordResetEmail(auth, email);
   }
 
   const logout = () => signOut(auth);
@@ -127,6 +162,7 @@ if (!CONFIGURADO) {
 
   Object.assign(window.Socialice, {
     crearCuenta, login, loginGoogle, completarPerfilGoogle, actualizarPerfil,
+    usuarioDisponible, cambiarUsuario, recuperarPass,
     logout, onSesion, mensajeError,
   });
 

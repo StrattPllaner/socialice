@@ -46,6 +46,22 @@ service cloud.firestore {
       allow delete: if soyYo(uid);
     }
 
+    /* usernames/{nombre}  (nombre = @usuario en minúsculas, sin @)
+       Índice de usuarios únicos. Cada doc = { uid }.
+       - read: público, para chequear disponibilidad.
+       - create: solo si lo reclama su dueño (uid propio). Como 'create' solo
+         aplica cuando el doc NO existe, un usuario ya tomado no se puede robar.
+       - update: nadie (impide sobrescribir/robar un usuario existente).
+       - delete: solo el dueño (para liberarlo al cambiar de usuario). */
+    match /usernames/{nombre} {
+      allow read:   if true;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+      allow update: if false;
+      allow delete: if request.auth != null
+                    && resource.data.uid == request.auth.uid;
+    }
+
     // Todo lo demás, cerrado por defecto hasta que se definan sus reglas.
     match /{document=**} {
       allow read, write: if false;

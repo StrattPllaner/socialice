@@ -242,6 +242,22 @@ async function entrarGoogle() {
     toast(window.Socialice.mensajeError(e));
   }
 }
+// Restablecer contraseña: usa el correo ya escrito en el formulario de login.
+async function recuperarPass() {
+  const inp = document.getElementById('loginEmail');
+  const email = (inp && inp.value.trim()) || '';
+  if (!email) { if (inp) inp.focus(); toast('Escribe tu correo arriba y toca de nuevo'); return; }
+  if (window.Socialice && window.Socialice.configurado) {
+    try {
+      await window.Socialice.recuperarPass(email);
+      toast('Te enviamos un correo para restablecer tu contraseña 📧');
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+    }
+  } else {
+    toast('Te enviaremos un correo para restablecerla 📧');
+  }
+}
 function reg1Submit(ev) {
   ev.preventDefault();
   const f = ev.target;
@@ -276,17 +292,14 @@ function reg1Submit(ev) {
   splashIr('reg2');
   return false;
 }
-function reg2Submit(ev) {
+async function reg2Submit(ev) {
   ev.preventDefault();
   const f = ev.target;
   if (!f.reportValidity()) { toast('Ponle nombre y usuario a tu cuenta'); return false; }
   const user = document.getElementById('reg2User').value.trim().toLowerCase();
-  // Usuario duplicado (contra la gente que ya existe en la app)
-  const ocupados = [
-    ...DATA.amigos, ...DATA.sugerencias,
-    ...(DATA.usuario.seguidoresList || []), ...(DATA.usuario.colaboradores || [])
-  ].map((x) => (x.usuario || '').toLowerCase());
-  if (ocupados.includes('@' + user)) {
+  // Usuario único: con backend, disponibilidad REAL en Firestore; sin backend,
+  // contra la lista mock de gente que ya existe en la app.
+  if (await usuarioOcupado(user)) {
     const inp = document.getElementById('reg2User');
     inp.setCustomValidity('Ese usuario ya está ocupado');
     inp.reportValidity();
@@ -296,6 +309,18 @@ function reg2Submit(ev) {
   }
   splashIr('reg3');
   return false;
+}
+
+// ¿El usuario (sin @) está ocupado? Backend real si hay Firebase; si no, mock.
+async function usuarioOcupado(user) {
+  if (window.Socialice && window.Socialice.configurado) {
+    try { return !(await window.Socialice.usuarioDisponible('@' + user)); }
+    catch (_) { return false; }   // si la lectura falla, el batch decide al crear
+  }
+  return [
+    ...DATA.amigos, ...DATA.sugerencias,
+    ...(DATA.usuario.seguidoresList || []), ...(DATA.usuario.colaboradores || [])
+  ].map((x) => (x.usuario || '').toLowerCase()).includes('@' + user);
 }
 async function reg3Submit(ev) {
   ev.preventDefault();
@@ -4262,10 +4287,13 @@ function elegirAvatar(a, btn) {
   document.querySelectorAll('#avatarGrid .avatar-opt').forEach((b) => b.classList.remove('is-sel'));
   btn.classList.add('is-sel');
 }
-function guardarPerfil() {
+async function guardarPerfil() {
   const u = DATA.usuario;
+  const usuarioViejo = u.usuario;
+  const usuarioRaw = document.getElementById('edUsuario').value.trim();
+  const usuarioNuevo = usuarioRaw ? '@' + usuarioRaw.replace(/^@+/, '') : usuarioViejo;
   u.nombre = document.getElementById('edNombre').value.trim() || u.nombre;
-  u.usuario = document.getElementById('edUsuario').value.trim() || u.usuario;
+  u.usuario = usuarioNuevo;
   u.bio = document.getElementById('edBio').value.trim();
   if (_avatarTmp) u.avatar = _avatarTmp;
   _avatarTmp = null;
@@ -4281,17 +4309,29 @@ function guardarPerfil() {
   delete u.redes.whatsapp;   // ya no pedimos teléfono
   _redesTmp = null;
   _perfilTmp = null;
+
+  // Cambio de @usuario (con backend): reservar el nuevo y liberar el viejo. Si
+  // ya está ocupado, se mantiene el anterior. Se hace ANTES de re-pintar.
+  if (window.Socialice && window.Socialice.configurado
+      && usuarioNuevo.toLowerCase() !== usuarioViejo.toLowerCase()) {
+    try {
+      await window.Socialice.cambiarUsuario(usuarioNuevo, usuarioViejo);
+    } catch (e) {
+      u.usuario = usuarioViejo;
+      toast('Ese usuario ya está ocupado; se mantuvo el anterior');
+    }
+  }
+
   cerrarEditarPerfil();
   pintarPerfil();
   toast('Perfil actualizado ✓');
 
-  // Persistir en Firestore (si hay backend). Las fotos van como miniatura
-  // comprimida dentro del documento (sin Storage). undefined no es válido en
-  // Firestore, así que coercionamos a null.
+  // Persistir el resto en Firestore. Las fotos van como miniatura comprimida
+  // dentro del documento (sin Storage). undefined no es válido → null. El
+  // 'usuario' NO va aquí: ya lo maneja cambiarUsuario (o no cambió).
   if (window.Socialice && window.Socialice.configurado) {
     const cambios = {
       nombre: u.nombre,
-      usuario: u.usuario,
       bio: u.bio || '',
       avatar: u.avatar || null,
       nombreFont: u.nombreFont || null,
@@ -4428,12 +4468,8 @@ async function onboardSubmit(ev) {
   const bio = document.getElementById('onbBio').value.trim();
   const fNac = document.getElementById('onbNacimiento');
 
-  // Usuario duplicado (contra la gente que ya existe en la app).
-  const ocupados = [
-    ...DATA.amigos, ...DATA.sugerencias,
-    ...(DATA.usuario.seguidoresList || []), ...(DATA.usuario.colaboradores || [])
-  ].map((x) => (x.usuario || '').toLowerCase());
-  if (ocupados.includes('@' + user)) {
+  // Usuario único (disponibilidad real en Firestore).
+  if (await usuarioOcupado(user)) {
     document.getElementById('onbUser').focus();
     toast('Ese usuario ya está ocupado, prueba otro');
     return false;
