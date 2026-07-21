@@ -541,6 +541,7 @@ function tarjetaProximamente(e) {
 function interesado(id, btn) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   e._interesado = !e._interesado;
+  _persistRsvp(e);
   btn.classList.toggle('on', e._interesado);
   btn.innerHTML = btn.classList.contains('pf-star') ? icon('star') : icon('star') + (e._interesado ? ' Interesado ✓' : ' Interesado');
   // Actualiza el contador de interesados si está visible
@@ -3924,6 +3925,7 @@ function setRsvp(id, estado) {
   if (!e) return;
   e._rsvp = (e._rsvp === estado) ? null : estado;
   e._voy = e._rsvp === 'voy';
+  _persistRsvp(e);
   const msg = { voy: `¡Confirmado! Vas a ${e.nombre} 🎉`, tal: 'Quedaste como "tal vez" 🤔', no: 'Marcaste que no puedes 🙅' };
   toast(e._rsvp ? msg[e._rsvp] : 'Quitaste tu respuesta');
   abrirEvento(id);
@@ -3934,6 +3936,7 @@ function acomp(id, d) {
   if (!e) return;
   e._rsvpExtra = Math.max(0, (e._rsvpExtra || 0) + d);
   const n = document.getElementById('acompN'); if (n) n.textContent = '+' + e._rsvpExtra;
+  _persistRsvp(e);
 }
 // Recordatorio del evento
 function toggleRecordar(id, btn) {
@@ -3949,6 +3952,7 @@ function interesadoPage(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   if (!e) return;
   e._interesado = !e._interesado;
+  _persistRsvp(e);
   toast(e._interesado ? `¡Listo! Te avisaremos de ${e.nombre} 🔔` : 'Ya no recibirás avisos');
   abrirEvento(id);
 }
@@ -4475,6 +4479,35 @@ function aplicarEventos(lista) {
   if (!nuevos.length) return;
   DATA.eventos = [...nuevos, ...DATA.eventos];
   if (document.body.dataset.screen === 'home') pintarInicio();
+}
+
+// Aplica las respuestas RSVP guardadas (usuarios/{uid}/rsvps) a los eventos ya
+// cargados. Lo llama el router después de aplicarEventos.
+function aplicarRsvps(mapa) {
+  if (!mapa) return;
+  Object.keys(mapa).forEach((eid) => {
+    const e = DATA.eventos.find((ev) => ev.id === eid);
+    if (!e) return;
+    const r = mapa[eid] || {};
+    if (r.rsvp) { e._rsvp = r.rsvp; e._voy = r.rsvp === 'voy'; }
+    if (r.interesado) e._interesado = true;
+    if (r.extra) e._rsvpExtra = r.extra;
+  });
+  if (document.body.dataset.screen === 'home') pintarInicio();
+}
+
+// Persiste (o borra) la respuesta del usuario para un evento en Firestore.
+function _persistRsvp(e) {
+  if (!(window.Socialice && window.Socialice.configurado)) return;
+  const vacio = !e._rsvp && !e._interesado;
+  const p = vacio
+    ? window.Socialice.borrarRsvp(e.id)
+    : window.Socialice.guardarRsvp(e.id, {
+        rsvp: e._rsvp || null,
+        interesado: !!e._interesado,
+        extra: e._rsvpExtra || 0,
+      });
+  p.catch((err) => toast(window.Socialice.mensajeError(err)));
 }
 
 // Onboarding tras entrar con Google (cuenta nueva sin perfil). Lo llama el

@@ -195,6 +195,30 @@ if (!CONFIGURADO) {
     return [...mapa.values()];
   }
 
+  /* --- RSVP ("voy" / "tal vez" / "no" / interesado) ---
+     La respuesta de CADA usuario vive en usuarios/{uid}/rsvps/{eid} (privado:
+     solo el dueño la lee/escribe). Así "voy a ir" persiste por usuario. La
+     lista/conteo de invitados de cara al evento es un slice posterior. */
+  function guardarRsvp(eid, datos) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return setDoc(doc(db, 'usuarios', u.uid, 'rsvps', eid),
+      { ...datos, actualizado: serverTimestamp() }, { merge: true });
+  }
+  function borrarRsvp(eid) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return deleteDoc(doc(db, 'usuarios', u.uid, 'rsvps', eid));
+  }
+  async function cargarRsvps() {
+    const u = auth.currentUser;
+    if (!u) return {};
+    const snap = await getDocs(collection(db, 'usuarios', u.uid, 'rsvps'));
+    const out = {};
+    snap.forEach((d) => { out[d.id] = d.data(); });
+    return out;   // { eid: { rsvp, interesado, extra } }
+  }
+
   const logout = () => signOut(auth);
   const onSesion = (cb) => onAuthStateChanged(auth, cb);
 
@@ -202,6 +226,7 @@ if (!CONFIGURADO) {
     crearCuenta, login, loginGoogle, completarPerfilGoogle, actualizarPerfil,
     usuarioDisponible, cambiarUsuario, recuperarPass,
     crearEvento, actualizarEvento, borrarEvento, cargarEventos,
+    guardarRsvp, borrarRsvp, cargarRsvps,
     logout, onSesion, mensajeError,
   });
 
@@ -228,10 +253,13 @@ if (!CONFIGURADO) {
         perfil.fechaNacimiento = `${d.getFullYear()}-${mm}-${dd}`;
       }
       if (window.aplicarPerfil) window.aplicarPerfil(perfil);
-      // Carga los eventos reales al feed (no bloquea si falla).
+      // Carga los eventos reales al feed y las respuestas RSVP del usuario
+      // (no bloquea si falla). Los RSVP se aplican después de los eventos.
       try {
         const evs = await cargarEventos();
         if (window.aplicarEventos) window.aplicarEventos(evs);
+        const rs = await cargarRsvps();
+        if (window.aplicarRsvps) window.aplicarRsvps(rs);
       } catch (_) {}
       window.rutaSesion && window.rutaSesion(user);
       return;

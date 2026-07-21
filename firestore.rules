@@ -44,6 +44,12 @@ service cloud.firestore {
       allow update: if soyYo(uid)
                     && request.resource.data.fechaNacimiento == resource.data.fechaNacimiento;
       allow delete: if soyYo(uid);
+
+      // usuarios/{uid}/rsvps/{eid}: la respuesta del usuario a un evento
+      // (voy/tal vez/no/interesado). Privada: solo el dueño la ve y edita.
+      match /rsvps/{eid} {
+        allow read, write: if soyYo(uid);
+      }
     }
 
     /* usernames/{nombre}  (nombre = @usuario en minúsculas, sin @)
