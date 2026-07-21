@@ -211,7 +211,8 @@ async function loginSubmit(ev) {
   ev.preventDefault();
   const f = ev.target;
   if (!f.reportValidity()) { toast('Revisa tu correo y contraseña'); return false; }
-  // Con Firebase configurado, login real; si no, modo mock.
+  // Con Firebase configurado, login real; el router de sesión (rutaSesion)
+  // entra a la app al detectar la sesión. Sin Firebase, modo mock.
   if (window.Socialice && window.Socialice.configurado) {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPass').value;
@@ -221,28 +222,22 @@ async function loginSubmit(ev) {
       toast(window.Socialice.mensajeError(e));
       return false;
     }
+    toast('¡Qué gusto verte de nuevo! 🎉');
+    return false;
   }
   entrarApp();
   toast(`¡Qué gusto verte, ${DATA.usuario.nombre.split(' ')[0]}! 🎉`);
   return false;
 }
-// Login con Google (solo si Firebase está configurado).
+// Login con Google (solo si Firebase está configurado). El router de sesión
+// decide: si ya tiene perfil entra; si es cuenta nueva, va a onboarding (18+).
 async function entrarGoogle() {
   if (!(window.Socialice && window.Socialice.configurado)) {
     toast('Conecta Firebase para usar Google 🔗');
     return;
   }
   try {
-    const { nuevo } = await window.Socialice.loginGoogle();
-    if (nuevo) {
-      // Cuenta nueva por Google: aún no tiene fecha de nacimiento. No la
-      // dejamos entrar sin verificar 18+ (falta un paso de onboarding).
-      await window.Socialice.logout();
-      toast('Para entrar con Google primero necesitamos tu fecha de nacimiento (18+).');
-      return;
-    }
-    entrarApp();
-    toast('¡Listo! 🎉');
+    await window.Socialice.loginGoogle();
   } catch (e) {
     toast(window.Socialice.mensajeError(e));
   }
@@ -315,8 +310,18 @@ async function reg3Submit(ev) {
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPass').value;
 
+  // Refleja los datos en la UI (que hoy lee de DATA.usuario). Se hace ANTES de
+  // crear la cuenta para que, cuando el router entre a la app, ya muestre datos
+  // frescos. Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil".
+  if (nombre) DATA.usuario.nombre = nombre;
+  if (user) DATA.usuario.usuario = usuario;
+  if (bio) DATA.usuario.bio = bio;
+  if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
+  DATA.usuario.redes = { instagram: '', tiktok: '', web: '' };
+
   // Con Firebase configurado, crea la cuenta REAL (Auth + Firestore); las
-  // reglas rechazan a menores. Si no está configurado, sigue el modo mock.
+  // reglas rechazan a menores. El router de sesión entra a la app solo. Si no
+  // está configurado, sigue el modo mock (entra directo aquí).
   if (window.Socialice && window.Socialice.configurado) {
     try {
       await window.Socialice.crearCuenta({ email, password, nombre, usuario, bio, fechaNacimiento });
@@ -324,15 +329,10 @@ async function reg3Submit(ev) {
       toast(window.Socialice.mensajeError(e));
       return false;
     }
+    toast('¡Bienvenido a Socialice! 🎉');
+    return false;
   }
 
-  // Refleja los datos en la UI (que hoy lee de DATA.usuario).
-  if (nombre) DATA.usuario.nombre = nombre;
-  if (user) DATA.usuario.usuario = usuario;
-  if (bio) DATA.usuario.bio = bio;
-  if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
-  // Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil"
-  DATA.usuario.redes = { instagram: '', tiktok: '', web: '' };
   entrarApp();
   toast('¡Bienvenido a Socialice! 🎉');
   return false;
@@ -4329,6 +4329,83 @@ function rutaSesion(user) {
   }
 }
 
+// Onboarding tras entrar con Google (cuenta nueva sin perfil). Lo llama el
+// router de firebase-init con {uid, nombre, email} del usuario de Google.
+function rutaOnboarding(info) {
+  const splash = document.getElementById('screen-splash');
+  if (!splash) return;
+  splash.classList.add('is-active');
+  document.body.dataset.screen = 'splash';
+  // Prellenamos el nombre con el de Google (el usuario puede cambiarlo).
+  const nombreInput = document.getElementById('onbNombre');
+  if (nombreInput && !nombreInput.value) nombreInput.value = (info && info.nombre) || '';
+  const fNac = document.getElementById('onbNacimiento');
+  if (fNac) fNac.max = maxFechaNacimiento();
+  splashIr('onboard');
+}
+
+// Cierra el perfil de Google (crea el documento con la fecha 18+ verificada).
+async function onboardSubmit(ev) {
+  ev.preventDefault();
+  const f = ev.target;
+  if (!f.reportValidity()) { toast('Completa tus datos para entrar'); return false; }
+  const nombre = document.getElementById('onbNombre').value.trim();
+  const user = document.getElementById('onbUser').value.trim().toLowerCase();
+  const usuario = '@' + user.replace(/^@+/, '');
+  const bio = document.getElementById('onbBio').value.trim();
+  const fNac = document.getElementById('onbNacimiento');
+
+  // Usuario duplicado (contra la gente que ya existe en la app).
+  const ocupados = [
+    ...DATA.amigos, ...DATA.sugerencias,
+    ...(DATA.usuario.seguidoresList || []), ...(DATA.usuario.colaboradores || [])
+  ].map((x) => (x.usuario || '').toLowerCase());
+  if (ocupados.includes('@' + user)) {
+    document.getElementById('onbUser').focus();
+    toast('Ese usuario ya está ocupado, prueba otro');
+    return false;
+  }
+
+  // Verificación de edad 18+ (misma lógica que el registro por email).
+  const edad = edadEnAnios(fNac.value);
+  if (edad === null) {
+    fNac.setCustomValidity('Ingresa tu fecha de nacimiento');
+    fNac.reportValidity();
+    fNac.setCustomValidity('');
+    toast('Ingresa tu fecha de nacimiento');
+    return false;
+  }
+  if (edad < EDAD_MINIMA) {
+    toast('Lo sentimos: debes tener 18 años o más para usar Socialice.');
+    // Menor: cerramos la sesión de Google (queda sin cuenta en la app).
+    if (window.Socialice && window.Socialice.configurado) await window.Socialice.logout();
+    return false;
+  }
+
+  // Crea el documento de perfil (las reglas revalidan la edad).
+  try {
+    await window.Socialice.completarPerfilGoogle({ nombre, usuario, bio, fechaNacimiento: fNac.value });
+  } catch (e) {
+    toast(window.Socialice.mensajeError(e));
+    return false;
+  }
+  if (nombre) DATA.usuario.nombre = nombre;
+  DATA.usuario.usuario = usuario;
+  if (bio) DATA.usuario.bio = bio;
+  DATA.usuario.fechaNacimiento = fNac.value;
+  DATA.usuario.redes = { instagram: '', tiktok: '', web: '' };
+  entrarApp();
+  toast('¡Bienvenido a Socialice! 🎉');
+  return false;
+}
+
+// Botón "volver" del onboarding: sin fecha no se puede entrar, así que cierra
+// la sesión de Google y vuelve a la bienvenida.
+function salirOnboard() {
+  if (window.Socialice && window.Socialice.configurado) window.Socialice.logout();
+  else splashIr('welcome');
+}
+
 /* ===================================================================
    7. UTILIDADES Y ARRANQUE
    =================================================================== */
@@ -4347,8 +4424,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Registro: el selector de fecha no permite elegir a un menor de 18
   // (el máximo es "hace 18 años"). Se calcula al abrir por si cambia el día.
-  const fNacInput = document.getElementById('regNacimiento');
-  if (fNacInput) fNacInput.max = maxFechaNacimiento();
+  // Aplica a todos los campos de fecha 18+ (registro por email y onboarding).
+  const max18 = maxFechaNacimiento();
+  document.querySelectorAll('.js-fecha-18').forEach((i) => { i.max = max18; });
 
   // La barra de navegación se ENCOGE un poco mientras haces scroll (deja ver
   // más el contenido detrás del vidrio) y vuelve a su tamaño al soltar.

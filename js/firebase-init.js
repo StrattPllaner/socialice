@@ -65,19 +65,28 @@ if (!CONFIGURADO) {
     return 'Algo salió mal. Intenta de nuevo.';
   }
 
-  // Crea la cuenta (Auth) + su documento de perfil (Firestore). Las reglas
-  // rechazan a menores; si eso pasa, borramos el usuario Auth recién creado
-  // para no dejar cuentas huérfanas.
+  // Guarda el documento de perfil en Firestore. Las reglas rechazan a menores
+  // (recalculan la edad desde la fecha). Se usa tanto en el registro por email
+  // como al completar el perfil tras entrar con Google. Guarda la FECHA, no un
+  // booleano, para poder auditar/recalcular.
+  function guardarPerfil(uid, { nombre, usuario, bio, fechaNacimiento, proveedor }) {
+    return setDoc(doc(db, 'usuarios', uid), {
+      nombre,
+      usuario,
+      bio: bio || '',
+      fechaNacimiento: fechaATimestamp(fechaNacimiento),
+      proveedor: proveedor || 'email',
+      creado: serverTimestamp(),
+    });
+  }
+
+  // Registro por email: crea la cuenta (Auth) + su documento. Si las reglas
+  // rechazan el documento (menor), borramos el usuario Auth para no dejar
+  // cuentas huérfanas.
   async function crearCuenta({ email, password, nombre, usuario, bio, fechaNacimiento }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     try {
-      await setDoc(doc(db, 'usuarios', cred.user.uid), {
-        nombre,
-        usuario,
-        bio: bio || '',
-        fechaNacimiento: fechaATimestamp(fechaNacimiento), // se guarda la FECHA, no un booleano
-        creado: serverTimestamp(),
-      });
+      await guardarPerfil(cred.user.uid, { nombre, usuario, bio, fechaNacimiento, proveedor: 'email' });
     } catch (e) {
       try { await cred.user.delete(); } catch (_) {}
       throw e;
@@ -90,26 +99,44 @@ if (!CONFIGURADO) {
     return cred.user.uid;
   }
 
-  async function loginGoogle() {
-    const cred = await signInWithPopup(auth, new GoogleAuthProvider());
-    // Si es cuenta nueva y aún no tiene doc de perfil, la app debe pedir la
-    // fecha de nacimiento en onboarding antes de crear el doc (18+).
-    const ref = doc(db, 'usuarios', cred.user.uid);
-    const existe = (await getDoc(ref)).exists();
-    return { uid: cred.user.uid, nuevo: !existe };
+  // Solo abre el popup de Google. El enrutado (entrar vs. onboarding) lo decide
+  // el listener de sesión según si el usuario ya tiene documento de perfil.
+  function loginGoogle() {
+    return signInWithPopup(auth, new GoogleAuthProvider());
+  }
+
+  // Crea el documento de perfil de un usuario de Google recién entrado (que aún
+  // no lo tiene). Requiere sesión activa; las reglas revalidan la edad 18+.
+  function completarPerfilGoogle({ nombre, usuario, bio, fechaNacimiento }) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return guardarPerfil(u.uid, { nombre, usuario, bio, fechaNacimiento, proveedor: 'google' });
   }
 
   const logout = () => signOut(auth);
   const onSesion = (cb) => onAuthStateChanged(auth, cb);
 
   Object.assign(window.Socialice, {
-    crearCuenta, login, loginGoogle, logout, onSesion, mensajeError,
+    crearCuenta, login, loginGoogle, completarPerfilGoogle, logout, onSesion, mensajeError,
   });
 
-  // Enruta la app según la sesión (definida en app.js). Se dispara al cargar
-  // y cada vez que cambia el estado de autenticación.
-  onAuthStateChanged(auth, (user) => {
-    if (typeof window.rutaSesion === 'function') window.rutaSesion(user);
+  // Router de sesión (las funciones viven en app.js). Se dispara al cargar y en
+  // cada cambio de autenticación:
+  //  - Sin sesión           → rutaSesion(null)  (bienvenida)
+  //  - Usuario por email     → rutaSesion(user)  (su doc se crea en el registro)
+  //  - Google con perfil     → rutaSesion(user)  (entra)
+  //  - Google SIN perfil     → rutaOnboarding()  (pide fecha 18+ y crea el doc)
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) { window.rutaSesion && window.rutaSesion(null); return; }
+    const esGoogle = (user.providerData || []).some((p) => p.providerId === 'google.com');
+    if (!esGoogle) { window.rutaSesion && window.rutaSesion(user); return; }
+    let tieneDoc = false;
+    try { tieneDoc = (await getDoc(doc(db, 'usuarios', user.uid))).exists(); } catch (_) {}
+    if (tieneDoc) {
+      window.rutaSesion && window.rutaSesion(user);
+    } else if (window.rutaOnboarding) {
+      window.rutaOnboarding({ uid: user.uid, nombre: user.displayName || '', email: user.email || '' });
+    }
   });
 
   console.info('[Socialice] Firebase conectado ✓');

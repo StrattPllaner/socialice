@@ -159,7 +159,7 @@
             <div class="field-main">
               <label class="field-label" for="regNacimiento">Fecha de nacimiento</label>
               <!-- max se calcula en app.js (init) para no permitir menores de 18 en el selector -->
-              <input type="date" class="field-input" id="regNacimiento" autocomplete="bday" required>
+              <input type="date" class="field-input js-fecha-18" id="regNacimiento" autocomplete="bday" required>
             </div>
           </div>
           <p class="field-hint">Debes tener 18 años o más para usar Socialice.</p>
@@ -231,6 +231,54 @@
         </div>
         <div class="splash-bottom">
           <button class="btn full" type="submit" form="fReg3">Entrar a Socialice</button>
+        </div>
+      </div>
+
+      <!-- f) Onboarding tras entrar con Google (cuenta nueva sin perfil):
+           pedimos usuario + fecha de nacimiento (18+) + bio y creamos el doc. -->
+      <div class="splash-page" data-page="onboard">
+        <div class="splash-head">
+          <button class="icon-btn" onclick="salirOnboard()" aria-label="Volver">‹</button>
+        </div>
+        <div class="splash-body">
+          <img class="brand-logo-img sm" src="icons/logo-figure.png" alt="Socialice">
+          <h2 class="splash-h">Completa tu perfil</h2>
+          <p class="splash-sub">Solo falta esto para entrar a la fiesta.</p>
+
+          <form id="fOnboard" class="splash-form" onsubmit="return onboardSubmit(event)" novalidate>
+          <div class="field">
+            <span class="field-icon" data-icon="user"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbNombre">Nombre</label>
+              <input type="text" class="field-input" id="onbNombre" placeholder="Ej: Andrea Ríos" autocomplete="name" required minlength="2" maxlength="40">
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon" data-icon="tag"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbUser">Usuario</label>
+              <input type="text" class="field-input" id="onbUser" placeholder="tuusuario" autocomplete="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9._]+" title="Solo letras, números, punto y guion bajo">
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon" data-icon="cal"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbNacimiento">Fecha de nacimiento</label>
+              <input type="date" class="field-input js-fecha-18" id="onbNacimiento" autocomplete="bday" required>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon" data-icon="spark"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbBio">Bio</label>
+              <input type="text" class="field-input" id="onbBio" placeholder="Cuéntale a la gente quién eres" maxlength="90">
+            </div>
+          </div>
+          </form>
+          <p class="field-hint">Debes tener 18 años o más para usar Socialice.</p>
+        </div>
+        <div class="splash-bottom">
+          <button class="btn full" type="submit" form="fOnboard">Entrar a Socialice</button>
         </div>
       </div>
 
