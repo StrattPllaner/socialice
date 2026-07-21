@@ -4169,12 +4169,38 @@ function refrescarEstiloEd() {
 }
 function setPortada(id) { _edpPortada = id; _edpPortadaImg = null; refrescarEstiloEd(); }
 function setEdpFont(id) { _edpFont = id; refrescarEstiloEd(); }
-function subirPortada(ev) {
+
+// Redimensiona y comprime una imagen (File) a un dataURL JPEG pequeño para
+// guardarla en Firestore SIN Storage (plan gratis). maxLado = lado mayor en px.
+function comprimirImagen(file, maxLado = 720, calidad = 0.7) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > h && w > maxLado) { h = Math.round(h * maxLado / w); w = maxLado; }
+        else if (h >= w && h > maxLado) { w = Math.round(w * maxLado / h); h = maxLado; }
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(cv.toDataURL('image/jpeg', calidad));
+      };
+      img.onerror = reject;
+      img.src = r.result;
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function subirPortada(ev) {
   const f = ev.target.files[0];
   if (!f) return;
-  const r = new FileReader();
-  r.onload = () => { _edpPortadaImg = r.result; refrescarEstiloEd(); };
-  r.readAsDataURL(f);
+  try {
+    _edpPortadaImg = await comprimirImagen(f, 720, 0.7);   // portada (imagen ancha)
+    refrescarEstiloEd();
+  } catch (_) { toast('No pude procesar esa imagen'); }
 }
 function quitarPortada() { _edpPortadaImg = null; refrescarEstiloEd(); }
 
@@ -4219,12 +4245,14 @@ function toggleRed(k) {
   if (_redesTmp[k] !== null) document.getElementById('edRed_' + k)?.focus();
 }
 
-function subirLogo(ev) {
+async function subirLogo(ev) {
   const f = ev.target.files[0];
   if (!f) return;
-  const r = new FileReader();
-  r.onload = () => { _capturarPerfil(); DATA.usuario.logo = r.result; editarPerfil(true); };
-  r.readAsDataURL(f);
+  try {
+    _capturarPerfil();
+    DATA.usuario.logo = await comprimirImagen(f, 256, 0.8);   // logo (pequeño y cuadrado-ish)
+    editarPerfil(true);
+  } catch (_) { toast('No pude procesar esa imagen'); }
 }
 function quitarLogo() { _capturarPerfil(); DATA.usuario.logo = null; editarPerfil(true); }
 
@@ -4257,11 +4285,11 @@ function guardarPerfil() {
   pintarPerfil();
   toast('Perfil actualizado ✓');
 
-  // Persistir en Firestore (si hay backend). No mandamos imágenes base64
-  // (portadaImg/logo): eso irá a Firebase Storage más adelante. undefined no
-  // es válido en Firestore, así que coercionamos a null.
+  // Persistir en Firestore (si hay backend). Las fotos van como miniatura
+  // comprimida dentro del documento (sin Storage). undefined no es válido en
+  // Firestore, así que coercionamos a null.
   if (window.Socialice && window.Socialice.configurado) {
-    window.Socialice.actualizarPerfil({
+    const cambios = {
       nombre: u.nombre,
       usuario: u.usuario,
       bio: u.bio || '',
@@ -4269,7 +4297,18 @@ function guardarPerfil() {
       nombreFont: u.nombreFont || null,
       portada: u.portada || null,
       redes: u.redes || {},
-    }).catch((e) => toast(window.Socialice.mensajeError(e)));
+      logo: u.logo || null,
+      portadaImg: u.portadaImg || null,
+    };
+    // Guardrail: el documento de Firestore no puede pasar de ~1 MiB. Si las
+    // fotos lo inflan demasiado, no las mandamos (el resto sí se guarda).
+    if ((cambios.logo || '').length + (cambios.portadaImg || '').length > 900000) {
+      cambios.logo = u.logo && u.logo.length < 500000 ? u.logo : null;
+      cambios.portadaImg = u.portadaImg && u.portadaImg.length < 500000 ? u.portadaImg : null;
+      toast('La foto era muy pesada; se guardó el resto del perfil');
+    }
+    window.Socialice.actualizarPerfil(cambios)
+      .catch((e) => toast(window.Socialice.mensajeError(e)));
   }
 }
 
@@ -4357,6 +4396,8 @@ function aplicarPerfil(p) {
   if (p.avatar) u.avatar = p.avatar;
   if (p.nombreFont) u.nombreFont = p.nombreFont;
   if ('portada' in p) u.portada = p.portada;   // null = usar el color base
+  if ('logo' in p) u.logo = p.logo;            // foto de logo (miniatura o null)
+  if ('portadaImg' in p) u.portadaImg = p.portadaImg;  // foto de portada
   if (p.ciudad) u.ciudad = p.ciudad;
   if (p.redes) u.redes = p.redes;
 }
