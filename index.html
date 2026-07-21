@@ -105,10 +105,10 @@
 
           <div class="divider"><span>o continúa con</span></div>
           <div class="social-row">
-            <button class="social-btn" onclick="toast('Acceso con Google · pronto 🔗')">
+            <button type="button" class="social-btn" onclick="entrarGoogle()">
               <span class="social-g">G</span> Google
             </button>
-            <button class="social-btn" onclick="toast('Acceso con Apple · pronto 🔗')">
+            <button type="button" class="social-btn" onclick="toast('Acceso con Apple · pronto 🔗')">
                Apple
             </button>
           </div>
@@ -285,6 +285,9 @@
   <!-- Primero los datos de ejemplo, luego la lógica que los usa -->
   <script src="js/data.js?v=101"></script>
   <script src="js/app.js?v=101"></script>
+  <!-- Backend real (Auth + Firestore). Módulo aparte: si no hay config,
+       la app sigue en modo mock. Pega tu firebaseConfig dentro del archivo. -->
+  <script type="module" src="js/firebase-init.js?v=101"></script>
 
   <!-- Service Worker. Al actualizarse recarga UNA sola vez y SOLO si ya había
        un SW controlando la página (primera visita no recarga: cero loops) -->

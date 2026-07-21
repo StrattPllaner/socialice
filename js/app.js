@@ -207,13 +207,45 @@ function maxFechaNacimiento() {
 
 /* --- Formularios del splash: validación nativa + feedback claro ---
    (Enter envía, los errores se muestran con reportValidity + toast) --- */
-function loginSubmit(ev) {
+async function loginSubmit(ev) {
   ev.preventDefault();
   const f = ev.target;
   if (!f.reportValidity()) { toast('Revisa tu correo y contraseña'); return false; }
+  // Con Firebase configurado, login real; si no, modo mock.
+  if (window.Socialice && window.Socialice.configurado) {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    try {
+      await window.Socialice.login(email, password);
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+      return false;
+    }
+  }
   entrarApp();
   toast(`¡Qué gusto verte, ${DATA.usuario.nombre.split(' ')[0]}! 🎉`);
   return false;
+}
+// Login con Google (solo si Firebase está configurado).
+async function entrarGoogle() {
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    toast('Conecta Firebase para usar Google 🔗');
+    return;
+  }
+  try {
+    const { nuevo } = await window.Socialice.loginGoogle();
+    if (nuevo) {
+      // Cuenta nueva por Google: aún no tiene fecha de nacimiento. No la
+      // dejamos entrar sin verificar 18+ (falta un paso de onboarding).
+      await window.Socialice.logout();
+      toast('Para entrar con Google primero necesitamos tu fecha de nacimiento (18+).');
+      return;
+    }
+    entrarApp();
+    toast('¡Listo! 🎉');
+  } catch (e) {
+    toast(window.Socialice.mensajeError(e));
+  }
 }
 function reg1Submit(ev) {
   ev.preventDefault();
@@ -270,18 +302,33 @@ function reg2Submit(ev) {
   splashIr('reg3');
   return false;
 }
-function reg3Submit(ev) {
+async function reg3Submit(ev) {
   ev.preventDefault();
-  // Aplica los datos del registro al perfil (mock, sin backend todavía)
   const nombre = document.getElementById('reg2Name').value.trim();
   const user = document.getElementById('reg2User').value.trim().toLowerCase();
+  const usuario = '@' + user.replace(/^@+/, '');
   const bio = document.getElementById('reg3Bio').value.trim();
-  // Fecha de nacimiento capturada en el paso 1 (ISO 'YYYY-MM-DD'). Se guarda
-  // tal cual para enviarla al backend, que revalidará la edad. NO guardamos un
-  // booleano "esMayor": guardamos la fecha para poder recalcular/auditar.
+  // Fecha de nacimiento capturada en el paso 1 (ISO 'YYYY-MM-DD'). Se envía
+  // tal cual; el backend revalida la edad. NO se guarda un booleano "esMayor".
   const fechaNacimiento = document.getElementById('regNacimiento').value;
+  // Correo y contraseña vienen del paso 1 (siguen en el DOM).
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPass').value;
+
+  // Con Firebase configurado, crea la cuenta REAL (Auth + Firestore); las
+  // reglas rechazan a menores. Si no está configurado, sigue el modo mock.
+  if (window.Socialice && window.Socialice.configurado) {
+    try {
+      await window.Socialice.crearCuenta({ email, password, nombre, usuario, bio, fechaNacimiento });
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+      return false;
+    }
+  }
+
+  // Refleja los datos en la UI (que hoy lee de DATA.usuario).
   if (nombre) DATA.usuario.nombre = nombre;
-  if (user) DATA.usuario.usuario = '@' + user.replace(/^@+/, '');
+  if (user) DATA.usuario.usuario = usuario;
   if (bio) DATA.usuario.bio = bio;
   if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
   // Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil"
@@ -4259,11 +4306,27 @@ function compartir(que) {
 // --- Cerrar sesión: vuelve a la bienvenida ---
 function cerrarSesion() {
   cerrarSheet();
+  if (window.Socialice && window.Socialice.configurado) window.Socialice.logout();
   document.querySelectorAll('.screen').forEach((s) =>
     s.classList.toggle('is-active', s.id === 'screen-splash'));
   document.body.dataset.screen = 'splash';
   splashIr('welcome');
   toast('Sesión cerrada');
+}
+
+// Enrutado según la sesión de Firebase (lo llama firebase-init cuando el
+// estado de autenticación cambia: al abrir, al entrar o al cerrar sesión).
+function rutaSesion(user) {
+  const splash = document.getElementById('screen-splash');
+  if (!splash) return;
+  if (user) {
+    splash.classList.remove('is-active');
+    if (document.body.dataset.screen === 'splash') entrarApp();
+  } else {
+    splash.classList.add('is-active');
+    document.body.dataset.screen = 'splash';
+    splashIr('welcome');
+  }
 }
 
 /* ===================================================================
@@ -4300,10 +4363,15 @@ document.addEventListener('DOMContentLoaded', () => {
     navMiniT = setTimeout(() => navEl.classList.remove('nav-mini'), 480);
   }, { capture: true, passive: true });
 
-  // ⚠️ TEMPORAL (modo pruebas): entra DIRECTO a la app sin pedir crear
-  // cuenta ni login. Para reactivar el splash, borra estas 2 líneas.
-  document.getElementById('screen-splash').classList.remove('is-active');
-  entrarApp();
+  // Arranque según la sesión:
+  // - Con Firebase configurado: dejamos el splash visible; firebase-init
+  //   enruta cuando resuelve la sesión (ver rutaSesion más abajo). Si hay
+  //   sesión abierta, entra a la app; si no, se queda en la bienvenida.
+  // - Sin Firebase (modo mock local): entra directo como antes.
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    document.getElementById('screen-splash').classList.remove('is-active');
+    entrarApp();
+  }
 
   // --- Atajo de desarrollo (solo para pruebas) ---
   // Permite abrir una pantalla directa, ej: ?screen=home&rol=asistente

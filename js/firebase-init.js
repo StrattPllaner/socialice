@@ -1,0 +1,116 @@
+/* =====================================================================
+   SOCIALICE · Inicialización de Firebase (Auth + Firestore)
+   ---------------------------------------------------------------------
+   Módulo ES aislado: NO reescribe app.js. Expone una mini-API en
+   window.Socialice que app.js llama en el registro / login.
+
+   >>> PARA ACTIVARLO: pega abajo tu firebaseConfig (consola de Firebase,
+       Project settings → tus apps → Web). Mientras siga el placeholder,
+       la app funciona en MODO MOCK como hasta ahora (no rompe nada).
+
+   Enforcement real de la edad 18+: las reglas de Firestore (firestore.rules)
+   revalidan la fecha en el servidor; este cliente es solo la 1ª barrera.
+   ===================================================================== */
+
+// Versión del SDK por CDN (sin npm/build). Puedes subirla cuando quieras.
+const FB = '11.0.0';
+
+const firebaseConfig = {
+  apiKey: 'AIzaSyAj9s4-wTQZkBRY2BWtUmAc9CXhkraCJRU',
+  authDomain: 'socialice-1f01d.firebaseapp.com',
+  projectId: 'socialice-1f01d',
+  storageBucket: 'socialice-1f01d.firebasestorage.app',
+  messagingSenderId: '598616002100',
+  appId: '1:598616002100:web:ae9fb13aa136f1b7488461',
+  measurementId: 'G-BD75L85ZH3',
+};
+
+// ¿Ya pegaste tus claves? Si no, arrancamos en modo mock y salimos.
+const CONFIGURADO = !firebaseConfig.apiKey.startsWith('TU_');
+
+// La API que verá app.js. 'configurado' le dice si hay backend real.
+window.Socialice = { configurado: CONFIGURADO };
+
+if (!CONFIGURADO) {
+  console.info('[Socialice] Firebase no configurado todavía → modo mock. Pega tu firebaseConfig en js/firebase-init.js');
+} else {
+  const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-app.js`);
+  const {
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+    signOut, GoogleAuthProvider, signInWithPopup, onAuthStateChanged,
+  } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-auth.js`);
+  const {
+    getFirestore, doc, setDoc, getDoc, serverTimestamp, Timestamp,
+  } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-firestore.js`);
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // 'YYYY-MM-DD' -> Timestamp de Firestore (hora local, medianoche).
+  const fechaATimestamp = (iso) => Timestamp.fromDate(new Date(iso + 'T00:00:00'));
+
+  // Traduce errores de Firebase a mensajes en español para el toast.
+  function mensajeError(e) {
+    const c = e && e.code || '';
+    console.error('[Socialice] Error de Firebase:', c, e && e.message);
+    if (c === 'auth/email-already-in-use') return 'Ese correo ya tiene cuenta.';
+    if (c === 'auth/invalid-email') return 'El correo no es válido.';
+    if (c === 'auth/weak-password') return 'La contraseña es muy débil (mínimo 6).';
+    if (c === 'auth/invalid-credential' || c === 'auth/wrong-password') return 'Correo o contraseña incorrectos.';
+    if (c === 'auth/operation-not-allowed') return 'Falta habilitar Email/Password en Firebase → Authentication.';
+    if (c === 'auth/popup-closed-by-user') return 'Cerraste la ventana de Google.';
+    if (c === 'auth/network-request-failed') return 'Sin conexión. Revisa tu internet.';
+    if (c === 'permission-denied') return 'Debes tener 18 años o más para usar Socialice.';
+    return 'Algo salió mal. Intenta de nuevo.';
+  }
+
+  // Crea la cuenta (Auth) + su documento de perfil (Firestore). Las reglas
+  // rechazan a menores; si eso pasa, borramos el usuario Auth recién creado
+  // para no dejar cuentas huérfanas.
+  async function crearCuenta({ email, password, nombre, usuario, bio, fechaNacimiento }) {
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    try {
+      await setDoc(doc(db, 'usuarios', cred.user.uid), {
+        nombre,
+        usuario,
+        bio: bio || '',
+        fechaNacimiento: fechaATimestamp(fechaNacimiento), // se guarda la FECHA, no un booleano
+        creado: serverTimestamp(),
+      });
+    } catch (e) {
+      try { await cred.user.delete(); } catch (_) {}
+      throw e;
+    }
+    return cred.user.uid;
+  }
+
+  async function login(email, password) {
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    return cred.user.uid;
+  }
+
+  async function loginGoogle() {
+    const cred = await signInWithPopup(auth, new GoogleAuthProvider());
+    // Si es cuenta nueva y aún no tiene doc de perfil, la app debe pedir la
+    // fecha de nacimiento en onboarding antes de crear el doc (18+).
+    const ref = doc(db, 'usuarios', cred.user.uid);
+    const existe = (await getDoc(ref)).exists();
+    return { uid: cred.user.uid, nuevo: !existe };
+  }
+
+  const logout = () => signOut(auth);
+  const onSesion = (cb) => onAuthStateChanged(auth, cb);
+
+  Object.assign(window.Socialice, {
+    crearCuenta, login, loginGoogle, logout, onSesion, mensajeError,
+  });
+
+  // Enruta la app según la sesión (definida en app.js). Se dispara al cargar
+  // y cada vez que cambia el estado de autenticación.
+  onAuthStateChanged(auth, (user) => {
+    if (typeof window.rutaSesion === 'function') window.rutaSesion(user);
+  });
+
+  console.info('[Socialice] Firebase conectado ✓');
+}
