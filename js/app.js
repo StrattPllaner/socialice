@@ -2634,7 +2634,7 @@ function pintarAmigos() {
       ${grupos.length ? grupos.map(tarjetaGrupo).join('') : `<p class="empty">Aún no tienes grupos. Crea uno con tus amigos 👥</p>`}
     </div>
 
-    <div class="row-between"><h3>Tus amigos</h3><span class="see-all">${DATA.amigos.length}</span></div>
+    <div class="row-between"><h3>Tus amigos</h3><button class="cal-link" onclick="agregarAmigoFlow()">＋ Agregar por usuario</button></div>
     <div class="friend-list" id="friendList">
       ${amigosOrdenados().map(tarjetaAmigo).join('')}
     </div>
@@ -2982,6 +2982,10 @@ function abrirAmigo(usuario) {
     <button class="best-btn ${a.mejorAmigo ? 'is-on' : ''}" onclick="toggleMejorAmigo('${a.usuario}')">
       ${a.mejorAmigo ? '★ Mejor amigo' : '☆ Hacer mejor amigo'}
     </button>`;
+  // Quitar amigo (solo amigos reales, que tienen uid).
+  const btnQuitar = a.uid
+    ? `<button class="best-btn" onclick="quitarAmigoFlow('${a.usuario}')">Quitar amigo</button>`
+    : '';
 
   if (!puedeVer(a)) {
     abrirSheet(a.nombre, `
@@ -2990,7 +2994,7 @@ function abrirAmigo(usuario) {
         <strong>${a.nombre}</strong><small>${a.usuario}</small>
       </div>
       <div class="locked-box">${icon('lock', 'mute')} Este perfil es privado.<br>Solo sus mejores amigos ven su actividad.</div>
-      <div class="sheet-actions">${btnBest}</div>
+      <div class="sheet-actions">${btnBest}${btnQuitar}</div>
     `);
     return;
   }
@@ -3006,7 +3010,7 @@ function abrirAmigo(usuario) {
     <div class="row-between"><h3>Sus fotos</h3></div>
     ${a.fotos.length ? `<div class="photo-grid">${a.fotos.map((f) => `<div class="photo-cell">${f}</div>`).join('')}</div>`
                      : `<p class="empty">Sin fotos todavía 📸</p>`}
-    <div class="sheet-actions">${btnBest}</div>
+    <div class="sheet-actions">${btnBest}${btnQuitar}</div>
   `);
 }
 
@@ -3014,6 +3018,10 @@ function abrirAmigo(usuario) {
 function toggleMejorAmigo(usuario) {
   const a = DATA.amigos.find((x) => x.usuario === usuario);
   a.mejorAmigo = !a.mejorAmigo;
+  // Persiste si es un amigo real (tiene uid).
+  if (a.uid && window.Socialice && window.Socialice.configurado) {
+    window.Socialice.setMejorAmigo(a.uid, a.mejorAmigo).catch(() => {});
+  }
   toast(a.mejorAmigo ? `${a.nombre} ahora es tu mejor amigo 💙` : `${a.nombre} ya no es mejor amigo`);
   abrirAmigo(usuario);  // re-pinta el panel
   pintarAmigos();       // re-pinta la lista de fondo
@@ -4337,10 +4345,11 @@ async function guardarPerfil() {
 
   // Cambio de @usuario (con backend): reservar el nuevo y liberar el viejo. Si
   // ya está ocupado, se mantiene el anterior. Se hace ANTES de re-pintar.
+  const display = { nombre: u.nombre, avatar: u.avatar || null, color: u.color || null };
   if (window.Socialice && window.Socialice.configurado
       && usuarioNuevo.toLowerCase() !== usuarioViejo.toLowerCase()) {
     try {
-      await window.Socialice.cambiarUsuario(usuarioNuevo, usuarioViejo);
+      await window.Socialice.cambiarUsuario(usuarioNuevo, usuarioViejo, display);
     } catch (e) {
       u.usuario = usuarioViejo;
       toast('Ese usuario ya está ocupado; se mantuvo el anterior');
@@ -4374,6 +4383,10 @@ async function guardarPerfil() {
     }
     window.Socialice.actualizarPerfil(cambios)
       .catch((e) => toast(window.Socialice.mensajeError(e)));
+    // Mantener fresca la info pública del username (para verse bien al agregarte).
+    window.Socialice.sincronizarPerfilPublico(u.usuario, {
+      nombre: u.nombre, avatar: u.avatar || null, color: u.color || null,
+    }).catch(() => {});
   }
 }
 
@@ -4494,6 +4507,69 @@ function aplicarRsvps(mapa) {
     if (r.extra) e._rsvpExtra = r.extra;
   });
   if (document.body.dataset.screen === 'home') pintarInicio();
+}
+
+// Mete los amigos reales (Firestore) a la lista, con los defaults que espera la
+// UI (fue/fotos/privado). No duplica por @usuario. Lo llama el router al entrar.
+function aplicarAmigos(lista) {
+  if (!Array.isArray(lista) || !lista.length) return;
+  const porUsuario = new Set(DATA.amigos.map((a) => (a.usuario || '').toLowerCase()));
+  const nuevos = lista
+    .filter((a) => !porUsuario.has((a.usuario || '').toLowerCase()))
+    .map((a) => ({
+      fue: [], fotos: [], privado: false, mejorAmigo: false,
+      color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', avatar: '🙂',
+      ...a,
+    }));
+  if (!nuevos.length) return;
+  DATA.amigos = [...nuevos, ...DATA.amigos];
+  if (document.body.dataset.screen === 'friends') pintarAmigos();
+}
+
+// Agregar amigo REAL: pide un @usuario, lo busca en Firestore y lo agrega.
+async function agregarAmigoFlow() {
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    toast('Conecta Firebase para agregar amigos reales'); return;
+  }
+  const q = await pedirTexto('Agregar amigo', { placeholder: '@usuario', ok: 'Buscar' });
+  if (!q) return;
+  const user = q.trim().replace(/^@+/, '').toLowerCase();
+  if (!user) return;
+  if (user === (DATA.usuario.usuario || '').replace(/^@+/, '').toLowerCase()) {
+    toast('Ese eres tú 🙂'); return;
+  }
+  if (DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === '@' + user)) {
+    toast('Ya es tu amigo ✓'); return;
+  }
+  let found;
+  try { found = await window.Socialice.buscarUsuario('@' + user); }
+  catch (_) { toast('No pude buscar ahora'); return; }
+  if (!found) { toast(`No existe el usuario @${user}`); return; }
+  const amigo = {
+    uid: found.uid, nombre: found.nombre || ('@' + user), usuario: '@' + user,
+    avatar: found.avatar || '🙂',
+    color: found.color || 'linear-gradient(135deg,#2f7bff,#38bdf8)',
+    mejorAmigo: false, fue: [], fotos: [], privado: false,
+  };
+  try { await window.Socialice.agregarAmigo(amigo); }
+  catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  DATA.amigos = [amigo, ...DATA.amigos];
+  toast(`${amigo.nombre} agregado 🎉`);
+  pintarAmigos();
+}
+
+// Quitar a un amigo (real). Cierra el panel y refresca.
+async function quitarAmigoFlow(usuario) {
+  const a = DATA.amigos.find((x) => x.usuario === usuario);
+  if (!a) return;
+  if (a.uid && window.Socialice && window.Socialice.configurado) {
+    try { await window.Socialice.quitarAmigo(a.uid); }
+    catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  }
+  DATA.amigos = DATA.amigos.filter((x) => x.usuario !== usuario);
+  cerrarSheet();
+  pintarAmigos();
+  toast(`${a.nombre} quitado de tus amigos`);
 }
 
 // Persiste (o borra) la respuesta del usuario para un evento en Firestore.

@@ -85,7 +85,8 @@ if (!CONFIGURADO) {
   // también rechazan a menores. Guarda la FECHA, no un booleano.
   function guardarPerfil(uid, { nombre, usuario, bio, fechaNacimiento, proveedor }) {
     const batch = writeBatch(db);
-    batch.set(doc(db, 'usernames', claveUsuario(usuario)), { uid });  // create → falla si existe
+    // El doc de username lleva info pública mínima (para descubrir/agregar amigos).
+    batch.set(doc(db, 'usernames', claveUsuario(usuario)), { uid, nombre: nombre || '' });
     batch.set(doc(db, 'usuarios', uid), {
       nombre,
       usuario,
@@ -140,16 +141,65 @@ if (!CONFIGURADO) {
 
   // Cambia el @usuario: reserva el nuevo, libera el viejo y actualiza el perfil,
   // todo en un batch. Si el nuevo ya está tomado, el batch falla (no cambia nada).
-  function cambiarUsuario(nuevo, viejo) {
+  // 'display' = { nombre, avatar, color } para el doc público del username.
+  function cambiarUsuario(nuevo, viejo, display) {
     const u = auth.currentUser;
     if (!u) throw new Error('No hay sesión activa');
     const nuevoKey = claveUsuario(nuevo);
     const viejoKey = claveUsuario(viejo);
     const batch = writeBatch(db);
-    batch.set(doc(db, 'usernames', nuevoKey), { uid: u.uid });   // create → falla si existe
+    batch.set(doc(db, 'usernames', nuevoKey), { uid: u.uid, ...(display || {}) });  // create → falla si existe
     if (viejoKey && viejoKey !== nuevoKey) batch.delete(doc(db, 'usernames', viejoKey));
     batch.update(doc(db, 'usuarios', u.uid), { usuario: nuevo });
     return batch.commit();
+  }
+
+  // Mantiene fresca la info pública del username (nombre/avatar/color) al editar
+  // el perfil, para que al agregarte de amigo se vea bien.
+  function sincronizarPerfilPublico(usuario, display) {
+    return updateDoc(doc(db, 'usernames', claveUsuario(usuario)), display);
+  }
+
+  // Busca un usuario por @usuario (lectura pública de 'usernames'). Devuelve
+  // { uid, usuario, nombre, avatar, color } o null si no existe.
+  async function buscarUsuario(usuario) {
+    const snap = await getDoc(doc(db, 'usernames', claveUsuario(usuario)));
+    if (!snap.exists()) return null;
+    const d = snap.data();
+    return {
+      uid: d.uid, usuario: '@' + claveUsuario(usuario),
+      nombre: d.nombre || '', avatar: d.avatar || null, color: d.color || null,
+    };
+  }
+
+  /* --- AMIGOS ---
+     Lista de amigos del usuario en usuarios/{uid}/amigos/{amigoUid} (privada:
+     solo el dueño). Se guarda info denormalizada del amigo para no leer su
+     documento privado. Modelo de "seguir" (agregar directo). */
+  function agregarAmigo(amigo) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    if (!amigo.uid) throw new Error('Falta el uid del amigo');
+    return setDoc(doc(db, 'usuarios', u.uid, 'amigos', amigo.uid),
+      { ...amigo, agregado: serverTimestamp() });
+  }
+  function quitarAmigo(amigoUid) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return deleteDoc(doc(db, 'usuarios', u.uid, 'amigos', amigoUid));
+  }
+  function setMejorAmigo(amigoUid, valor) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return updateDoc(doc(db, 'usuarios', u.uid, 'amigos', amigoUid), { mejorAmigo: !!valor });
+  }
+  async function cargarAmigos() {
+    const u = auth.currentUser;
+    if (!u) return [];
+    const snap = await getDocs(collection(db, 'usuarios', u.uid, 'amigos'));
+    const out = [];
+    snap.forEach((d) => out.push(d.data()));
+    return out;
   }
 
   // Envía el correo de restablecimiento de contraseña (Firebase). Con la
@@ -227,6 +277,8 @@ if (!CONFIGURADO) {
     usuarioDisponible, cambiarUsuario, recuperarPass,
     crearEvento, actualizarEvento, borrarEvento, cargarEventos,
     guardarRsvp, borrarRsvp, cargarRsvps,
+    sincronizarPerfilPublico, buscarUsuario,
+    agregarAmigo, quitarAmigo, setMejorAmigo, cargarAmigos,
     logout, onSesion, mensajeError,
   });
 
@@ -260,6 +312,8 @@ if (!CONFIGURADO) {
         if (window.aplicarEventos) window.aplicarEventos(evs);
         const rs = await cargarRsvps();
         if (window.aplicarRsvps) window.aplicarRsvps(rs);
+        const ams = await cargarAmigos();
+        if (window.aplicarAmigos) window.aplicarAmigos(ams);
       } catch (_) {}
       window.rutaSesion && window.rutaSesion(user);
       return;
