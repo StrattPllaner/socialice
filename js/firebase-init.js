@@ -41,7 +41,8 @@ if (!CONFIGURADO) {
     sendPasswordResetEmail,
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-auth.js`);
   const {
-    getFirestore, doc, setDoc, getDoc, updateDoc, writeBatch,
+    getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch,
+    collection, query, where, getDocs, limit,
     serverTimestamp, Timestamp,
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-firestore.js`);
 
@@ -157,12 +158,50 @@ if (!CONFIGURADO) {
     return sendPasswordResetEmail(auth, email);
   }
 
+  /* --- EVENTOS ---
+     Cada evento es eventos/{id}. El dueño (organizerUid) es el único que puede
+     crear/editar/borrar; cualquiera logueado lee los públicos y los suyos.
+     Los posts/noticias del evento NO van aquí todavía (crecen mucho: irán en
+     una subcolección más adelante). */
+  function crearEvento(id, datos) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return setDoc(doc(db, 'eventos', id), {
+      ...datos, organizerUid: u.uid, creado: serverTimestamp(),
+    });
+  }
+  function actualizarEvento(id, datos) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return setDoc(doc(db, 'eventos', id), {
+      ...datos, organizerUid: u.uid, actualizado: serverTimestamp(),
+    }, { merge: true });
+  }
+  function borrarEvento(id) {
+    return deleteDoc(doc(db, 'eventos', id));
+  }
+  // Carga los eventos públicos + los del propio usuario (para el feed).
+  // Sin orderBy para no requerir índice compuesto; se ordena en el cliente.
+  async function cargarEventos() {
+    const u = auth.currentUser;
+    if (!u) return [];
+    const [pub, mios] = await Promise.all([
+      getDocs(query(collection(db, 'eventos'), where('publico', '==', true), limit(100))),
+      getDocs(query(collection(db, 'eventos'), where('organizerUid', '==', u.uid))),
+    ]);
+    const mapa = new Map();
+    const meter = (d) => mapa.set(d.id, { id: d.id, ...d.data() });
+    pub.forEach(meter); mios.forEach(meter);
+    return [...mapa.values()];
+  }
+
   const logout = () => signOut(auth);
   const onSesion = (cb) => onAuthStateChanged(auth, cb);
 
   Object.assign(window.Socialice, {
     crearCuenta, login, loginGoogle, completarPerfilGoogle, actualizarPerfil,
     usuarioDisponible, cambiarUsuario, recuperarPass,
+    crearEvento, actualizarEvento, borrarEvento, cargarEventos,
     logout, onSesion, mensajeError,
   });
 
@@ -189,6 +228,11 @@ if (!CONFIGURADO) {
         perfil.fechaNacimiento = `${d.getFullYear()}-${mm}-${dd}`;
       }
       if (window.aplicarPerfil) window.aplicarPerfil(perfil);
+      // Carga los eventos reales al feed (no bloquea si falla).
+      try {
+        const evs = await cargarEventos();
+        if (window.aplicarEventos) window.aplicarEventos(evs);
+      } catch (_) {}
       window.rutaSesion && window.rutaSesion(user);
       return;
     }

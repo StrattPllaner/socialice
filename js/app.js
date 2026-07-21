@@ -1182,7 +1182,7 @@ function pintarCrear() {
         </div>
         <div class="ev-cover cr-ev-cover ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
           ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Portada</button>'}
-          <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+          <input type="file" accept="image/*" id="coverFile" hidden onchange="subirCover(event)">
           <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
         </div>
       </div>
@@ -1810,10 +1810,10 @@ function pasoPortada() {
     </div>
     <p class="hint">Arrastra el título, textos y emojis. Tócalos para cambiar color/tamaño.</p>
 
-    <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+    <input type="file" accept="image/*" id="coverFile" hidden onchange="subirCover(event)">
     <div class="cover-actions">
       <button class="chip" onclick="document.getElementById('coverFile').click()">⬆ Imagen</button>
-      ${draft.cover.img ? `<button class="chip" onclick="quitarPortada()">Quitar</button>` : ''}
+      ${draft.cover.img ? `<button class="chip" onclick="quitarCover()">Quitar</button>` : ''}
       <button class="chip" onclick="addCoverText()">＋ Texto</button>
       <button class="chip" onclick="toggleEmojiPalette()">😀 Emoji</button>
     </div>
@@ -2151,14 +2151,17 @@ function delBoleto(i) { draft.boletos.splice(i, 1); pintarBoletos(); }
 
 // --- Portada / fondo ---
 function setGrad(g) { draft.cover.grad = g; draft.cover.img = null; pintarCrear(); }
-function subirPortada(ev) {
+// Portada del EVENTO (distinta de la del perfil). Se comprime a miniatura
+// porque el evento se guarda en Firestore (límite de 1 MiB por documento).
+async function subirCover(ev) {
   const file = ev.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => { draft.cover.img = reader.result; pintarCrear(); };
-  reader.readAsDataURL(file);
+  try {
+    draft.cover.img = await comprimirImagen(file, 1080, 0.72);
+    pintarCrear();
+  } catch (_) { toast('No pude procesar esa imagen'); }
 }
-function quitarPortada() { draft.cover.img = null; pintarCrear(); }
+function quitarCover() { draft.cover.img = null; pintarCrear(); }
 
 // Foto de fondo del mapa del lugar
 function subirPlanoBg(ev) {
@@ -2290,25 +2293,43 @@ function draftAEvento() {
   };
 }
 
-function guardarFiesta() {
+async function guardarFiesta() {
   if (!draft.nombre.trim()) { toast('Ponle un nombre a tu fiesta'); return; }
   const campos = draftAEvento();
+  const editando = !!draft.id;
+  let id = draft.id;
 
-  if (draft.id) {
+  if (editando) {
     // Editando: actualizamos el evento existente
-    const e = DATA.eventos.find((x) => x.id === draft.id);
+    const e = DATA.eventos.find((x) => x.id === id);
     if (e) Object.assign(e, campos);
     toast('Cambios guardados ✓');
   } else {
     // Nuevo: lo creamos y lo agregamos al inicio del feed
-    DATA.eventos.unshift({
-      id: 'ev' + Date.now(),
-      asistentes: 0,
-      cat: ['semana', 'cerca'],
-      ...campos
-    });
+    id = 'ev' + Date.now();
+    DATA.eventos.unshift({ id, asistentes: 0, cat: ['semana', 'cerca'], ...campos });
     toast('¡Fiesta publicada! 🎉');
   }
+
+  // Persistir en Firestore (si hay backend). Se guarda el objeto local completo
+  // MENOS las noticias/posts (van en subcolección después). La portada ya viene
+  // comprimida; guardrail extra por el límite de 1 MiB del documento.
+  if (window.Socialice && window.Socialice.configurado) {
+    const local = DATA.eventos.find((x) => x.id === id);
+    const payload = JSON.parse(JSON.stringify(local || { id, ...campos }));
+    delete payload.id; delete payload.noticias;
+    if ((payload.coverImg || '').length > 900000) {
+      payload.coverImg = null;
+      toast('La portada pesaba mucho; se guardó sin imagen');
+    }
+    try {
+      if (editando) await window.Socialice.actualizarEvento(id, payload);
+      else await window.Socialice.crearEvento(id, payload);
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+    }
+  }
+
   draft = nuevoDraft();
   irA('profile');
 }
@@ -4440,6 +4461,20 @@ function aplicarPerfil(p) {
   if ('portadaImg' in p) u.portadaImg = p.portadaImg;  // foto de portada
   if (p.ciudad) u.ciudad = p.ciudad;
   if (p.redes) u.redes = p.redes;
+}
+
+// Mete los eventos reales (Firestore) al feed. Los agrega al inicio, sin
+// duplicar ids, y les pone valores por defecto de los campos que no persisten
+// todavía (asistentes, noticias/posts). Lo llama el router al entrar.
+function aplicarEventos(lista) {
+  if (!Array.isArray(lista) || !lista.length) return;
+  const ids = new Set(DATA.eventos.map((e) => e.id));
+  const nuevos = lista
+    .filter((e) => !ids.has(e.id))
+    .map((e) => ({ asistentes: 0, cat: ['semana'], noticias: [], ...e }));
+  if (!nuevos.length) return;
+  DATA.eventos = [...nuevos, ...DATA.eventos];
+  if (document.body.dataset.screen === 'home') pintarInicio();
 }
 
 // Onboarding tras entrar con Google (cuenta nueva sin perfil). Lo llama el
