@@ -3608,6 +3608,9 @@ button, a, .chip, .nav-btn { touch-action: manipulation; }
 /* Grupo a pantalla completa: una sola columna, y el evento abre ENCIMA */
 .evfull-inner.gr-inner { display: block; max-width: 640px; }
 #eventoFull { z-index: 72; }
+/* El perfil de otra persona puede abrirse DESDE dentro de un evento (tocando
+   al organizador) — va encima de todo lo demás en .evfull. */
+#perfilVerFull { z-index: 73; }
 
 /* Física de los emojis de reacción: pop elástico, empujón de vecinos y vuelo */
 .reac-btn { will-change: transform; }

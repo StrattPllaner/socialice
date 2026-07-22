@@ -18,7 +18,7 @@ const VERSION = 'socialice-v44-media-cache';
 // este archivo instala un SW nuevo → controllerchange → index recarga una vez.
 // VERSION solo se bumpea si un video cambió bajo el mismo nombre (tira la
 // caché de medios y los usuarios re-descargan TODO).
-const SW_REV = 9;
+const SW_REV = 10;
 const CODIGO = 'socialice-codigo-v1';
 const FUENTES = 'socialice-fuentes-v1';
 const CACHES_VIVAS = [VERSION, CODIGO, FUENTES];

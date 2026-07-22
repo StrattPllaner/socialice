@@ -504,6 +504,9 @@ function chipFecha(e) {
 // abrir su perfil desde donde sea que aparezca su nombre/logo).
 function hostInfo(e) {
   if (e.organizador === DATA.usuario.nombre) return { avatar: DATA.usuario.avatar, color: DATA.usuario.color, nombre: e.organizador, usuario: DATA.usuario.usuario };
+  // Denormalizado en el propio evento (ver draftAEvento): resuelve el
+  // @usuario/avatar/color reales de CUALQUIER organizador, no solo el tuyo.
+  if (e.organizadorUsuario) return { avatar: e.organizadorAvatar || '🎧', color: e.organizadorColor || 'linear-gradient(135deg,#0ea5e9,#6366f1)', nombre: e.organizador, usuario: e.organizadorUsuario };
   const co = (DATA.usuario.colaboradores || []).find((c) => c.nombre === e.organizador);
   if (co) return { avatar: co.avatar, color: co.color, nombre: co.nombre, usuario: co.usuario || null };
   return { avatar: '🎧', color: 'linear-gradient(135deg,#0ea5e9,#6366f1)', nombre: e.organizador, usuario: null };
@@ -2291,6 +2294,12 @@ function draftAEvento() {
     lugar: draft.lugar.trim() || 'Lugar por confirmar',
     ciudad: draft.ciudad.trim(),
     organizador: DATA.usuario.nombre,
+    // Denormalizado (igual que 'usernames'): así cualquiera que vea el
+    // evento —no solo tú— puede resolver tu @usuario/avatar/color reales
+    // para el perfil clicable, sin tener que leer tu doc privado.
+    organizadorUsuario: DATA.usuario.usuario || null,
+    organizadorAvatar: DATA.usuario.avatar || null,
+    organizadorColor: DATA.usuario.color || null,
     organizadores: draft.organizadores.map((o) => ({ ...o })),
     emoji: '',
     grad: draft.cover.grad,
@@ -3398,31 +3407,71 @@ function verSeguidores() {
   `);
 }
 
-// Mini-perfil de otra persona (organizador, colaborador, seguidor…). Si ya es
-// tu amigo, mejor abre su ficha completa (abrirAmigo) en vez de duplicarla
-// aquí. Si tiene @usuario y no lo es, ofrece agregarlo como amigo real.
+// Perfil de otra persona (organizador, colaborador, seguidor…). Si ya es tu
+// amigo, mejor abre su ficha completa (abrirAmigo) en vez de duplicarla aquí.
+// Si no, abre un DISPLAY de perfil de solo lectura (abrirPerfilPublico).
 function verPerfilDe(nombre, usuario, avatar, color) {
   if (usuario && DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === usuario.toLowerCase())) {
     abrirAmigo(usuario);
     return;
   }
+  abrirPerfilPublico(nombre, usuario, avatar, color);
+}
+
+// Perfil de otra persona en PANTALLA COMPLETA, con el MISMO look que tu
+// propio perfil (.pf2-cover/.pf2-ava/.pf2-id) pero de solo lectura: sin
+// Editar, sin ajustes, sin "Perfil público". Solo mostramos lo que de
+// verdad sabemos de alguien que no es tu amigo (nombre/avatar/color/
+// @usuario, públicos vía 'usernames') — NADA de amigos/seguidores/recuerdos:
+// esos son privados de cada quien y mostrar un número sería inventarlo.
+// "Fiestas que organiza" sí es real: son eventos públicos ya cargados en
+// DATA.eventos, filtrados por su nombre.
+function abrirPerfilPublico(nombre, usuario, avatar, color) {
   const esTu = usuario && usuario === DATA.usuario.usuario;
+  const esAmigo = usuario && DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === usuario.toLowerCase());
+  const suyas = DATA.eventos.filter((e) => e.organizador === nombre && e.publico !== false && !e.proximamente);
   const nombreJs = nombre.replace(/'/g, "\\'");
   const avatarJs = (avatar || '').replace(/'/g, "\\'");
   const colorJs = (color || '').replace(/'/g, "\\'");
-  const accion = esTu ? '' : (usuario
-    ? `<button class="btn full" onclick="agregarAmigoDesdePerfil('${usuario}','${nombreJs}','${avatarJs}','${colorJs}')">Agregar amigo</button>`
-    : `<p class="empty" style="text-align:center">Sin cuenta en Socialice todavía</p>`);
-  abrirSheet(nombre, `
-    <div class="amigo-top">
-      <div class="amigo-ava" style="background:${color || 'var(--grad-cool)'}">${avatar}</div>
-      <strong>${nombre}</strong>${usuario ? `<small>${usuario}</small>` : ''}
+
+  const accion = esTu ? ''
+    : esAmigo ? `<button class="pf2-editbtn" disabled style="opacity:.6">Ya es tu amigo ✓</button>`
+    : usuario ? `<button class="pf2-editbtn" onclick="agregarAmigoDesdePerfil('${usuario}','${nombreJs}','${avatarJs}','${colorJs}')">＋ Agregar</button>`
+    : '';
+
+  let ov = document.getElementById('perfilVerFull');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'perfilVerFull'; ov.className = 'evfull'; document.body.appendChild(ov); }
+  ov.innerHTML = `
+    <div class="evfull-bar">
+      <button class="round-btn" onclick="cerrarPerfilPublico()" aria-label="Cerrar">✕</button>
+      <span class="evfull-sp"></span>
+      <button class="round-btn" onclick="compartir('${nombreJs}')" aria-label="Compartir">${icon('share')}</button>
     </div>
-    <div class="sheet-actions">
-      ${accion}
-      <button class="icon-btn" onclick="compartir('${nombreJs}')">${icon('share')}</button>
+    <div class="evfull-inner">
+      <section class="pf2">
+        <div class="pf2-cover" style="background:${color || 'var(--grad-cool)'}"></div>
+        <div class="pf2-head">
+          <div class="pf2-ava" style="background:${color || 'var(--grad-cool)'}">${avatar || '🙂'}</div>
+          <div class="pf2-id">
+            <h2>${esc(nombre)}</h2>
+            ${usuario ? `<p>${esc(usuario)}</p>` : `<p>Sin cuenta en Socialice todavía</p>`}
+          </div>
+          ${accion}
+        </div>
+      </section>
+
+      <div class="row-between"><h3>Fiestas que organiza</h3></div>
+      <div class="event-list">
+        ${suyas.length ? suyas.map((e) => tarjetaEvento(e).replace(`onclick="abrirEvento('${e.id}')"`, `onclick="cerrarPerfilPublico(); abrirEvento('${e.id}')"`)).join('') : `<p class="empty">Aún no organiza fiestas públicas</p>`}
+      </div>
     </div>
-  `);
+  `;
+  ov.scrollTop = 0;
+  ov.classList.add('is-open');
+}
+function cerrarPerfilPublico() {
+  const ov = document.getElementById('perfilVerFull');
+  if (ov) { ov.classList.remove('is-open'); ov.innerHTML = ''; }
 }
 
 // Agrega a alguien como amigo real por su @usuario (Firestore). Comparte la
@@ -3463,7 +3512,7 @@ async function _agregarAmigoPorUsuario(usuario, datosBase) {
 async function agregarAmigoDesdePerfil(usuario, nombre, avatar, color) {
   const ok = await _agregarAmigoPorUsuario(usuario, { nombre, avatar, color });
   if (!ok) return;
-  cerrarSheet();
+  cerrarPerfilPublico();
   if (document.body.dataset.screen === 'friends') pintarAmigos();
 }
 
