@@ -500,12 +500,21 @@ function chipFecha(e) {
   const d = new Date(e.fechaISO);
   return { dia: d.getDate(), mes: MESES[d.getMonth()] };
 }
-// Info del anfitrión (avatar + color)
+// Info del anfitrión (avatar + color + @usuario si se conoce, para poder
+// abrir su perfil desde donde sea que aparezca su nombre/logo).
 function hostInfo(e) {
-  if (e.organizador === DATA.usuario.nombre) return { avatar: DATA.usuario.avatar, color: DATA.usuario.color, nombre: e.organizador };
+  if (e.organizador === DATA.usuario.nombre) return { avatar: DATA.usuario.avatar, color: DATA.usuario.color, nombre: e.organizador, usuario: DATA.usuario.usuario };
   const co = (DATA.usuario.colaboradores || []).find((c) => c.nombre === e.organizador);
-  if (co) return { avatar: co.avatar, color: co.color, nombre: co.nombre };
-  return { avatar: '🎧', color: 'linear-gradient(135deg,#0ea5e9,#6366f1)', nombre: e.organizador };
+  if (co) return { avatar: co.avatar, color: co.color, nombre: co.nombre, usuario: co.usuario || null };
+  return { avatar: '🎧', color: 'linear-gradient(135deg,#0ea5e9,#6366f1)', nombre: e.organizador, usuario: null };
+}
+// Atributos onclick para abrir el perfil de alguien desde su nombre/logo
+// (stopPropagation porque casi siempre vive dentro de una tarjeta clicable).
+function perfilAttrs(nombre, usuario, avatar, color) {
+  const n = (nombre || '').replace(/'/g, "\\'");
+  const a = (avatar || '').replace(/'/g, "\\'");
+  const c = (color || '').replace(/'/g, "\\'");
+  return `onclick="event.stopPropagation(); verPerfilDe('${n}','${usuario || ''}','${a}','${c}')" style="cursor:pointer"`;
 }
 
 // Tarjeta de evento (estilo Partiful: miniatura cuadrada + info a un lado
@@ -518,7 +527,7 @@ function tarjetaEvento(e) {
     <article class="pf-card" onclick="abrirEvento('${e.id}')">
       <div class="pf-poster" style="${coverStyle(e)}">
         ${e.coverImg ? '' : `<span class="pf-poster-emoji">${e.emoji || '🎉'}</span>`}
-        <span class="pf-org"><span class="pf-org-ava" style="background:${h.color}">${h.avatar}</span>${esc(h.nombre.split(' ')[0])}</span>
+        <span class="pf-org" ${perfilAttrs(h.nombre, h.usuario, h.avatar, h.color)}><span class="pf-org-ava" style="background:${h.color}">${h.avatar}</span>${esc(h.nombre.split(' ')[0])}</span>
         ${ch ? `<span class="pf-date"><b>${ch.dia}</b> ${ch.mes}</span>` : `<span class="pf-date soon">✦ PRONTO</span>`}
         ${casiLleno(e) ? `<span class="pf-tag hot">${icon('fire')} Últimos lugares</span>` : ''}
         <button class="pf-star ${e._interesado ? 'on' : ''}" onclick="event.stopPropagation(); interesado('${e.id}', this)" aria-label="Interesado">${icon('star')}</button>
@@ -3237,7 +3246,7 @@ function pintarPerfil() {
         <div class="row-between"><h3>Mi equipo</h3></div>
         <div class="colab-row">
           ${u.colaboradores.map((c) => `
-            <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}')">
+            <button class="colab" onclick="verPerfilDe('${c.nombre}','${c.usuario}','${c.avatar}','${c.color}')">
               <span class="colab-ava" style="background:${c.color}">${c.avatar}</span>
               <span class="colab-name">${c.nombre.split(' ')[0]}</span>
               <span class="colab-user">${c.usuario}</span>
@@ -3380,7 +3389,7 @@ function verSeguidores() {
   abrirSheet(`Seguidores · ${DATA.usuario.stats.seguidores}`, `
     <div class="friend-list">
       ${lista.length ? lista.map((s) => `
-        <article class="friend-card" onclick="verPerfilDe('${s.nombre}','${s.usuario}','${s.avatar}')">
+        <article class="friend-card" onclick="verPerfilDe('${s.nombre}','${s.usuario}','${s.avatar}','${s.color}')">
           <div class="friend-ava" style="background:${s.color}">${s.avatar}</div>
           <div class="friend-main"><strong>${s.nombre}</strong><small>${s.usuario}</small></div>
           <button class="add-btn" onclick="event.stopPropagation(); this.classList.toggle('is-added'); this.textContent=this.classList.contains('is-added')?'Siguiendo ✓':'Seguir'">Seguir</button>
@@ -3389,19 +3398,73 @@ function verSeguidores() {
   `);
 }
 
-// Mini-perfil de otra persona (colaborador / seguidor)
-function verPerfilDe(nombre, usuario, avatar) {
+// Mini-perfil de otra persona (organizador, colaborador, seguidor…). Si ya es
+// tu amigo, mejor abre su ficha completa (abrirAmigo) en vez de duplicarla
+// aquí. Si tiene @usuario y no lo es, ofrece agregarlo como amigo real.
+function verPerfilDe(nombre, usuario, avatar, color) {
+  if (usuario && DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === usuario.toLowerCase())) {
+    abrirAmigo(usuario);
+    return;
+  }
+  const esTu = usuario && usuario === DATA.usuario.usuario;
+  const nombreJs = nombre.replace(/'/g, "\\'");
+  const avatarJs = (avatar || '').replace(/'/g, "\\'");
+  const colorJs = (color || '').replace(/'/g, "\\'");
+  const accion = esTu ? '' : (usuario
+    ? `<button class="btn full" onclick="agregarAmigoDesdePerfil('${usuario}','${nombreJs}','${avatarJs}','${colorJs}')">Agregar amigo</button>`
+    : `<p class="empty" style="text-align:center">Sin cuenta en Socialice todavía</p>`);
   abrirSheet(nombre, `
     <div class="amigo-top">
-      <div class="amigo-ava" style="background:var(--grad-cool)">${avatar}</div>
-      <strong>${nombre}</strong><small>${usuario}</small>
+      <div class="amigo-ava" style="background:${color || 'var(--grad-cool)'}">${avatar}</div>
+      <strong>${nombre}</strong>${usuario ? `<small>${usuario}</small>` : ''}
     </div>
-    <p class="ev-desc" style="text-align:center">Perfil de organizador/colaborador en Socialice.</p>
     <div class="sheet-actions">
-      <button class="btn full" onclick="toast('Ahora sigues a ${nombre} ✓'); cerrarSheet()">Seguir</button>
-      <button class="icon-btn" onclick="compartir('${nombre}')">${icon('share')}</button>
+      ${accion}
+      <button class="icon-btn" onclick="compartir('${nombreJs}')">${icon('share')}</button>
     </div>
   `);
+}
+
+// Agrega a alguien como amigo real por su @usuario (Firestore). Comparte la
+// lógica con "＋ Agregar por usuario" (Amigos) para que ambos entren el
+// mismo candado de duplicados/self/no-encontrado.
+async function _agregarAmigoPorUsuario(usuario, datosBase) {
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    toast('Conecta Firebase para agregar amigos reales'); return false;
+  }
+  if (usuario.toLowerCase() === (DATA.usuario.usuario || '').toLowerCase()) {
+    toast('Ese eres tú 🙂'); return false;
+  }
+  if (DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === usuario.toLowerCase())) {
+    toast('Ya es tu amigo ✓'); return false;
+  }
+  let found;
+  try { found = await window.Socialice.buscarUsuario(usuario); }
+  catch (_) { toast('No pude buscar ahora'); return false; }
+  if (!found) {
+    toast(datosBase && datosBase.nombre ? `${datosBase.nombre.split(' ')[0]} no tiene cuenta en Socialice todavía` : `No existe el usuario ${usuario}`);
+    return false;
+  }
+  const amigo = {
+    uid: found.uid, nombre: found.nombre || (datosBase && datosBase.nombre) || usuario, usuario,
+    avatar: found.avatar || (datosBase && datosBase.avatar) || '🙂',
+    color: found.color || (datosBase && datosBase.color) || 'linear-gradient(135deg,#2f7bff,#38bdf8)',
+    mejorAmigo: false, fue: [], fotos: [], privado: false,
+  };
+  try { await window.Socialice.agregarAmigo(amigo); }
+  catch (e) { toast(window.Socialice.mensajeError(e)); return false; }
+  DATA.amigos = [amigo, ...DATA.amigos];
+  toast(`${amigo.nombre} agregado 🎉`);
+  return true;
+}
+
+// Agregar amigo desde el mini-perfil (organizador, colaborador…): ya
+// conocemos su @usuario, así que sin el prompt de "＋ Agregar por usuario".
+async function agregarAmigoDesdePerfil(usuario, nombre, avatar, color) {
+  const ok = await _agregarAmigoPorUsuario(usuario, { nombre, avatar, color });
+  if (!ok) return;
+  cerrarSheet();
+  if (document.body.dataset.screen === 'friends') pintarAmigos();
 }
 
 
@@ -3741,7 +3804,7 @@ function abrirEvento(id) {
   if (!e._comentarios) e._comentarios = (COMENTARIOS_SEED[e.id] || []).map((c) => ({ ...c }));
   if (e._rsvp === undefined && e.voy) e._rsvp = 'voy';   // ya estabas confirmado
   const esMio = puedeEditar(e); // organizador, co-organizadores o su grupo
-  const orgs = [{ nombre: e.organizador, avatar: DATA.usuario.avatar, color: DATA.usuario.color }].concat(e.organizadores || []);
+  const orgs = [hostInfo(e)].concat(e.organizadores || []);
   const c = rsvpCounts(e);
   const cuenta = cuentaRegresiva(e);
   const muestra = invitadosMuestra(e, 7);
@@ -3791,7 +3854,7 @@ function abrirEvento(id) {
         ${icon('pin','mute')}<div><strong>${esc(e.lugar)}</strong>${e.ciudad ? `<small>${esc(e.ciudad)}</small>` : ''}</div>
         <button class="ev-line-act" onclick="toast('Mapa · próximamente 🗺️')">Ver mapa</button>
       </div>
-      <div class="ev-irow">
+      <div class="ev-irow" ${perfilAttrs(orgs[0].nombre, orgs[0].usuario, orgs[0].avatar, orgs[0].color)}>
         <div class="ev-host-avas">${orgs.slice(0, 3).map((o) => `<span class="ev-host-ava" style="background:${o.color || 'var(--grad-cool)'}">${o.avatar || '🎤'}</span>`).join('')}</div>
         <div><small>Organiza</small><strong>${esc(orgs.map((o) => o.nombre.split(' ')[0]).join(', '))}</strong></div>
       </div>
@@ -3879,8 +3942,8 @@ function abrirEvento(id) {
       <div class="news-list">
         ${e.noticias.map((n) => `
           <div class="post-card">
-            <div class="post-head">
-              <div class="post-ava" style="background:${DATA.usuario.color}">${DATA.usuario.avatar}</div>
+            <div class="post-head" ${perfilAttrs(orgs[0].nombre, orgs[0].usuario, orgs[0].avatar, orgs[0].color)}>
+              <div class="post-ava" style="background:${orgs[0].color}">${orgs[0].avatar}</div>
               <div><strong>${esc(e.organizador)}</strong><small>${esc(n.fecha || '')}</small></div>
             </div>
             ${n.texto ? `<p class="post-text">${esc(n.texto)}</p>` : ''}
@@ -4564,27 +4627,8 @@ async function agregarAmigoFlow() {
   if (!q) return;
   const user = q.trim().replace(/^@+/, '').toLowerCase();
   if (!user) return;
-  if (user === (DATA.usuario.usuario || '').replace(/^@+/, '').toLowerCase()) {
-    toast('Ese eres tú 🙂'); return;
-  }
-  if (DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === '@' + user)) {
-    toast('Ya es tu amigo ✓'); return;
-  }
-  let found;
-  try { found = await window.Socialice.buscarUsuario('@' + user); }
-  catch (_) { toast('No pude buscar ahora'); return; }
-  if (!found) { toast(`No existe el usuario @${user}`); return; }
-  const amigo = {
-    uid: found.uid, nombre: found.nombre || ('@' + user), usuario: '@' + user,
-    avatar: found.avatar || '🙂',
-    color: found.color || 'linear-gradient(135deg,#2f7bff,#38bdf8)',
-    mejorAmigo: false, fue: [], fotos: [], privado: false,
-  };
-  try { await window.Socialice.agregarAmigo(amigo); }
-  catch (e) { toast(window.Socialice.mensajeError(e)); return; }
-  DATA.amigos = [amigo, ...DATA.amigos];
-  toast(`${amigo.nombre} agregado 🎉`);
-  pintarAmigos();
+  const ok = await _agregarAmigoPorUsuario('@' + user, null);
+  if (ok) pintarAmigos();
 }
 
 // Quitar a un amigo (real). Cierra el panel y refresca.
