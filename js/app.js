@@ -380,6 +380,8 @@ function vaciarDatosMock() {
   DATA.usuario.ciudad = '';
   DATA.amigos = [];
   DATA.grupos = [];
+  DATA.siguiendo = [];
+  DATA.bloqueados = [];
   DATA.eventos.forEach((e) => { e.voy = false; e._voy = false; });
   notisData = [];
   notisNuevas = false;
@@ -407,7 +409,7 @@ function pintarInicio() {
   // ¿Vas a ir? (las que confirmaste)
   const vas = DATA.eventos.filter((e) => (e.voy || e._voy) && !e.proximamente && !yaPaso(e));
   // Próximamente (para crear expectativa)
-  const pronto = DATA.eventos.filter((e) => e.proximamente);
+  const pronto = DATA.eventos.filter((e) => e.proximamente && !estaBloqueado(e));
 
   const ciudad = u.ciudad || 'CDMX';
 
@@ -474,12 +476,22 @@ function filtrar(catId) {
   pintarEventos();
 }
 
+// ¿Esta fiesta es de alguien que bloqueé? Compara por @usuario denormalizado
+// en el evento (real) o, si no hay, por nombre (mock/legado).
+function estaBloqueado(e) {
+  if (!DATA.bloqueados || !DATA.bloqueados.length) return false;
+  return DATA.bloqueados.some((b) =>
+    (e.organizadorUsuario && b.usuario && e.organizadorUsuario.toLowerCase() === b.usuario.toLowerCase()) ||
+    b.nombre === e.organizador);
+}
+
 function pintarEventos() {
   const lista = document.getElementById('eventList');
   if (!lista) return;
-  // Recomendaciones: públicas, ni "próximamente" ni las que ya vas
+  // Recomendaciones: públicas, ni "próximamente" ni las que ya vas, ni de
+  // alguien que bloqueé
   const eventos = DATA.eventos.filter((e) =>
-    e.publico !== false && !e.proximamente && !yaPaso(e) &&
+    e.publico !== false && !e.proximamente && !yaPaso(e) && !estaBloqueado(e) &&
     (categoriaActiva === 'todos' || e.cat.includes(categoriaActiva))
   );
 
@@ -711,7 +723,7 @@ function pintarResultados() {
     const okCiudad = !ciudad || (e.ciudad || '').toLowerCase().includes(ciudad);
     const okCuando = filtros.cuando === 'todos' || e.cuando === filtros.cuando;
     const okEdad   = filtros.edad === 'Todas'  || e.edad === filtros.edad;
-    return okTexto && okCiudad && okCuando && okEdad;
+    return okTexto && okCiudad && okCuando && okEdad && !estaBloqueado(e);
   });
 
   const hayFiltro = !!ciudad || filtros.cuando !== 'todos' || filtros.edad !== 'Todas';
@@ -3426,25 +3438,65 @@ function verPerfilDe(nombre, usuario, avatar, color) {
 // esos son privados de cada quien y mostrar un número sería inventarlo.
 // "Fiestas que organiza" sí es real: son eventos públicos ya cargados en
 // DATA.eventos, filtrados por su nombre.
-function abrirPerfilPublico(nombre, usuario, avatar, color) {
+let pfPubTab = 'fiestas';
+let _pfPubCache = null;   // último perfil abierto, para cambiar de pestaña sin re-consultar Firestore
+
+async function abrirPerfilPublico(nombre, usuario, avatar, color) {
   const esTu = usuario && usuario === DATA.usuario.usuario;
-  const esAmigo = usuario && DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === usuario.toLowerCase());
   const suyas = DATA.eventos.filter((e) => e.organizador === nombre && e.publico !== false && !e.proximamente);
+
+  // Datos públicos frescos (redes, contador de seguidores) — no vienen con
+  // el organizador/colaborador que ya teníamos; hace falta leer 'usernames'.
+  let extra = { redes: {} };
+  if (usuario && !esTu && window.Socialice && window.Socialice.configurado) {
+    try {
+      const found = await window.Socialice.buscarUsuario(usuario);
+      if (found) extra = { redes: found.redes || {}, seguidores: found.seguidores };
+    } catch (_) {}
+  }
+
+  pfPubTab = 'fiestas';
+  _pfPubCache = { nombre, usuario, avatar, color, esTu, suyas, extra };
+
+  let ov = document.getElementById('perfilVerFull');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'perfilVerFull'; ov.className = 'evfull'; document.body.appendChild(ov); }
+  ov.classList.add('is-open');
+  renderPerfilPublico();
+  ov.scrollTop = 0;
+}
+
+// Repinta el perfil ya abierto (cambio de pestaña, o tras seguir/dejar de
+// seguir) SIN volver a consultar Firestore — usa _pfPubCache.
+function renderPerfilPublico() {
+  const ov = document.getElementById('perfilVerFull');
+  if (!ov || !_pfPubCache) return;
+  const { nombre, usuario, avatar, color, esTu, suyas, extra } = _pfPubCache;
+  const esAmigo = usuario && DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === usuario.toLowerCase());
+  const yaSigo = usuario && (DATA.siguiendo || []).some((s) => (s.usuario || '').toLowerCase() === usuario.toLowerCase());
   const nombreJs = nombre.replace(/'/g, "\\'");
   const avatarJs = (avatar || '').replace(/'/g, "\\'");
   const colorJs = (color || '').replace(/'/g, "\\'");
 
-  const accion = esTu ? ''
-    : esAmigo ? `<button class="pf2-editbtn" disabled style="opacity:.6">Ya es tu amigo ✓</button>`
-    : usuario ? `<button class="pf2-editbtn" onclick="agregarAmigoDesdePerfil('${usuario}','${nombreJs}','${avatarJs}','${colorJs}')">＋ Agregar</button>`
-    : '';
+  const acciones = esTu ? '' : usuario ? `
+    <div class="pf2-pub-actions">
+      <button class="pf2-editbtn ${yaSigo ? 'is-on' : ''}" onclick="toggleSeguirPerfil('${usuario}','${nombreJs}','${avatarJs}','${colorJs}')">${yaSigo ? 'Siguiendo ✓' : '＋ Seguir'}</button>
+      ${esAmigo
+        ? `<button class="pf2-editbtn" disabled style="opacity:.6">Ya es tu amigo ✓</button>`
+        : `<button class="pf2-editbtn" onclick="agregarAmigoDesdePerfil('${usuario}','${nombreJs}','${avatarJs}','${colorJs}')">＋ Amigo</button>`}
+    </div>` : '';
 
-  let ov = document.getElementById('perfilVerFull');
-  if (!ov) { ov = document.createElement('div'); ov.id = 'perfilVerFull'; ov.className = 'evfull'; document.body.appendChild(ov); }
+  const cuerpo = pfPubTab === 'fiestas'
+    ? (suyas.length
+        ? `<div class="event-list">${suyas.map((e) => tarjetaEvento(e).replace(`onclick="abrirEvento('${e.id}')"`, `onclick="cerrarPerfilPublico(); abrirEvento('${e.id}')"`)).join('')}</div>`
+        : `<p class="empty">Aún no organiza fiestas públicas</p>`)
+    : pfPubTab === 'recuerdos' ? `<p class="empty">Sin recuerdos para mostrar</p>`
+    : `<p class="empty">Sin fotos para mostrar</p>`;
+
   ov.innerHTML = `
     <div class="evfull-bar">
       <button class="round-btn" onclick="cerrarPerfilPublico()" aria-label="Cerrar">✕</button>
       <span class="evfull-sp"></span>
+      ${esTu ? '' : `<button class="round-btn" onclick="abrirPerfilMas('${usuario || ''}','${nombreJs}')" aria-label="Más opciones">${icon('dots')}</button>`}
       <button class="round-btn" onclick="compartir('${nombreJs}')" aria-label="Compartir">${icon('share')}</button>
     </div>
     <div class="evfull-inner">
@@ -3456,22 +3508,109 @@ function abrirPerfilPublico(nombre, usuario, avatar, color) {
             <h2>${esc(nombre)}</h2>
             ${usuario ? `<p>${esc(usuario)}</p>` : `<p>Sin cuenta en Socialice todavía</p>`}
           </div>
-          ${accion}
+        </div>
+        ${redesHTML({ redes: extra.redes })}
+        ${acciones}
+        <div class="pf2-stats" style="cursor:default">
+          <div class="pf2-stat" style="cursor:default"><strong>${suyas.length}</strong><small>eventos</small></div>
+          <div class="pf2-stat" style="cursor:default"><strong>—</strong><small>fiestas</small></div>
+          <div class="pf2-stat" style="cursor:default"><strong>—</strong><small>amigos</small></div>
+          <div class="pf2-stat" style="cursor:default"><strong>${extra.seguidores == null ? '—' : kilo(extra.seguidores)}</strong><small>seguidores</small></div>
         </div>
       </section>
 
-      <div class="row-between"><h3>Fiestas que organiza</h3></div>
-      <div class="event-list">
-        ${suyas.length ? suyas.map((e) => tarjetaEvento(e).replace(`onclick="abrirEvento('${e.id}')"`, `onclick="cerrarPerfilPublico(); abrirEvento('${e.id}')"`)).join('') : `<p class="empty">Aún no organiza fiestas públicas</p>`}
+      <div class="pf2-tabs">
+        <button class="${pfPubTab === 'fiestas' ? 'on' : ''}" onclick="setPfPubTab('fiestas')">Fiestas</button>
+        <button class="${pfPubTab === 'recuerdos' ? 'on' : ''}" onclick="setPfPubTab('recuerdos')">Recuerdos</button>
+        <button class="${pfPubTab === 'fotos' ? 'on' : ''}" onclick="setPfPubTab('fotos')">Fotos</button>
       </div>
+      ${cuerpo}
     </div>
   `;
-  ov.scrollTop = 0;
-  ov.classList.add('is-open');
 }
+function setPfPubTab(tab) { pfPubTab = tab; renderPerfilPublico(); }
+
 function cerrarPerfilPublico() {
   const ov = document.getElementById('perfilVerFull');
   if (ov) { ov.classList.remove('is-open'); ov.innerHTML = ''; }
+  _pfPubCache = null;
+}
+
+// Seguir / dejar de seguir (una vía, no requiere que la otra persona
+// apruebe nada — distinto de "Agregar amigo"). Re-abre el perfil para
+// reflejar el nuevo estado del botón y el contador de seguidores.
+async function toggleSeguirPerfil(usuario, nombre, avatar, color) {
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    toast('Conecta Firebase para seguir cuentas reales'); return;
+  }
+  const yaSigo = (DATA.siguiendo || []).some((s) => (s.usuario || '').toLowerCase() === usuario.toLowerCase());
+  let found;
+  try { found = await window.Socialice.buscarUsuario(usuario); }
+  catch (_) { toast('No pude ahora'); return; }
+  if (!found) { toast(`${nombre.split(' ')[0]} no tiene cuenta en Socialice todavía`); return; }
+  try {
+    if (yaSigo) {
+      await window.Socialice.dejarDeSeguir({ uid: found.uid, usuario });
+      DATA.siguiendo = DATA.siguiendo.filter((s) => (s.usuario || '').toLowerCase() !== usuario.toLowerCase());
+      toast(`Dejaste de seguir a ${nombre.split(' ')[0]}`);
+    } else {
+      await window.Socialice.seguirUsuario({ uid: found.uid, usuario, nombre });
+      DATA.siguiendo = [{ uid: found.uid, usuario, nombre }, ...DATA.siguiendo];
+      toast(`Ahora sigues a ${nombre.split(' ')[0]} 🎉`);
+    }
+  } catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  abrirPerfilPublico(nombre, usuario, avatar, color);
+}
+
+// Menú "⋯" del perfil: reportar o bloquear a esa persona.
+function abrirPerfilMas(usuario, nombre) {
+  const yaBloq = usuario && (DATA.bloqueados || []).some((b) => (b.usuario || '').toLowerCase() === usuario.toLowerCase());
+  const nombreJs = nombre.replace(/'/g, "\\'");
+  abrirSheet(nombre, `
+    <div class="sheet-actions" style="flex-direction:column;gap:8px">
+      ${usuario ? `<button class="btn full" style="background:rgba(239,68,68,.15);color:#f87171" onclick="reportarPerfil('${usuario}','${nombreJs}')">🚩 Reportar</button>
+      <button class="btn full" style="background:rgba(239,68,68,.15);color:#f87171" onclick="${yaBloq ? `desbloquearPerfil('${usuario}')` : `bloquearPerfil('${usuario}','${nombreJs}')`}">${yaBloq ? 'Desbloquear' : 'Bloquear'}</button>`
+      : `<p class="empty" style="text-align:center">Sin cuenta en Socialice todavía</p>`}
+    </div>
+  `);
+}
+async function reportarPerfil(usuario, nombre) {
+  if (!(window.Socialice && window.Socialice.configurado)) { toast('Conecta Firebase para reportar'); return; }
+  const motivo = await pedirTexto('¿Por qué lo reportas?', { placeholder: 'Cuéntanos qué pasó', ok: 'Enviar' });
+  if (!motivo) return;
+  let found;
+  try { found = await window.Socialice.buscarUsuario(usuario); }
+  catch (_) { toast('No pude enviarlo ahora'); return; }
+  if (!found) { toast('No pude encontrar esa cuenta'); return; }
+  try {
+    await window.Socialice.crearReporte({ targetUid: found.uid, targetUsuario: usuario, targetNombre: nombre, motivo });
+    toast('Reporte enviado, gracias 🙏');
+    cerrarSheet();
+  } catch (e) { toast(window.Socialice.mensajeError(e)); }
+}
+async function bloquearPerfil(usuario, nombre) {
+  if (!(window.Socialice && window.Socialice.configurado)) { toast('Conecta Firebase para bloquear'); return; }
+  let found;
+  try { found = await window.Socialice.buscarUsuario(usuario); }
+  catch (_) { toast('No pude bloquear ahora'); return; }
+  if (!found) { toast('No pude encontrar esa cuenta'); return; }
+  try { await window.Socialice.bloquearUsuario({ uid: found.uid, usuario, nombre }); }
+  catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  DATA.bloqueados = [{ uid: found.uid, usuario, nombre }, ...DATA.bloqueados];
+  toast(`Bloqueaste a ${nombre.split(' ')[0]} — ya no verás sus fiestas`);
+  cerrarSheet();
+  cerrarPerfilPublico();
+  if (document.body.dataset.screen === 'home') pintarInicio();
+}
+async function desbloquearPerfil(usuario) {
+  const b = (DATA.bloqueados || []).find((x) => (x.usuario || '').toLowerCase() === usuario.toLowerCase());
+  if (!b) return;
+  try { await window.Socialice.desbloquearUsuario(b.uid); }
+  catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  DATA.bloqueados = DATA.bloqueados.filter((x) => x.uid !== b.uid);
+  toast('Desbloqueado');
+  cerrarSheet();
+  if (document.body.dataset.screen === 'home') pintarInicio();
 }
 
 // Agrega a alguien como amigo real por su @usuario (Firestore). Comparte la
@@ -4520,9 +4659,10 @@ async function guardarPerfil() {
     }
     window.Socialice.actualizarPerfil(cambios)
       .catch((e) => toast(window.Socialice.mensajeError(e)));
-    // Mantener fresca la info pública del username (para verse bien al agregarte).
+    // Mantener fresca la info pública del username (para verse bien al agregarte,
+    // y para que sus redes se vean en el perfil de display que ven los demás).
     window.Socialice.sincronizarPerfilPublico(u.usuario, {
-      nombre: u.nombre, avatar: u.avatar || null, color: u.color || null,
+      nombre: u.nombre, avatar: u.avatar || null, color: u.color || null, redes: u.redes || {},
     }).catch(() => {});
   }
 }
@@ -4665,6 +4805,16 @@ function aplicarAmigos(lista) {
   if (!nuevos.length) return;
   DATA.amigos = [...nuevos, ...DATA.amigos];
   if (document.body.dataset.screen === 'friends') pintarAmigos();
+}
+
+// A quién sigo (uids), para saber en cualquier perfil si ya lo sigo o no.
+function aplicarSiguiendo(lista) {
+  DATA.siguiendo = Array.isArray(lista) ? lista : [];
+}
+// A quién bloqueé: se oculta del feed de inicio (ver pintarInicio).
+function aplicarBloqueados(lista) {
+  DATA.bloqueados = Array.isArray(lista) ? lista : [];
+  if (document.body.dataset.screen === 'home') pintarInicio();
 }
 
 // Agregar amigo REAL: pide un @usuario, lo busca en Firestore y lo agrega.

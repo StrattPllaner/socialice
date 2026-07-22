@@ -56,26 +56,51 @@ service cloud.firestore {
       match /amigos/{amigoUid} {
         allow read, write: if soyYo(uid);
       }
+
+      // usuarios/{uid}/siguiendo/{targetUid}: a quién sigo (una vía, no
+      // requiere aprobación). Privada: solo yo veo/edito mi propia lista.
+      match /siguiendo/{targetUid} {
+        allow read, write: if soyYo(uid);
+      }
+
+      // usuarios/{uid}/bloqueados/{targetUid}: a quién bloqueé (se le oculta
+      // de mi feed en el cliente). Privada: solo yo la veo/edito.
+      match /bloqueados/{targetUid} {
+        allow read, write: if soyYo(uid);
+      }
     }
 
     /* usernames/{nombre}  (nombre = @usuario en minúsculas, sin @)
-       Índice de usuarios únicos. Cada doc = { uid }.
-       - read: público, para chequear disponibilidad.
+       Índice de usuarios únicos. Cada doc = { uid, ..., seguidores }.
+       - read: público, para chequear disponibilidad y ver el perfil de otros.
        - create: solo si lo reclama su dueño (uid propio). Como 'create' solo
          aplica cuando el doc NO existe, un usuario ya tomado no se puede robar.
-       - update: nadie (impide sobrescribir/robar un usuario existente).
+       - update: el dueño puede cambiar cualquier campo (perfil público); CUALQUIER
+         otro usuario logueado SOLO puede mover 'seguidores' en ±1 (al seguir/
+         dejar de seguir) — ningún otro campo, y nunca de un salto mayor a 1.
        - delete: solo el dueño (para liberarlo al cambiar de usuario). */
     match /usernames/{nombre} {
       allow read:   if true;
       allow create: if request.auth != null
                     && request.resource.data.uid == request.auth.uid;
-      // El dueño puede refrescar su info pública (nombre/avatar), sin cambiar el
-      // uid → nadie puede robar un username ajeno (create no aplica si existe).
       allow update: if request.auth != null
-                    && resource.data.uid == request.auth.uid
-                    && request.resource.data.uid == request.auth.uid;
+                    && ((resource.data.uid == request.auth.uid
+                         && request.resource.data.uid == request.auth.uid)
+                        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seguidores'])
+                            && (request.resource.data.seguidores == (resource.data.seguidores == null ? 0 : resource.data.seguidores) + 1
+                                || request.resource.data.seguidores == (resource.data.seguidores == null ? 0 : resource.data.seguidores) - 1)));
       allow delete: if request.auth != null
                     && resource.data.uid == request.auth.uid;
+    }
+
+    /* reportes/{id}
+       Solo CREAR: cualquier logueado puede reportar a alguien, siempre que
+       firme el reporte con su propio uid. Nadie puede leer/editar/borrar
+       reportes desde el cliente — se revisan desde la consola de Firebase. */
+    match /reportes/{id} {
+      allow create: if request.auth != null
+                    && request.resource.data.reporterUid == request.auth.uid;
+      allow read, update, delete: if false;
     }
 
     /* eventos/{id}

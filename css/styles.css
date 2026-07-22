@@ -3405,6 +3405,11 @@ body[data-screen="splash"] .app-shell { max-width: 100% !important; margin: 0 !i
   color: var(--ink); font-weight: 700; font-family: inherit; cursor: pointer; flex: none;
 }
 .pf2-editbtn:active { transform: scale(.96); }
+.pf2-editbtn:disabled { cursor: default; }
+.pf2-editbtn.is-on { background: rgba(47,123,255,.22); border-color: rgba(47,123,255,.45); color: var(--violet); }
+/* Fila de acciones del perfil de OTRA persona (Seguir / Agregar amigo) */
+.pf2-pub-actions { display: flex; gap: 8px; padding: 12px 18px 0; }
+.pf2-pub-actions .pf2-editbtn { flex: 1; text-align: center; }
 .pf2-bio { padding: 12px 18px 0; }
 .pf2 .redes-row2 { justify-content: flex-start; padding: 0 18px; margin: 12px 0 0; }
 .pf2-stats {

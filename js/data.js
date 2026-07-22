@@ -90,6 +90,12 @@ const DATA = {
     { nombre:'Valeria Ortiz',usuario:'@valee',  avatar:'🦋', color:'linear-gradient(135deg,#f59e0b,#ec4899)', privado:false, mejorAmigo:true,  ahora:'Neon Nights', fue:['Bass Drop'],                   fotos:['🪩','🎉','🥂','✨'] }
   ],
 
+  // A quién SIGO (una vía, no hace falta que sea mutuo) y a quién BLOQUEÉ
+  // (se le oculta de mi feed). Ambos reales vía Firestore cuando hay cuenta;
+  // vacíos hasta entonces (ver aplicarSiguiendo/aplicarBloqueados en app.js).
+  siguiendo: [],
+  bloqueados: [],
+
   // Grupos: equipo de organizadores + COMUNIDAD que recibe su canal de
   // difusión (avisos/encuestas; la gente solo reacciona, no comenta)
   grupos: [

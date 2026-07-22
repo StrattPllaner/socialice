@@ -42,7 +42,7 @@ if (!CONFIGURADO) {
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-auth.js`);
   const {
     getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch,
-    collection, query, where, getDocs, limit,
+    collection, query, where, getDocs, limit, addDoc, increment,
     serverTimestamp, Timestamp,
   } = await import(`https://www.gstatic.com/firebasejs/${FB}/firebase-firestore.js`);
 
@@ -161,7 +161,7 @@ if (!CONFIGURADO) {
   }
 
   // Busca un usuario por @usuario (lectura pública de 'usernames'). Devuelve
-  // { uid, usuario, nombre, avatar, color } o null si no existe.
+  // { uid, usuario, nombre, avatar, color, redes, seguidores } o null si no existe.
   async function buscarUsuario(usuario) {
     const snap = await getDoc(doc(db, 'usernames', claveUsuario(usuario)));
     if (!snap.exists()) return null;
@@ -169,6 +169,7 @@ if (!CONFIGURADO) {
     return {
       uid: d.uid, usuario: '@' + claveUsuario(usuario),
       nombre: d.nombre || '', avatar: d.avatar || null, color: d.color || null,
+      redes: d.redes || {}, seguidores: d.seguidores || 0,
     };
   }
 
@@ -200,6 +201,76 @@ if (!CONFIGURADO) {
     const out = [];
     snap.forEach((d) => out.push(d.data()));
     return out;
+  }
+
+  /* --- SEGUIR ---
+     A diferencia de "amigos" (mutuo, agregar directo), seguir es de UNA VÍA:
+     yo decido a quién sigo, sin que la otra persona lo apruebe. Lo que YO
+     sigo vive en usuarios/{uid}/siguiendo/{targetUid} (privado, solo yo lo
+     leo/escribo). El CONTADOR público de seguidores vive en
+     usernames/{handle}.seguidores — se ajusta ±1 en el mismo batch que crea/
+     borra mi registro de "siguiendo", así nunca queda desincronizado. */
+  function seguirUsuario(target) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    if (!target.uid || !target.usuario) throw new Error('Falta el usuario a seguir');
+    const batch = writeBatch(db);
+    batch.set(doc(db, 'usuarios', u.uid, 'siguiendo', target.uid),
+      { usuario: target.usuario, nombre: target.nombre || '', desde: serverTimestamp() });
+    batch.update(doc(db, 'usernames', claveUsuario(target.usuario)), { seguidores: increment(1) });
+    return batch.commit();
+  }
+  function dejarDeSeguir(target) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    const batch = writeBatch(db);
+    batch.delete(doc(db, 'usuarios', u.uid, 'siguiendo', target.uid));
+    batch.update(doc(db, 'usernames', claveUsuario(target.usuario)), { seguidores: increment(-1) });
+    return batch.commit();
+  }
+  async function cargarSiguiendo() {
+    const u = auth.currentUser;
+    if (!u) return [];
+    const snap = await getDocs(collection(db, 'usuarios', u.uid, 'siguiendo'));
+    const out = [];
+    snap.forEach((d) => out.push({ uid: d.id, ...d.data() }));
+    return out;
+  }
+
+  /* --- BLOQUEAR ---
+     usuarios/{uid}/bloqueados/{targetUid}: privado, solo yo lo leo/escribo.
+     El cliente usa esta lista para sacar de MI feed a quien bloqueé (no es
+     un baneo del lado del servidor, es "ya no lo quiero ver"). */
+  function bloquearUsuario(target) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return setDoc(doc(db, 'usuarios', u.uid, 'bloqueados', target.uid),
+      { usuario: target.usuario, nombre: target.nombre || '', desde: serverTimestamp() });
+  }
+  function desbloquearUsuario(targetUid) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return deleteDoc(doc(db, 'usuarios', u.uid, 'bloqueados', targetUid));
+  }
+  async function cargarBloqueados() {
+    const u = auth.currentUser;
+    if (!u) return [];
+    const snap = await getDocs(collection(db, 'usuarios', u.uid, 'bloqueados'));
+    const out = [];
+    snap.forEach((d) => out.push({ uid: d.id, ...d.data() }));
+    return out;
+  }
+
+  /* --- REPORTAR ---
+     reportes/{id}: solo CREAR (nadie puede leer reportes ajenos desde el
+     cliente; se revisan desde la consola de Firebase). */
+  function crearReporte({ targetUid, targetUsuario, targetNombre, motivo }) {
+    const u = auth.currentUser;
+    if (!u) throw new Error('No hay sesión activa');
+    return addDoc(collection(db, 'reportes'), {
+      reporterUid: u.uid, targetUid, targetUsuario, targetNombre: targetNombre || '',
+      motivo: motivo || '', creado: serverTimestamp(),
+    });
   }
 
   // Envía el correo de restablecimiento de contraseña (Firebase). Con la
@@ -279,6 +350,9 @@ if (!CONFIGURADO) {
     guardarRsvp, borrarRsvp, cargarRsvps,
     sincronizarPerfilPublico, buscarUsuario,
     agregarAmigo, quitarAmigo, setMejorAmigo, cargarAmigos,
+    seguirUsuario, dejarDeSeguir, cargarSiguiendo,
+    bloquearUsuario, desbloquearUsuario, cargarBloqueados,
+    crearReporte,
     logout, onSesion, mensajeError,
   });
 
@@ -314,6 +388,10 @@ if (!CONFIGURADO) {
         if (window.aplicarRsvps) window.aplicarRsvps(rs);
         const ams = await cargarAmigos();
         if (window.aplicarAmigos) window.aplicarAmigos(ams);
+        const sig = await cargarSiguiendo();
+        if (window.aplicarSiguiendo) window.aplicarSiguiendo(sig);
+        const bloq = await cargarBloqueados();
+        if (window.aplicarBloqueados) window.aplicarBloqueados(bloq);
       } catch (_) {}
       window.rutaSesion && window.rutaSesion(user);
       return;
