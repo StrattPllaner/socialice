@@ -216,7 +216,7 @@ if (!CONFIGURADO) {
     if (!target.uid || !target.usuario) throw new Error('Falta el usuario a seguir');
     const batch = writeBatch(db);
     batch.set(doc(db, 'usuarios', u.uid, 'siguiendo', target.uid),
-      { usuario: target.usuario, nombre: target.nombre || '', desde: serverTimestamp() });
+      { usuario: target.usuario, nombre: target.nombre || '', avatar: target.avatar || null, color: target.color || null, desde: serverTimestamp() });
     batch.update(doc(db, 'usernames', claveUsuario(target.usuario)), { seguidores: increment(1) });
     return batch.commit();
   }
@@ -392,6 +392,12 @@ if (!CONFIGURADO) {
         if (window.aplicarSiguiendo) window.aplicarSiguiendo(sig);
         const bloq = await cargarBloqueados();
         if (window.aplicarBloqueados) window.aplicarBloqueados(bloq);
+        // Mi propio contador de seguidores es público (vive en mi doc de
+        // 'usernames'), así que se lee igual que el de cualquier otro perfil.
+        if (perfil.usuario) {
+          const yo = await buscarUsuario(perfil.usuario);
+          if (yo && window.aplicarSeguidoresPropios) window.aplicarSeguidoresPropios(yo.seguidores || 0);
+        }
       } catch (_) {}
       window.rutaSesion && window.rutaSesion(user);
       return;

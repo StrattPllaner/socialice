@@ -3332,10 +3332,9 @@ function pintarPerfil() {
         </button>
       </div>
       <div class="pf2-stats">
-        <div class="pf2-stat"><strong>${u.stats.eventos}</strong><small>eventos</small></div>
-        <div class="pf2-stat"><strong>${u.stats.fueA}</strong><small>fiestas</small></div>
-        <button class="pf2-stat" onclick="irA('friends')"><strong>${u.stats.amigos}</strong><small>amigos</small></button>
-        <button class="pf2-stat" onclick="verSeguidores()"><strong>${kilo(u.stats.seguidores)}</strong><small>seguidores</small></button>
+        <div class="pf2-stat"><strong>${mios.length}</strong><small>eventos</small></div>
+        <button class="pf2-stat" onclick="irA('friends')"><strong>${kilo(DATA.amigos.length + u.stats.seguidores)}</strong><small>amigos</small></button>
+        <button class="pf2-stat" onclick="verSeguidos()"><strong>${(DATA.siguiendo || []).length}</strong><small>seguidos</small></button>
       </div>
     </section>
 
@@ -3513,7 +3512,6 @@ function renderPerfilPublico() {
         ${acciones}
         <div class="pf2-stats" style="cursor:default">
           <div class="pf2-stat" style="cursor:default"><strong>${suyas.length}</strong><small>eventos</small></div>
-          <div class="pf2-stat" style="cursor:default"><strong>—</strong><small>fiestas</small></div>
           <div class="pf2-stat" style="cursor:default"><strong>—</strong><small>amigos</small></div>
           <div class="pf2-stat" style="cursor:default"><strong>${extra.seguidores == null ? '—' : kilo(extra.seguidores)}</strong><small>seguidores</small></div>
         </div>
@@ -3554,12 +3552,40 @@ async function toggleSeguirPerfil(usuario, nombre, avatar, color) {
       DATA.siguiendo = DATA.siguiendo.filter((s) => (s.usuario || '').toLowerCase() !== usuario.toLowerCase());
       toast(`Dejaste de seguir a ${nombre.split(' ')[0]}`);
     } else {
-      await window.Socialice.seguirUsuario({ uid: found.uid, usuario, nombre });
-      DATA.siguiendo = [{ uid: found.uid, usuario, nombre }, ...DATA.siguiendo];
+      const a = found.avatar || avatar, c = found.color || color;
+      await window.Socialice.seguirUsuario({ uid: found.uid, usuario, nombre, avatar: a, color: c });
+      DATA.siguiendo = [{ uid: found.uid, usuario, nombre, avatar: a, color: c }, ...DATA.siguiendo];
       toast(`Ahora sigues a ${nombre.split(' ')[0]} 🎉`);
     }
   } catch (e) { toast(window.Socialice.mensajeError(e)); return; }
   abrirPerfilPublico(nombre, usuario, avatar, color);
+  if (document.body.dataset.screen === 'profile') pintarPerfil();
+}
+
+// Lista de a quién sigues (real). Cada quien se puede dejar de seguir desde
+// aquí mismo, o abrir su perfil.
+function verSeguidos() {
+  const lista = DATA.siguiendo || [];
+  abrirSheet(`Siguiendo · ${lista.length}`, `
+    <div class="friend-list">
+      ${lista.length ? lista.map((s) => `
+        <article class="friend-card" onclick="cerrarSheet(); verPerfilDe('${(s.nombre || s.usuario).replace(/'/g, "\\'")}','${s.usuario}','${s.avatar || '🙂'}','${(s.color || '').replace(/'/g, "\\'")}')">
+          <div class="friend-ava" style="background:${s.color || 'var(--grad-cool)'}">${s.avatar || '🙂'}</div>
+          <div class="friend-main"><strong>${esc(s.nombre || s.usuario)}</strong><small>${esc(s.usuario)}</small></div>
+          <button class="add-btn is-added" onclick="event.stopPropagation(); dejarDeSeguirDesdeLista('${s.usuario}')">Siguiendo ✓</button>
+        </article>`).join('') : `<p class="empty">Aún no sigues a nadie</p>`}
+    </div>
+  `);
+}
+async function dejarDeSeguirDesdeLista(usuario) {
+  const s = (DATA.siguiendo || []).find((x) => (x.usuario || '').toLowerCase() === usuario.toLowerCase());
+  if (!s) return;
+  try { await window.Socialice.dejarDeSeguir({ uid: s.uid, usuario }); }
+  catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  DATA.siguiendo = DATA.siguiendo.filter((x) => (x.usuario || '').toLowerCase() !== usuario.toLowerCase());
+  toast('Dejaste de seguir');
+  verSeguidos();
+  if (document.body.dataset.screen === 'profile') pintarPerfil();
 }
 
 // Menú "⋯" del perfil: reportar o bloquear a esa persona.
@@ -4815,6 +4841,12 @@ function aplicarSiguiendo(lista) {
 function aplicarBloqueados(lista) {
   DATA.bloqueados = Array.isArray(lista) ? lista : [];
   if (document.body.dataset.screen === 'home') pintarInicio();
+}
+// Mi contador real de seguidores (leído de mi propio doc público en
+// 'usernames' al entrar). Antes esto era un número mock fijo en 0.
+function aplicarSeguidoresPropios(n) {
+  DATA.usuario.stats.seguidores = n;
+  if (document.body.dataset.screen === 'profile') pintarPerfil();
 }
 
 // Agregar amigo REAL: pide un @usuario, lo busca en Firestore y lo agrega.

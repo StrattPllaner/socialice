@@ -227,6 +227,12 @@ small { color: var(--ink-faint); }
   /* Espacio abajo para que la nav inferior no tape el contenido */
   padding-bottom: 96px;
 }
+/* Que SIEMPRE se pueda hacer scroll, aunque el contenido sea corto (cuenta
+   nueva, sin resultados de búsqueda…): si no hay de dónde sobrar, el
+   navegador ni deja intentarlo, y el nav de abajo tampoco se encoge con el
+   scroll porque nunca dispara. Con este mínimo, siempre hay unos px de más
+   para deslizar. No aplica al splash (login/registro es de alto fijo). */
+.screen.is-active:not(#screen-splash) { min-height: calc(100dvh + 140px); }
 
 /* La nav inferior se oculta en el splash/registro */
 body[data-screen="splash"] .bottom-nav { display: none; }
@@ -2357,7 +2363,7 @@ body::before {
 .evfull-tema.con-video::before, .evfull-tema.con-video::after { display: none; }
 .evfull-bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: calc(10px + env(safe-area-inset-top)) 16px 8px; }
 .evfull-name { flex: 1; min-width: 0; margin: 0; font-size: 1.3rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 2px 12px rgba(0,0,0,.65); }
-.evfull-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 4px 16px calc(14px + env(safe-area-inset-bottom)); }
+.evfull-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; padding: 4px 16px calc(14px + env(safe-area-inset-bottom)); min-height: calc(100dvh + 140px); }
 /* Velo ligero en cada bloque para leer sobre cualquier tema */
 .evfull .ev-info, .evfull .ev-quien, .evfull .ev-count, .evfull .rsvp,
 .evfull .zona-list, .evfull .ev-desc, .evfull .detail-chips, .evfull .album-grid,
