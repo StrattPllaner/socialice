@@ -282,13 +282,32 @@ function reg3Submit(ev) {
   const fechaNacimiento = document.getElementById('regNacimiento').value;
   if (nombre) DATA.usuario.nombre = nombre;
   if (user) DATA.usuario.usuario = '@' + user.replace(/^@+/, '');
-  if (bio) DATA.usuario.bio = bio;
+  DATA.usuario.bio = bio;
   if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
   // Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil"
   DATA.usuario.redes = { instagram: '', tiktok: '', web: '' };
+  vaciarCuentaNueva();
   entrarApp();
   toast('¡Bienvenido a Socialice! 🎉');
   return false;
+}
+
+// Cuenta nueva = todo en cero. El mock trae equipo, seguidores, amigos,
+// grupos y "voy a ir" de ejemplo para poder diseñar pantallas con contenido;
+// al registrarse de verdad hay que borrar TODO eso, no es información real
+// del usuario que se acaba de crear la cuenta.
+function vaciarCuentaNueva() {
+  DATA.usuario.colaboradores = [];
+  DATA.usuario.seguidoresList = [];
+  DATA.usuario.eventosPasados = [];
+  DATA.usuario.stats = { eventos: 0, asistentes: 0, seguidores: 0, amigos: 0, fueA: 0 };
+  DATA.usuario.verificado = false;
+  DATA.usuario.ciudad = '';
+  DATA.amigos = [];
+  DATA.grupos = [];
+  DATA.eventos.forEach((e) => { e.voy = false; e._voy = false; });
+  notisData = [];
+  notisNuevas = false;
 }
 
 /* ===================================================================
@@ -297,6 +316,14 @@ function reg3Submit(ev) {
 
 let categoriaActiva = 'todos';
 let notisNuevas = true;   // hay notificaciones sin leer (punto rojo + vibración)
+// Notificaciones de ejemplo (solo para la cuenta demo de "login"; una cuenta
+// nueva de verdad arranca sin ninguna, ver vaciarCuentaNueva()).
+let notisData = [
+  { ava: '🐺', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)', txt: '<b>Mateo</b> confirmó que va a Neon Nights', t: 'hace 10 min' },
+  { ava: '🌸', color: 'linear-gradient(135deg,#ec4899,#f43f5e)', txt: '<b>Sofía</b> comentó en Rooftop Sunset', t: 'hace 1 h' },
+  { ava: '🎪', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', txt: 'Aurora Fest ya tiene fecha — ¡revísala!', t: 'hace 3 h' },
+  { ava: '⭐', color: 'linear-gradient(135deg,#f59e0b,#ef4444)', txt: '<b>Valeria</b> te marcó como mejor amigo', t: 'ayer' }
+];
 
 function pintarInicio() {
   const cont = document.getElementById('screen-home');
@@ -2542,7 +2569,7 @@ function pintarAmigos() {
 
     <div class="row-between"><h3>Tus amigos</h3><span class="see-all">${DATA.amigos.length}</span></div>
     <div class="friend-list" id="friendList">
-      ${amigosOrdenados().map(tarjetaAmigo).join('')}
+      ${DATA.amigos.length ? amigosOrdenados().map(tarjetaAmigo).join('') : `<p class="empty">Aún no tienes amigos. Agrega a los que veas por ahí 👋</p>`}
     </div>
 
     <div class="row-between"><h3>Quizá los conozcas</h3></div>
@@ -3247,12 +3274,12 @@ function verSeguidores() {
   const lista = DATA.usuario.seguidoresList || [];
   abrirSheet(`Seguidores · ${DATA.usuario.stats.seguidores}`, `
     <div class="friend-list">
-      ${lista.map((s) => `
+      ${lista.length ? lista.map((s) => `
         <article class="friend-card" onclick="verPerfilDe('${s.nombre}','${s.usuario}','${s.avatar}')">
           <div class="friend-ava" style="background:${s.color}">${s.avatar}</div>
           <div class="friend-main"><strong>${s.nombre}</strong><small>${s.usuario}</small></div>
           <button class="add-btn" onclick="event.stopPropagation(); this.classList.toggle('is-added'); this.textContent=this.classList.contains('is-added')?'Siguiendo ✓':'Seguir'">Seguir</button>
-        </article>`).join('')}
+        </article>`).join('') : `<p class="empty">Aún no tienes seguidores</p>`}
     </div>
   `);
 }
@@ -3375,12 +3402,7 @@ function mostrarConectados() {
 // se abre justo debajo de la campana, como un menú desplegable.
 function abrirNotificaciones() {
   if (document.getElementById('notiDrop')) { cerrarNotiDrop(); return; }
-  const notis = [
-    { ava: '🐺', color: 'linear-gradient(135deg,#06b6d4,#3b82f6)', txt: '<b>Mateo</b> confirmó que va a Neon Nights', t: 'hace 10 min' },
-    { ava: '🌸', color: 'linear-gradient(135deg,#ec4899,#f43f5e)', txt: '<b>Sofía</b> comentó en Rooftop Sunset', t: 'hace 1 h' },
-    { ava: '🎪', color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', txt: 'Aurora Fest ya tiene fecha — ¡revísala!', t: 'hace 3 h' },
-    { ava: '⭐', color: 'linear-gradient(135deg,#f59e0b,#ef4444)', txt: '<b>Valeria</b> te marcó como mejor amigo', t: 'ayer' }
-  ];
+  const notis = notisData;
   // Al abrir, se marcan como leídas: quita el punto rojo y la vibración
   notisNuevas = false;
   const bell = document.querySelector('.ico-btn.bell');
@@ -3394,11 +3416,11 @@ function abrirNotificaciones() {
   drop.innerHTML = `
     <div class="noti-drop-head"><h3>Notificaciones</h3></div>
     <div class="noti-list">
-      ${notis.map((n) => `
+      ${notis.length ? notis.map((n) => `
         <div class="noti-item">
           <span class="noti-ava" style="background:${n.color}">${n.ava}</span>
           <div class="noti-body"><p>${n.txt}</p><small>${n.t}</small></div>
-        </div>`).join('')}
+        </div>`).join('') : `<p class="empty">No tienes notificaciones todavía</p>`}
     </div>
   `;
   document.body.appendChild(drop);
@@ -4291,6 +4313,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // más el contenido detrás del vidrio) y vuelve a su tamaño al soltar.
   // Se escucha en document con capture: así también cuenta el scroll de
   // contenedores internos (vistas full-screen, listas), no solo el del body.
+  // Ola (ripple) al tocar un botón de la barra: crece desde el icono hacia
+  // afuera y se desvanece. Delegado en la barra porque el nav se re-pinta.
+  document.getElementById('bottomNav').addEventListener('pointerdown', (e) => {
+    const btn = e.target.closest('.nav-btn');
+    if (!btn) return;
+    const ola = document.createElement('span');
+    ola.className = 'nav-ripple';
+    btn.appendChild(ola);
+    setTimeout(() => ola.remove(), 650);
+  });
+
   let navMiniT = null;
   const navEl = document.querySelector('.bottom-nav');
   document.addEventListener('scroll', () => {

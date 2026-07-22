@@ -645,25 +645,38 @@ body[data-screen="splash"] .bottom-nav { display: none; }
 .nav-btn.is-active { color: var(--violet); }
 .nav-btn.is-active .nav-icon svg { transform: translateY(-1px); stroke-width: 2.1; }
 
-/* Pastilla luminosa que RESALTA el apartado activo (y responde al mouse
-   y al toque). Vive en ::before, detrás del icono y el texto. */
+/* Resalte SIN cuadro: un halo circular difuso detrás del icono (activo y
+   hover) y una OLA que se expande desde el icono al tocar (ripple, como IG).
+   El halo vive en ::before; la ola es un span .nav-ripple que agrega JS. */
 .nav-btn { position: relative; z-index: 0; }
 .nav-btn::before {
-  content: ''; position: absolute; inset: 3px 10%; z-index: -1;
-  border-radius: 15px;
-  background: linear-gradient(180deg, rgba(125,190,255,.30), rgba(47,123,255,.14));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 4px 16px rgba(47,123,255,.28);
-  opacity: 0; transform: scale(.7);
-  transition: opacity .22s ease, transform .3s cubic-bezier(.2,.8,.2,1);
+  content: ''; position: absolute; z-index: -1; left: 50%; top: 18px;
+  width: 46px; height: 46px; border-radius: 50%;
+  translate: -50% -50%;
+  background: radial-gradient(circle, rgba(96,165,250,.42), rgba(47,123,255,.14) 55%, transparent 72%);
+  opacity: 0; scale: .4;
+  transition: opacity .25s ease, scale .3s cubic-bezier(.2,.8,.2,1);
 }
-.nav-btn.is-active::before { opacity: 1; transform: scale(1); animation: navPillIn .35s cubic-bezier(.2,.8,.2,1); }
-@keyframes navPillIn { from { opacity: 0; transform: scale(.55); } }
-/* Al presionar (touch o click): la pastilla aparece y se comprime tantito */
-.nav-btn:active::before { opacity: .75; transform: scale(.92); }
-/* Con mouse (PC): al pasar encima se ilumina sin llegar al azul del activo */
+.nav-btn.is-active::before { opacity: 1; scale: 1; animation: navHalo .4s cubic-bezier(.2,.8,.2,1); }
+@keyframes navHalo { from { opacity: 0; scale: .3; } }
+/* La ola: un anillo que crece desde el centro del icono hasta más allá de
+   los bordes del botón y se desvanece */
+.nav-ripple {
+  position: absolute; z-index: -1; left: 50%; top: 18px;
+  width: 12px; height: 12px; border-radius: 50%;
+  translate: -50% -50%; pointer-events: none;
+  background: radial-gradient(circle, rgba(125,190,255,.45) 0%, rgba(125,190,255,.18) 45%, transparent 68%);
+  box-shadow: 0 0 0 1.5px rgba(125,190,255,.55);
+  animation: navRipple .6s ease-out forwards;
+}
+@keyframes navRipple {
+  from { opacity: .9; scale: .35; }
+  to   { opacity: 0;  scale: 6.5; }
+}
+/* Con mouse (PC): al pasar encima el halo respira y el icono se levanta */
 @media (hover: hover) {
   .nav-btn:hover { color: #fff; }
-  .nav-btn:not(.is-active):hover::before { opacity: .45; transform: scale(1); }
+  .nav-btn:not(.is-active):hover::before { opacity: .55; scale: 1; }
   .nav-btn:hover .nav-icon svg { transform: translateY(-2px); }
   .nav-btn.is-active:hover .nav-icon svg { transform: translateY(-2px); stroke-width: 2.1; }
 }
@@ -1773,6 +1786,7 @@ body.no-scroll { overflow: hidden; }
 
 @media (prefers-reduced-motion: reduce) {
   .nav-btn.is-active .nav-icon svg, .nav-btn.is-active::before, .event-list > * { animation: none; }
+  .nav-ripple { animation: none; display: none; }
   .btn:hover, .icon-btn:hover, .top-avatar:hover, .name-dot:hover,
   .grad-swatch:hover, .colab:hover, .red:hover { transform: none; }
   .icon-btn.sm:hover svg, .icon-btn.sm:active svg { transform: none; }
@@ -2490,8 +2504,8 @@ body::before {
   .nav-btn .nav-icon svg { width: 24px; height: 24px; }
   .nav-text { font-size: 1rem; font-weight: 600; }
   .nav-btn.is-active { background: rgba(47,123,255,.16); color: var(--violet); }
-  /* En el menú lateral el botón entero ya se resalta: fuera la pastilla */
-  .nav-btn::before { display: none; }
+  /* En el menú lateral el botón entero ya se resalta: fuera halo y ola */
+  .nav-btn::before, .nav-ripple { display: none; }
 
   /* El contenido se recorre a la derecha del menú y usa un área ancha */
   body:not([data-screen="splash"]) .app-shell {
