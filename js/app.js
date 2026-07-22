@@ -207,13 +207,56 @@ function maxFechaNacimiento() {
 
 /* --- Formularios del splash: validación nativa + feedback claro ---
    (Enter envía, los errores se muestran con reportValidity + toast) --- */
-function loginSubmit(ev) {
+async function loginSubmit(ev) {
   ev.preventDefault();
   const f = ev.target;
   if (!f.reportValidity()) { toast('Revisa tu correo y contraseña'); return false; }
+  // Con Firebase configurado, login real; el router de sesión (rutaSesion)
+  // entra a la app al detectar la sesión. Sin Firebase, modo mock.
+  if (window.Socialice && window.Socialice.configurado) {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPass').value;
+    try {
+      await window.Socialice.login(email, password);
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+      return false;
+    }
+    toast('¡Qué gusto verte de nuevo! 🎉');
+    return false;
+  }
   entrarApp();
   toast(`¡Qué gusto verte, ${DATA.usuario.nombre.split(' ')[0]}! 🎉`);
   return false;
+}
+// Login con Google (solo si Firebase está configurado). El router de sesión
+// decide: si ya tiene perfil entra; si es cuenta nueva, va a onboarding (18+).
+async function entrarGoogle() {
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    toast('Conecta Firebase para usar Google 🔗');
+    return;
+  }
+  try {
+    await window.Socialice.loginGoogle();
+  } catch (e) {
+    toast(window.Socialice.mensajeError(e));
+  }
+}
+// Restablecer contraseña: usa el correo ya escrito en el formulario de login.
+async function recuperarPass() {
+  const inp = document.getElementById('loginEmail');
+  const email = (inp && inp.value.trim()) || '';
+  if (!email) { if (inp) inp.focus(); toast('Escribe tu correo arriba y toca de nuevo'); return; }
+  if (window.Socialice && window.Socialice.configurado) {
+    try {
+      await window.Socialice.recuperarPass(email);
+      toast('Te enviamos un correo para restablecer tu contraseña 📧');
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+    }
+  } else {
+    toast('Te enviaremos un correo para restablecerla 📧');
+  }
 }
 function reg1Submit(ev) {
   ev.preventDefault();
@@ -249,17 +292,14 @@ function reg1Submit(ev) {
   splashIr('reg2');
   return false;
 }
-function reg2Submit(ev) {
+async function reg2Submit(ev) {
   ev.preventDefault();
   const f = ev.target;
   if (!f.reportValidity()) { toast('Ponle nombre y usuario a tu cuenta'); return false; }
   const user = document.getElementById('reg2User').value.trim().toLowerCase();
-  // Usuario duplicado (contra la gente que ya existe en la app)
-  const ocupados = [
-    ...DATA.amigos, ...DATA.sugerencias,
-    ...(DATA.usuario.seguidoresList || []), ...(DATA.usuario.colaboradores || [])
-  ].map((x) => (x.usuario || '').toLowerCase());
-  if (ocupados.includes('@' + user)) {
+  // Usuario único: con backend, disponibilidad REAL en Firestore; sin backend,
+  // contra la lista mock de gente que ya existe en la app.
+  if (await usuarioOcupado(user)) {
     const inp = document.getElementById('reg2User');
     inp.setCustomValidity('Ese usuario ya está ocupado');
     inp.reportValidity();
@@ -270,33 +310,68 @@ function reg2Submit(ev) {
   splashIr('reg3');
   return false;
 }
-function reg3Submit(ev) {
+
+// ¿El usuario (sin @) está ocupado? Backend real si hay Firebase; si no, mock.
+async function usuarioOcupado(user) {
+  if (window.Socialice && window.Socialice.configurado) {
+    try { return !(await window.Socialice.usuarioDisponible('@' + user)); }
+    catch (_) { return false; }   // si la lectura falla, el batch decide al crear
+  }
+  return [
+    ...DATA.amigos, ...DATA.sugerencias,
+    ...(DATA.usuario.seguidoresList || []), ...(DATA.usuario.colaboradores || [])
+  ].map((x) => (x.usuario || '').toLowerCase()).includes('@' + user);
+}
+async function reg3Submit(ev) {
   ev.preventDefault();
-  // Aplica los datos del registro al perfil (mock, sin backend todavía)
   const nombre = document.getElementById('reg2Name').value.trim();
   const user = document.getElementById('reg2User').value.trim().toLowerCase();
+  const usuario = '@' + user.replace(/^@+/, '');
   const bio = document.getElementById('reg3Bio').value.trim();
-  // Fecha de nacimiento capturada en el paso 1 (ISO 'YYYY-MM-DD'). Se guarda
-  // tal cual para enviarla al backend, que revalidará la edad. NO guardamos un
-  // booleano "esMayor": guardamos la fecha para poder recalcular/auditar.
+  // Fecha de nacimiento capturada en el paso 1 (ISO 'YYYY-MM-DD'). Se envía
+  // tal cual; el backend revalida la edad. NO se guarda un booleano "esMayor".
   const fechaNacimiento = document.getElementById('regNacimiento').value;
+  // Correo y contraseña vienen del paso 1 (siguen en el DOM).
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPass').value;
+
+  // Refleja los datos en la UI (que hoy lee de DATA.usuario). Se hace ANTES de
+  // crear la cuenta para que, cuando el router entre a la app, ya muestre datos
+  // frescos. Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil".
   if (nombre) DATA.usuario.nombre = nombre;
-  if (user) DATA.usuario.usuario = '@' + user.replace(/^@+/, '');
+  if (user) DATA.usuario.usuario = usuario;
   DATA.usuario.bio = bio;
   if (fechaNacimiento) DATA.usuario.fechaNacimiento = fechaNacimiento;
-  // Cuenta nueva: SIN redes hasta que las agregue en "Editar perfil"
   DATA.usuario.redes = { instagram: '', tiktok: '', web: '' };
-  vaciarCuentaNueva();
+
+  // Con Firebase configurado, crea la cuenta REAL (Auth + Firestore); las
+  // reglas rechazan a menores. El router de sesión entra a la app solo (y
+  // aplicarPerfil() se encarga de vaciar el mock antes de mostrar nada). Si
+  // no está configurado, sigue el modo mock: vacía aquí mismo y entra directo.
+  if (window.Socialice && window.Socialice.configurado) {
+    try {
+      await window.Socialice.crearCuenta({ email, password, nombre, usuario, bio, fechaNacimiento });
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+      return false;
+    }
+    toast('¡Bienvenido a Socialice! 🎉');
+    return false;
+  }
+
+  vaciarDatosMock();
   entrarApp();
   toast('¡Bienvenido a Socialice! 🎉');
   return false;
 }
 
-// Cuenta nueva = todo en cero. El mock trae equipo, seguidores, amigos,
-// grupos y "voy a ir" de ejemplo para poder diseñar pantallas con contenido;
-// al registrarse de verdad hay que borrar TODO eso, no es información real
-// del usuario que se acaba de crear la cuenta.
-function vaciarCuentaNueva() {
+// El mock trae equipo, seguidores, amigos, grupos, recuerdos y "voy a ir" de
+// ejemplo para poder diseñar pantallas con contenido — pero nada de eso está
+// migrado a Firestore todavía. Se vacía: (a) en el registro mock (sin
+// Firebase configurado, más abajo), y (b) al arrancar CUALQUIER sesión real
+// (ver aplicarPerfil), para que ni una cuenta nueva ni una que vuelve a
+// entrar sigan mostrando el equipo/amigos/fiestas de la cuenta demo.
+function vaciarDatosMock() {
   DATA.usuario.colaboradores = [];
   DATA.usuario.seguidoresList = [];
   DATA.usuario.eventosPasados = [];
@@ -496,6 +571,7 @@ function tarjetaProximamente(e) {
 function interesado(id, btn) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   e._interesado = !e._interesado;
+  _persistRsvp(e);
   btn.classList.toggle('on', e._interesado);
   btn.innerHTML = btn.classList.contains('pf-star') ? icon('star') : icon('star') + (e._interesado ? ' Interesado ✓' : ' Interesado');
   // Actualiza el contador de interesados si está visible
@@ -1137,7 +1213,7 @@ function pintarCrear() {
         </div>
         <div class="ev-cover cr-ev-cover ${draft.cover.img ? 'has-img' : ''}" style="${coverStyleDraft()}">
           ${draft.cover.img ? '' : '<button class="cover-empty" onclick="document.getElementById(\'coverFile\').click()"><span class="cover-empty-ic">＋</span>Portada</button>'}
-          <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+          <input type="file" accept="image/*" id="coverFile" hidden onchange="subirCover(event)">
           <button class="cover-edit" onclick="document.getElementById('coverFile').click()" aria-label="Cambiar portada">✎</button>
         </div>
       </div>
@@ -1765,10 +1841,10 @@ function pasoPortada() {
     </div>
     <p class="hint">Arrastra el título, textos y emojis. Tócalos para cambiar color/tamaño.</p>
 
-    <input type="file" accept="image/*" id="coverFile" hidden onchange="subirPortada(event)">
+    <input type="file" accept="image/*" id="coverFile" hidden onchange="subirCover(event)">
     <div class="cover-actions">
       <button class="chip" onclick="document.getElementById('coverFile').click()">⬆ Imagen</button>
-      ${draft.cover.img ? `<button class="chip" onclick="quitarPortada()">Quitar</button>` : ''}
+      ${draft.cover.img ? `<button class="chip" onclick="quitarCover()">Quitar</button>` : ''}
       <button class="chip" onclick="addCoverText()">＋ Texto</button>
       <button class="chip" onclick="toggleEmojiPalette()">😀 Emoji</button>
     </div>
@@ -2106,14 +2182,17 @@ function delBoleto(i) { draft.boletos.splice(i, 1); pintarBoletos(); }
 
 // --- Portada / fondo ---
 function setGrad(g) { draft.cover.grad = g; draft.cover.img = null; pintarCrear(); }
-function subirPortada(ev) {
+// Portada del EVENTO (distinta de la del perfil). Se comprime a miniatura
+// porque el evento se guarda en Firestore (límite de 1 MiB por documento).
+async function subirCover(ev) {
   const file = ev.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => { draft.cover.img = reader.result; pintarCrear(); };
-  reader.readAsDataURL(file);
+  try {
+    draft.cover.img = await comprimirImagen(file, 1080, 0.72);
+    pintarCrear();
+  } catch (_) { toast('No pude procesar esa imagen'); }
 }
-function quitarPortada() { draft.cover.img = null; pintarCrear(); }
+function quitarCover() { draft.cover.img = null; pintarCrear(); }
 
 // Foto de fondo del mapa del lugar
 function subirPlanoBg(ev) {
@@ -2245,25 +2324,43 @@ function draftAEvento() {
   };
 }
 
-function guardarFiesta() {
+async function guardarFiesta() {
   if (!draft.nombre.trim()) { toast('Ponle un nombre a tu fiesta'); return; }
   const campos = draftAEvento();
+  const editando = !!draft.id;
+  let id = draft.id;
 
-  if (draft.id) {
+  if (editando) {
     // Editando: actualizamos el evento existente
-    const e = DATA.eventos.find((x) => x.id === draft.id);
+    const e = DATA.eventos.find((x) => x.id === id);
     if (e) Object.assign(e, campos);
     toast('Cambios guardados ✓');
   } else {
     // Nuevo: lo creamos y lo agregamos al inicio del feed
-    DATA.eventos.unshift({
-      id: 'ev' + Date.now(),
-      asistentes: 0,
-      cat: ['semana', 'cerca'],
-      ...campos
-    });
+    id = 'ev' + Date.now();
+    DATA.eventos.unshift({ id, asistentes: 0, cat: ['semana', 'cerca'], ...campos });
     toast('¡Fiesta publicada! 🎉');
   }
+
+  // Persistir en Firestore (si hay backend). Se guarda el objeto local completo
+  // MENOS las noticias/posts (van en subcolección después). La portada ya viene
+  // comprimida; guardrail extra por el límite de 1 MiB del documento.
+  if (window.Socialice && window.Socialice.configurado) {
+    const local = DATA.eventos.find((x) => x.id === id);
+    const payload = JSON.parse(JSON.stringify(local || { id, ...campos }));
+    delete payload.id; delete payload.noticias;
+    if ((payload.coverImg || '').length > 900000) {
+      payload.coverImg = null;
+      toast('La portada pesaba mucho; se guardó sin imagen');
+    }
+    try {
+      if (editando) await window.Socialice.actualizarEvento(id, payload);
+      else await window.Socialice.crearEvento(id, payload);
+    } catch (e) {
+      toast(window.Socialice.mensajeError(e));
+    }
+  }
+
   draft = nuevoDraft();
   irA('profile');
 }
@@ -2567,7 +2664,7 @@ function pintarAmigos() {
       ${grupos.length ? grupos.map(tarjetaGrupo).join('') : `<p class="empty">Aún no tienes grupos. Crea uno con tus amigos 👥</p>`}
     </div>
 
-    <div class="row-between"><h3>Tus amigos</h3><span class="see-all">${DATA.amigos.length}</span></div>
+    <div class="row-between"><h3>Tus amigos</h3><button class="cal-link" onclick="agregarAmigoFlow()">＋ Agregar por usuario</button></div>
     <div class="friend-list" id="friendList">
       ${DATA.amigos.length ? amigosOrdenados().map(tarjetaAmigo).join('') : `<p class="empty">Aún no tienes amigos. Agrega a los que veas por ahí 👋</p>`}
     </div>
@@ -2915,6 +3012,10 @@ function abrirAmigo(usuario) {
     <button class="best-btn ${a.mejorAmigo ? 'is-on' : ''}" onclick="toggleMejorAmigo('${a.usuario}')">
       ${a.mejorAmigo ? '★ Mejor amigo' : '☆ Hacer mejor amigo'}
     </button>`;
+  // Quitar amigo (solo amigos reales, que tienen uid).
+  const btnQuitar = a.uid
+    ? `<button class="best-btn" onclick="quitarAmigoFlow('${a.usuario}')">Quitar amigo</button>`
+    : '';
 
   if (!puedeVer(a)) {
     abrirSheet(a.nombre, `
@@ -2923,7 +3024,7 @@ function abrirAmigo(usuario) {
         <strong>${a.nombre}</strong><small>${a.usuario}</small>
       </div>
       <div class="locked-box">${icon('lock', 'mute')} Este perfil es privado.<br>Solo sus mejores amigos ven su actividad.</div>
-      <div class="sheet-actions">${btnBest}</div>
+      <div class="sheet-actions">${btnBest}${btnQuitar}</div>
     `);
     return;
   }
@@ -2939,7 +3040,7 @@ function abrirAmigo(usuario) {
     <div class="row-between"><h3>Sus fotos</h3></div>
     ${a.fotos.length ? `<div class="photo-grid">${a.fotos.map((f) => `<div class="photo-cell">${f}</div>`).join('')}</div>`
                      : `<p class="empty">Sin fotos todavía 📸</p>`}
-    <div class="sheet-actions">${btnBest}</div>
+    <div class="sheet-actions">${btnBest}${btnQuitar}</div>
   `);
 }
 
@@ -2947,6 +3048,10 @@ function abrirAmigo(usuario) {
 function toggleMejorAmigo(usuario) {
   const a = DATA.amigos.find((x) => x.usuario === usuario);
   a.mejorAmigo = !a.mejorAmigo;
+  // Persiste si es un amigo real (tiene uid).
+  if (a.uid && window.Socialice && window.Socialice.configurado) {
+    window.Socialice.setMejorAmigo(a.uid, a.mejorAmigo).catch(() => {});
+  }
   toast(a.mejorAmigo ? `${a.nombre} ahora es tu mejor amigo 💙` : `${a.nombre} ya no es mejor amigo`);
   abrirAmigo(usuario);  // re-pinta el panel
   pintarAmigos();       // re-pinta la lista de fondo
@@ -3853,6 +3958,7 @@ function setRsvp(id, estado) {
   if (!e) return;
   e._rsvp = (e._rsvp === estado) ? null : estado;
   e._voy = e._rsvp === 'voy';
+  _persistRsvp(e);
   const msg = { voy: `¡Confirmado! Vas a ${e.nombre} 🎉`, tal: 'Quedaste como "tal vez" 🤔', no: 'Marcaste que no puedes 🙅' };
   toast(e._rsvp ? msg[e._rsvp] : 'Quitaste tu respuesta');
   abrirEvento(id);
@@ -3863,6 +3969,7 @@ function acomp(id, d) {
   if (!e) return;
   e._rsvpExtra = Math.max(0, (e._rsvpExtra || 0) + d);
   const n = document.getElementById('acompN'); if (n) n.textContent = '+' + e._rsvpExtra;
+  _persistRsvp(e);
 }
 // Recordatorio del evento
 function toggleRecordar(id, btn) {
@@ -3878,6 +3985,7 @@ function interesadoPage(id) {
   const e = DATA.eventos.find((ev) => ev.id === id);
   if (!e) return;
   e._interesado = !e._interesado;
+  _persistRsvp(e);
   toast(e._interesado ? `¡Listo! Te avisaremos de ${e.nombre} 🔔` : 'Ya no recibirás avisos');
   abrirEvento(id);
 }
@@ -4144,12 +4252,38 @@ function refrescarEstiloEd() {
 }
 function setPortada(id) { _edpPortada = id; _edpPortadaImg = null; refrescarEstiloEd(); }
 function setEdpFont(id) { _edpFont = id; refrescarEstiloEd(); }
-function subirPortada(ev) {
+
+// Redimensiona y comprime una imagen (File) a un dataURL JPEG pequeño para
+// guardarla en Firestore SIN Storage (plan gratis). maxLado = lado mayor en px.
+function comprimirImagen(file, maxLado = 720, calidad = 0.7) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > h && w > maxLado) { h = Math.round(h * maxLado / w); w = maxLado; }
+        else if (h >= w && h > maxLado) { w = Math.round(w * maxLado / h); h = maxLado; }
+        const cv = document.createElement('canvas');
+        cv.width = w; cv.height = h;
+        cv.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(cv.toDataURL('image/jpeg', calidad));
+      };
+      img.onerror = reject;
+      img.src = r.result;
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+async function subirPortada(ev) {
   const f = ev.target.files[0];
   if (!f) return;
-  const r = new FileReader();
-  r.onload = () => { _edpPortadaImg = r.result; refrescarEstiloEd(); };
-  r.readAsDataURL(f);
+  try {
+    _edpPortadaImg = await comprimirImagen(f, 720, 0.7);   // portada (imagen ancha)
+    refrescarEstiloEd();
+  } catch (_) { toast('No pude procesar esa imagen'); }
 }
 function quitarPortada() { _edpPortadaImg = null; refrescarEstiloEd(); }
 
@@ -4194,12 +4328,14 @@ function toggleRed(k) {
   if (_redesTmp[k] !== null) document.getElementById('edRed_' + k)?.focus();
 }
 
-function subirLogo(ev) {
+async function subirLogo(ev) {
   const f = ev.target.files[0];
   if (!f) return;
-  const r = new FileReader();
-  r.onload = () => { _capturarPerfil(); DATA.usuario.logo = r.result; editarPerfil(true); };
-  r.readAsDataURL(f);
+  try {
+    _capturarPerfil();
+    DATA.usuario.logo = await comprimirImagen(f, 256, 0.8);   // logo (pequeño y cuadrado-ish)
+    editarPerfil(true);
+  } catch (_) { toast('No pude procesar esa imagen'); }
 }
 function quitarLogo() { _capturarPerfil(); DATA.usuario.logo = null; editarPerfil(true); }
 
@@ -4209,10 +4345,13 @@ function elegirAvatar(a, btn) {
   document.querySelectorAll('#avatarGrid .avatar-opt').forEach((b) => b.classList.remove('is-sel'));
   btn.classList.add('is-sel');
 }
-function guardarPerfil() {
+async function guardarPerfil() {
   const u = DATA.usuario;
+  const usuarioViejo = u.usuario;
+  const usuarioRaw = document.getElementById('edUsuario').value.trim();
+  const usuarioNuevo = usuarioRaw ? '@' + usuarioRaw.replace(/^@+/, '') : usuarioViejo;
   u.nombre = document.getElementById('edNombre').value.trim() || u.nombre;
-  u.usuario = document.getElementById('edUsuario').value.trim() || u.usuario;
+  u.usuario = usuarioNuevo;
   u.bio = document.getElementById('edBio').value.trim();
   if (_avatarTmp) u.avatar = _avatarTmp;
   _avatarTmp = null;
@@ -4228,9 +4367,52 @@ function guardarPerfil() {
   delete u.redes.whatsapp;   // ya no pedimos teléfono
   _redesTmp = null;
   _perfilTmp = null;
+
+  // Cambio de @usuario (con backend): reservar el nuevo y liberar el viejo. Si
+  // ya está ocupado, se mantiene el anterior. Se hace ANTES de re-pintar.
+  const display = { nombre: u.nombre, avatar: u.avatar || null, color: u.color || null };
+  if (window.Socialice && window.Socialice.configurado
+      && usuarioNuevo.toLowerCase() !== usuarioViejo.toLowerCase()) {
+    try {
+      await window.Socialice.cambiarUsuario(usuarioNuevo, usuarioViejo, display);
+    } catch (e) {
+      u.usuario = usuarioViejo;
+      toast('Ese usuario ya está ocupado; se mantuvo el anterior');
+    }
+  }
+
   cerrarEditarPerfil();
   pintarPerfil();
   toast('Perfil actualizado ✓');
+
+  // Persistir el resto en Firestore. Las fotos van como miniatura comprimida
+  // dentro del documento (sin Storage). undefined no es válido → null. El
+  // 'usuario' NO va aquí: ya lo maneja cambiarUsuario (o no cambió).
+  if (window.Socialice && window.Socialice.configurado) {
+    const cambios = {
+      nombre: u.nombre,
+      bio: u.bio || '',
+      avatar: u.avatar || null,
+      nombreFont: u.nombreFont || null,
+      portada: u.portada || null,
+      redes: u.redes || {},
+      logo: u.logo || null,
+      portadaImg: u.portadaImg || null,
+    };
+    // Guardrail: el documento de Firestore no puede pasar de ~1 MiB. Si las
+    // fotos lo inflan demasiado, no las mandamos (el resto sí se guarda).
+    if ((cambios.logo || '').length + (cambios.portadaImg || '').length > 900000) {
+      cambios.logo = u.logo && u.logo.length < 500000 ? u.logo : null;
+      cambios.portadaImg = u.portadaImg && u.portadaImg.length < 500000 ? u.portadaImg : null;
+      toast('La foto era muy pesada; se guardó el resto del perfil');
+    }
+    window.Socialice.actualizarPerfil(cambios)
+      .catch((e) => toast(window.Socialice.mensajeError(e)));
+    // Mantener fresca la info pública del username (para verse bien al agregarte).
+    window.Socialice.sincronizarPerfilPublico(u.usuario, {
+      nombre: u.nombre, avatar: u.avatar || null, color: u.color || null,
+    }).catch(() => {});
+  }
 }
 
 // --- Ajustes ---
@@ -4281,11 +4463,229 @@ function compartir(que) {
 // --- Cerrar sesión: vuelve a la bienvenida ---
 function cerrarSesion() {
   cerrarSheet();
+  if (window.Socialice && window.Socialice.configurado) window.Socialice.logout();
   document.querySelectorAll('.screen').forEach((s) =>
     s.classList.toggle('is-active', s.id === 'screen-splash'));
   document.body.dataset.screen = 'splash';
   splashIr('welcome');
   toast('Sesión cerrada');
+}
+
+// Enrutado según la sesión de Firebase (lo llama firebase-init cuando el
+// estado de autenticación cambia: al abrir, al entrar o al cerrar sesión).
+function rutaSesion(user) {
+  const splash = document.getElementById('screen-splash');
+  if (!splash) return;
+  if (user) {
+    splash.classList.remove('is-active');
+    if (document.body.dataset.screen === 'splash') entrarApp();
+  } else {
+    splash.classList.add('is-active');
+    document.body.dataset.screen = 'splash';
+    splashIr('welcome');
+  }
+}
+
+// Vuelca el perfil real (documento de Firestore) en DATA.usuario antes de
+// renderizar. Lo llama el router de firebase-init al entrar. Solo pisa los
+// campos presentes (no borra lo que el doc todavía no tenga) — por eso
+// primero vacía el mock (equipo/amigos/grupos/"voy a ir"/etc de ejemplo):
+// si no, cualquier cuenta real seguiría mostrando el equipo y las fiestas
+// de la cuenta demo, que nunca vienen en el doc real.
+function aplicarPerfil(p) {
+  if (!p) return;
+  vaciarDatosMock();
+  const u = DATA.usuario;
+  if (p.nombre) u.nombre = p.nombre;
+  if (p.usuario) u.usuario = p.usuario[0] === '@' ? p.usuario : '@' + p.usuario;
+  if (typeof p.bio === 'string') u.bio = p.bio;
+  if (typeof p.fechaNacimiento === 'string') u.fechaNacimiento = p.fechaNacimiento;
+  if (p.avatar) u.avatar = p.avatar;
+  if (p.nombreFont) u.nombreFont = p.nombreFont;
+  if ('portada' in p) u.portada = p.portada;   // null = usar el color base
+  if ('logo' in p) u.logo = p.logo;            // foto de logo (miniatura o null)
+  if ('portadaImg' in p) u.portadaImg = p.portadaImg;  // foto de portada
+  if (p.ciudad) u.ciudad = p.ciudad;
+  if (p.redes) u.redes = p.redes;
+}
+
+// Mete los eventos reales (Firestore) al feed. Los agrega al inicio, sin
+// duplicar ids, y les pone valores por defecto de los campos que no persisten
+// todavía (asistentes, noticias/posts). Lo llama el router al entrar.
+function aplicarEventos(lista) {
+  if (!Array.isArray(lista) || !lista.length) return;
+  const ids = new Set(DATA.eventos.map((e) => e.id));
+  const nuevos = lista
+    .filter((e) => !ids.has(e.id))
+    .map((e) => ({ asistentes: 0, cat: ['semana'], noticias: [], ...e }));
+  if (!nuevos.length) return;
+  DATA.eventos = [...nuevos, ...DATA.eventos];
+  if (document.body.dataset.screen === 'home') pintarInicio();
+}
+
+// Aplica las respuestas RSVP guardadas (usuarios/{uid}/rsvps) a los eventos ya
+// cargados. Lo llama el router después de aplicarEventos.
+function aplicarRsvps(mapa) {
+  if (!mapa) return;
+  Object.keys(mapa).forEach((eid) => {
+    const e = DATA.eventos.find((ev) => ev.id === eid);
+    if (!e) return;
+    const r = mapa[eid] || {};
+    if (r.rsvp) { e._rsvp = r.rsvp; e._voy = r.rsvp === 'voy'; }
+    if (r.interesado) e._interesado = true;
+    if (r.extra) e._rsvpExtra = r.extra;
+  });
+  if (document.body.dataset.screen === 'home') pintarInicio();
+}
+
+// Mete los amigos reales (Firestore) a la lista, con los defaults que espera la
+// UI (fue/fotos/privado). No duplica por @usuario. Lo llama el router al entrar.
+function aplicarAmigos(lista) {
+  if (!Array.isArray(lista) || !lista.length) return;
+  const porUsuario = new Set(DATA.amigos.map((a) => (a.usuario || '').toLowerCase()));
+  const nuevos = lista
+    .filter((a) => !porUsuario.has((a.usuario || '').toLowerCase()))
+    .map((a) => ({
+      fue: [], fotos: [], privado: false, mejorAmigo: false,
+      color: 'linear-gradient(135deg,#2f7bff,#38bdf8)', avatar: '🙂',
+      ...a,
+    }));
+  if (!nuevos.length) return;
+  DATA.amigos = [...nuevos, ...DATA.amigos];
+  if (document.body.dataset.screen === 'friends') pintarAmigos();
+}
+
+// Agregar amigo REAL: pide un @usuario, lo busca en Firestore y lo agrega.
+async function agregarAmigoFlow() {
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    toast('Conecta Firebase para agregar amigos reales'); return;
+  }
+  const q = await pedirTexto('Agregar amigo', { placeholder: '@usuario', ok: 'Buscar' });
+  if (!q) return;
+  const user = q.trim().replace(/^@+/, '').toLowerCase();
+  if (!user) return;
+  if (user === (DATA.usuario.usuario || '').replace(/^@+/, '').toLowerCase()) {
+    toast('Ese eres tú 🙂'); return;
+  }
+  if (DATA.amigos.some((a) => (a.usuario || '').toLowerCase() === '@' + user)) {
+    toast('Ya es tu amigo ✓'); return;
+  }
+  let found;
+  try { found = await window.Socialice.buscarUsuario('@' + user); }
+  catch (_) { toast('No pude buscar ahora'); return; }
+  if (!found) { toast(`No existe el usuario @${user}`); return; }
+  const amigo = {
+    uid: found.uid, nombre: found.nombre || ('@' + user), usuario: '@' + user,
+    avatar: found.avatar || '🙂',
+    color: found.color || 'linear-gradient(135deg,#2f7bff,#38bdf8)',
+    mejorAmigo: false, fue: [], fotos: [], privado: false,
+  };
+  try { await window.Socialice.agregarAmigo(amigo); }
+  catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  DATA.amigos = [amigo, ...DATA.amigos];
+  toast(`${amigo.nombre} agregado 🎉`);
+  pintarAmigos();
+}
+
+// Quitar a un amigo (real). Cierra el panel y refresca.
+async function quitarAmigoFlow(usuario) {
+  const a = DATA.amigos.find((x) => x.usuario === usuario);
+  if (!a) return;
+  if (a.uid && window.Socialice && window.Socialice.configurado) {
+    try { await window.Socialice.quitarAmigo(a.uid); }
+    catch (e) { toast(window.Socialice.mensajeError(e)); return; }
+  }
+  DATA.amigos = DATA.amigos.filter((x) => x.usuario !== usuario);
+  cerrarSheet();
+  pintarAmigos();
+  toast(`${a.nombre} quitado de tus amigos`);
+}
+
+// Persiste (o borra) la respuesta del usuario para un evento en Firestore.
+function _persistRsvp(e) {
+  if (!(window.Socialice && window.Socialice.configurado)) return;
+  const vacio = !e._rsvp && !e._interesado;
+  const p = vacio
+    ? window.Socialice.borrarRsvp(e.id)
+    : window.Socialice.guardarRsvp(e.id, {
+        rsvp: e._rsvp || null,
+        interesado: !!e._interesado,
+        extra: e._rsvpExtra || 0,
+      });
+  p.catch((err) => toast(window.Socialice.mensajeError(err)));
+}
+
+// Onboarding tras entrar con Google (cuenta nueva sin perfil). Lo llama el
+// router de firebase-init con {uid, nombre, email} del usuario de Google.
+function rutaOnboarding(info) {
+  const splash = document.getElementById('screen-splash');
+  if (!splash) return;
+  splash.classList.add('is-active');
+  document.body.dataset.screen = 'splash';
+  // Prellenamos el nombre con el de Google (el usuario puede cambiarlo).
+  const nombreInput = document.getElementById('onbNombre');
+  if (nombreInput && !nombreInput.value) nombreInput.value = (info && info.nombre) || '';
+  const fNac = document.getElementById('onbNacimiento');
+  if (fNac) fNac.max = maxFechaNacimiento();
+  splashIr('onboard');
+}
+
+// Cierra el perfil de Google (crea el documento con la fecha 18+ verificada).
+async function onboardSubmit(ev) {
+  ev.preventDefault();
+  const f = ev.target;
+  if (!f.reportValidity()) { toast('Completa tus datos para entrar'); return false; }
+  const nombre = document.getElementById('onbNombre').value.trim();
+  const user = document.getElementById('onbUser').value.trim().toLowerCase();
+  const usuario = '@' + user.replace(/^@+/, '');
+  const bio = document.getElementById('onbBio').value.trim();
+  const fNac = document.getElementById('onbNacimiento');
+
+  // Usuario único (disponibilidad real en Firestore).
+  if (await usuarioOcupado(user)) {
+    document.getElementById('onbUser').focus();
+    toast('Ese usuario ya está ocupado, prueba otro');
+    return false;
+  }
+
+  // Verificación de edad 18+ (misma lógica que el registro por email).
+  const edad = edadEnAnios(fNac.value);
+  if (edad === null) {
+    fNac.setCustomValidity('Ingresa tu fecha de nacimiento');
+    fNac.reportValidity();
+    fNac.setCustomValidity('');
+    toast('Ingresa tu fecha de nacimiento');
+    return false;
+  }
+  if (edad < EDAD_MINIMA) {
+    toast('Lo sentimos: debes tener 18 años o más para usar Socialice.');
+    // Menor: cerramos la sesión de Google (queda sin cuenta en la app).
+    if (window.Socialice && window.Socialice.configurado) await window.Socialice.logout();
+    return false;
+  }
+
+  // Crea el documento de perfil (las reglas revalidan la edad).
+  try {
+    await window.Socialice.completarPerfilGoogle({ nombre, usuario, bio, fechaNacimiento: fNac.value });
+  } catch (e) {
+    toast(window.Socialice.mensajeError(e));
+    return false;
+  }
+  if (nombre) DATA.usuario.nombre = nombre;
+  DATA.usuario.usuario = usuario;
+  if (bio) DATA.usuario.bio = bio;
+  DATA.usuario.fechaNacimiento = fNac.value;
+  DATA.usuario.redes = { instagram: '', tiktok: '', web: '' };
+  entrarApp();
+  toast('¡Bienvenido a Socialice! 🎉');
+  return false;
+}
+
+// Botón "volver" del onboarding: sin fecha no se puede entrar, así que cierra
+// la sesión de Google y vuelve a la bienvenida.
+function salirOnboard() {
+  if (window.Socialice && window.Socialice.configurado) window.Socialice.logout();
+  else splashIr('welcome');
 }
 
 /* ===================================================================
@@ -4306,8 +4706,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Registro: el selector de fecha no permite elegir a un menor de 18
   // (el máximo es "hace 18 años"). Se calcula al abrir por si cambia el día.
-  const fNacInput = document.getElementById('regNacimiento');
-  if (fNacInput) fNacInput.max = maxFechaNacimiento();
+  // Aplica a todos los campos de fecha 18+ (registro por email y onboarding).
+  const max18 = maxFechaNacimiento();
+  document.querySelectorAll('.js-fecha-18').forEach((i) => { i.max = max18; });
 
   // La barra de navegación se ENCOGE un poco mientras haces scroll (deja ver
   // más el contenido detrás del vidrio) y vuelve a su tamaño al soltar.
@@ -4333,10 +4734,15 @@ document.addEventListener('DOMContentLoaded', () => {
     navMiniT = setTimeout(() => navEl.classList.remove('nav-mini'), 480);
   }, { capture: true, passive: true });
 
-  // ⚠️ TEMPORAL (modo pruebas): entra DIRECTO a la app sin pedir crear
-  // cuenta ni login. Para reactivar el splash, borra estas 2 líneas.
-  document.getElementById('screen-splash').classList.remove('is-active');
-  entrarApp();
+  // Arranque según la sesión:
+  // - Con Firebase configurado: dejamos el splash visible; firebase-init
+  //   enruta cuando resuelve la sesión (ver rutaSesion más abajo). Si hay
+  //   sesión abierta, entra a la app; si no, se queda en la bienvenida.
+  // - Sin Firebase (modo mock local): entra directo como antes.
+  if (!(window.Socialice && window.Socialice.configurado)) {
+    document.getElementById('screen-splash').classList.remove('is-active');
+    entrarApp();
+  }
 
   // --- Atajo de desarrollo (solo para pruebas) ---
   // Permite abrir una pantalla directa, ej: ?screen=home&rol=asistente

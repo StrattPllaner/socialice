@@ -1,0 +1,103 @@
+rules_version = '2';
+
+/* =====================================================================
+   SOCIALICE · Reglas de seguridad de Firestore
+   ---------------------------------------------------------------------
+   Aquí vive el enforcement REAL de la edad 18+ y la privacidad: aunque
+   alguien salte la validación del cliente, estas reglas mandan.
+
+   NOTA sobre la edad: el lenguaje de reglas no hace calendario exacto
+   (años bisiestos), así que el corte usa una aproximación en milisegundos
+   y queda ligeramente DEL LADO PERMISIVO para no rechazar adultos reales.
+   Para un corte exacto al día, usar una Cloud Function (plan Blaze) con el
+   núcleo ya escrito en server/ageVerification.js.
+   ===================================================================== */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 18 años ≈ 6574 días (18 * 365.25). En milisegundos:
+    function edadMinimaMs() {
+      return 6574 * 24 * 60 * 60 * 1000;
+    }
+
+    // ¿La fecha de nacimiento corresponde a alguien de 18+?
+    function esMayor(fnac) {
+      return fnac is timestamp
+          && fnac.toMillis() <= request.time.toMillis() - edadMinimaMs();
+    }
+
+    function soyYo(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    /* usuarios/{uid}
+       - El documento incluye fechaNacimiento (dato PRIVADO).
+       - Solo el dueño lee su propio documento → nadie ve la fecha de otro.
+         (Los datos PÚBLICOS de perfil irán aparte cuando se migren; ver README.)
+       - Crear: solo tú, y solo si eres mayor de 18 (se revalida la fecha).
+       - Actualizar: solo tú, y NO puedes cambiar tu fecha de nacimiento. */
+    match /usuarios/{uid} {
+      allow read:   if soyYo(uid);
+      allow create: if soyYo(uid)
+                    && esMayor(request.resource.data.fechaNacimiento);
+      allow update: if soyYo(uid)
+                    && request.resource.data.fechaNacimiento == resource.data.fechaNacimiento;
+      allow delete: if soyYo(uid);
+
+      // usuarios/{uid}/rsvps/{eid}: la respuesta del usuario a un evento
+      // (voy/tal vez/no/interesado). Privada: solo el dueño la ve y edita.
+      match /rsvps/{eid} {
+        allow read, write: if soyYo(uid);
+      }
+
+      // usuarios/{uid}/amigos/{amigoUid}: lista de amigos del usuario (info
+      // denormalizada del amigo). Privada: solo el dueño la ve y edita.
+      match /amigos/{amigoUid} {
+        allow read, write: if soyYo(uid);
+      }
+    }
+
+    /* usernames/{nombre}  (nombre = @usuario en minúsculas, sin @)
+       Índice de usuarios únicos. Cada doc = { uid }.
+       - read: público, para chequear disponibilidad.
+       - create: solo si lo reclama su dueño (uid propio). Como 'create' solo
+         aplica cuando el doc NO existe, un usuario ya tomado no se puede robar.
+       - update: nadie (impide sobrescribir/robar un usuario existente).
+       - delete: solo el dueño (para liberarlo al cambiar de usuario). */
+    match /usernames/{nombre} {
+      allow read:   if true;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid;
+      // El dueño puede refrescar su info pública (nombre/avatar), sin cambiar el
+      // uid → nadie puede robar un username ajeno (create no aplica si existe).
+      allow update: if request.auth != null
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null
+                    && resource.data.uid == request.auth.uid;
+    }
+
+    /* eventos/{id}
+       - read: cualquier logueado ve los públicos y el dueño ve los suyos.
+       - create/update: solo el dueño (organizerUid == su uid).
+       - delete: solo el dueño. */
+    match /eventos/{id} {
+      allow read:   if request.auth != null
+                    && (resource.data.publico == true
+                        || resource.data.organizerUid == request.auth.uid);
+      allow create: if request.auth != null
+                    && request.resource.data.organizerUid == request.auth.uid;
+      allow update: if request.auth != null
+                    && resource.data.organizerUid == request.auth.uid
+                    && request.resource.data.organizerUid == request.auth.uid;
+      allow delete: if request.auth != null
+                    && resource.data.organizerUid == request.auth.uid;
+    }
+
+    // Todo lo demás, cerrado por defecto hasta que se definan sus reglas.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

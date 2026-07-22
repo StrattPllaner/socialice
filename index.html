@@ -98,17 +98,17 @@
             <button class="field-eye" type="button" onclick="verPass('loginPass', this)" aria-label="Mostrar contraseña" data-icon="eye"></button>
           </div>
 
-          <button class="link-right" type="button" onclick="toast('Te enviaremos un correo para restablecerla 📧')">¿Olvidaste tu contraseña?</button>
+          <button class="link-right" type="button" onclick="recuperarPass()">¿Olvidaste tu contraseña?</button>
 
           <button class="btn full" type="submit">Entrar</button>
           </form>
 
           <div class="divider"><span>o continúa con</span></div>
           <div class="social-row">
-            <button class="social-btn" onclick="toast('Acceso con Google · pronto 🔗')">
+            <button type="button" class="social-btn" onclick="entrarGoogle()">
               <span class="social-g">G</span> Google
             </button>
-            <button class="social-btn" onclick="toast('Acceso con Apple · pronto 🔗')">
+            <button type="button" class="social-btn" onclick="toast('Acceso con Apple · pronto 🔗')">
                Apple
             </button>
           </div>
@@ -159,7 +159,7 @@
             <div class="field-main">
               <label class="field-label" for="regNacimiento">Fecha de nacimiento</label>
               <!-- max se calcula en app.js (init) para no permitir menores de 18 en el selector -->
-              <input type="date" class="field-input" id="regNacimiento" autocomplete="bday" required>
+              <input type="date" class="field-input js-fecha-18" id="regNacimiento" autocomplete="bday" required>
             </div>
           </div>
           <p class="field-hint">Debes tener 18 años o más para usar Socialice.</p>
@@ -234,6 +234,54 @@
         </div>
       </div>
 
+      <!-- f) Onboarding tras entrar con Google (cuenta nueva sin perfil):
+           pedimos usuario + fecha de nacimiento (18+) + bio y creamos el doc. -->
+      <div class="splash-page" data-page="onboard">
+        <div class="splash-head">
+          <button class="icon-btn" onclick="salirOnboard()" aria-label="Volver">‹</button>
+        </div>
+        <div class="splash-body">
+          <img class="brand-logo-img sm" src="icons/logo-figure.png" alt="Socialice">
+          <h2 class="splash-h">Completa tu perfil</h2>
+          <p class="splash-sub">Solo falta esto para entrar a la fiesta.</p>
+
+          <form id="fOnboard" class="splash-form" onsubmit="return onboardSubmit(event)" novalidate>
+          <div class="field">
+            <span class="field-icon" data-icon="user"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbNombre">Nombre</label>
+              <input type="text" class="field-input" id="onbNombre" placeholder="Ej: Andrea Ríos" autocomplete="name" required minlength="2" maxlength="40">
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon" data-icon="tag"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbUser">Usuario</label>
+              <input type="text" class="field-input" id="onbUser" placeholder="tuusuario" autocomplete="username" required minlength="3" maxlength="20" pattern="[a-zA-Z0-9._]+" title="Solo letras, números, punto y guion bajo">
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon" data-icon="cal"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbNacimiento">Fecha de nacimiento</label>
+              <input type="date" class="field-input js-fecha-18" id="onbNacimiento" autocomplete="bday" required>
+            </div>
+          </div>
+          <div class="field">
+            <span class="field-icon" data-icon="spark"></span>
+            <div class="field-main">
+              <label class="field-label" for="onbBio">Bio</label>
+              <input type="text" class="field-input" id="onbBio" placeholder="Cuéntale a la gente quién eres" maxlength="90">
+            </div>
+          </div>
+          </form>
+          <p class="field-hint">Debes tener 18 años o más para usar Socialice.</p>
+        </div>
+        <div class="splash-bottom">
+          <button class="btn full" type="submit" form="fOnboard">Entrar a Socialice</button>
+        </div>
+      </div>
+
     </section>
 
     <!-- 2) Inicio / feed de eventos  (Paso 3) -->
@@ -285,6 +333,9 @@
   <!-- Primero los datos de ejemplo, luego la lógica que los usa -->
   <script src="js/data.js?v=101"></script>
   <script src="js/app.js?v=101"></script>
+  <!-- Backend real (Auth + Firestore). Módulo aparte: si no hay config,
+       la app sigue en modo mock. Pega tu firebaseConfig dentro del archivo. -->
+  <script type="module" src="js/firebase-init.js?v=101"></script>
 
   <!-- Service Worker. Al actualizarse recarga UNA sola vez y SOLO si ya había
        un SW controlando la página (primera visita no recarga: cero loops) -->

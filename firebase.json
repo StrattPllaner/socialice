@@ -1,0 +1,20 @@
+{
+  "//": "Config de Firebase Hosting + Firestore. Despliegue: 'firebase deploy'.",
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "firestore.rules",
+      ".firebaserc",
+      "server/**",
+      "tools/**",
+      "**/.*"
+    ],
+    "rewrites": [
+      { "source": "**", "destination": "/index.html" }
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}
